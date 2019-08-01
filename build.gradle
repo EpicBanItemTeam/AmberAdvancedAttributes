@@ -1,0 +1,33 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = 'sponge'
+            url = 'https://repo.spongepowered.org/maven'
+        }
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.spongepowered.plugin' version '0.8.1'
+}
+
+group = 'io.izzel.amberadvancedattributes'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:7.1.0'
+}
+
+sponge.plugin.id = 'amberadvancedattributes'
+
+defaultTasks 'clean', 'build'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
