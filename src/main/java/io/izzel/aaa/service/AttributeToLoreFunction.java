@@ -11,5 +11,5 @@ import java.util.Map;
  */
 @FunctionalInterface
 public interface AttributeToLoreFunction<T extends DataSerializable> {
-    List<Map.Entry<Integer, Text>> toLoreTexts(List<? extends T> values);
+    List<Map.Entry<Byte, Text>> toLoreTexts(List<? extends T> values);
 }
