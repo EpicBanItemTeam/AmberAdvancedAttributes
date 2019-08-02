@@ -18,10 +18,15 @@ version = '1.0.0'
 
 repositories {
     mavenCentral()
+    maven {
+        name = 'jitpack'
+        url = 'https://jitpack.io'
+    }
 }
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.1.0'
+    compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
 }
 
 sponge.plugin.id = 'amberadvancedattributes'
