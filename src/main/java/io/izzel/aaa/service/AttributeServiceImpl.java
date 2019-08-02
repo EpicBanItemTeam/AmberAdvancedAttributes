@@ -6,10 +6,7 @@ import io.izzel.aaa.Main;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.event.CauseStackManager;
-import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
-import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -53,7 +50,7 @@ public class AttributeServiceImpl implements AttributeService {
         }
 
         @Override
-        public <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> t, Function<T, Text> f) {
+        public <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> t, AttributeToLoreFunction<T> f) {
             Preconditions.checkArgument(!attributeMap.containsKey(id), "Duplicate id");
             AttributeImpl<T> impl = new AttributeImpl<>(id, t, f);
             attributeMap.put(id, impl);

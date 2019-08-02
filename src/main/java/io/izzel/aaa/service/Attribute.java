@@ -1,6 +1,8 @@
 package io.izzel.aaa.service;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.event.Event;
@@ -19,9 +21,9 @@ public interface Attribute<T extends DataSerializable> {
 
     String getId();
 
-    Text getLore(T value);
-
     TypeToken<T> getToken();
+
+    ImmutableListMultimap<Integer, Text> getLoreTexts(List<? extends T> values);
 
     ImmutableList<T> getValues(ItemStack item);
 
@@ -40,6 +42,10 @@ public interface Attribute<T extends DataSerializable> {
         /**
          * @throws IllegalArgumentException if {@code id} is already registered
          */
-        <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> token, Function<T, Text> toLoreFunction) throws IllegalArgumentException;
+        <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> token, AttributeToLoreFunction<T> toLoreFunction) throws IllegalArgumentException;
+
+        default <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> token, int priority, Function<? super T, ? extends Text> function) throws IllegalArgumentException {
+            return this.register(id, token, values -> values.stream().<Text>map(function).map(text -> Maps.immutableEntry(priority, text)).collect(ImmutableList.toImmutableList()));
+        }
     }
 }
