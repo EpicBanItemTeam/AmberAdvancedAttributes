@@ -24,12 +24,10 @@ public class AttackListener {
     public void on(DamageEntityEvent event, @Root Player player) {
         Inventory query = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(EquipmentInventory.class));
         Streams.stream(query.<Slot>slots()).map(Inventory::peek).filter(Optional::isPresent).map(Optional::get)
-            .forEach(itemStack -> AttributeService.instance().<RangeValue>getAttributeById(AttributeKeys.ATTACK)
-                .map(it -> it.getValues(itemStack))
-                .ifPresent(it -> it.forEach(v ->
+            .forEach(itemStack -> AttributeKeys.ATTACK.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                        v.getFunction(), ImmutableSet.of()))));
+                        v.getFunction(), ImmutableSet.of())));
     }
 
 }

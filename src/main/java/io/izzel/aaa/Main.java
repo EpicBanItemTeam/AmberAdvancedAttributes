@@ -7,6 +7,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.service.Attribute;
+import io.izzel.aaa.service.AttributeKeys;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeServiceImpl;
 import org.slf4j.Logger;
@@ -74,15 +75,14 @@ public class Main {
 
     @Listener
     public void on(Attribute.RegistryEvent event) {
-        TypeToken<GameProfile> token = TypeToken.of(GameProfile.class);
-        Attribute<GameProfile> possession = event.register("aaa-possession", token, Byte.MIN_VALUE, (value) -> {
+        event.register("aaa-possession", TypeToken.of(GameProfile.class), Byte.MIN_VALUE, (value) -> {
             GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
             return Text.of(TextColors.YELLOW, profile.getName().orElse("[Server]"), " is possessed of this item");
         });
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
                 ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());
-                possession.setValues(item, ImmutableList.of(((Player) src).getProfile()));
+                AttributeKeys.POSSESSION.setValues(item, ImmutableList.of(((Player) src).getProfile()));
                 return CommandResult.success();
             } else {
                 return CommandResult.empty();
