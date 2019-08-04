@@ -3,6 +3,8 @@ package io.izzel.aaa.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.reflect.TypeToken;
+import io.izzel.aaa.data.Data;
+import io.izzel.aaa.data.DataUtil;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
@@ -45,11 +47,11 @@ public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
 
     @Override
     public ImmutableList<T> getValues(ItemStack item) {
-        throw new UnsupportedOperationException(); // TODO
+        return DataUtil.getData(item).map(data -> ImmutableList.<T>copyOf(data.get(this))).orElse(ImmutableList.of());
     }
 
     @Override
     public void setValues(ItemStack item, List<? extends T> values) {
-        throw new UnsupportedOperationException(); // TODO
+        DataUtil.setData(item, DataUtil.getOrCreateData(item).set(this, values));
     }
 }

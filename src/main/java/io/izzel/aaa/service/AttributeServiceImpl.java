@@ -3,17 +3,18 @@ package io.izzel.aaa.service;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 import io.izzel.aaa.Main;
+import io.izzel.aaa.data.Data;
+import io.izzel.aaa.data.ImmutableData;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author ustc_zzzz
@@ -34,6 +35,11 @@ public class AttributeServiceImpl implements AttributeService {
         try (CauseStackManager.StackFrame stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {
             Sponge.getEventManager().post(new RegistryEvent(stackFrame.getCurrentCause()));
         }
+        DataRegistration.builder()
+                .dataClass(Data.class)
+                .builder(new Data.Builder())
+                .immutableClass(ImmutableData.class)
+                .id("data").name("AmberAdvancedAttributes").build();
     }
 
     @Override

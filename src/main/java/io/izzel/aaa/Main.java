@@ -3,21 +3,30 @@ package io.izzel.aaa;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeServiceImpl;
 import org.slf4j.Logger;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.type.HandTypes;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
-import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -37,7 +46,7 @@ public class Main {
     }
 
     @Listener
-    public void on(GamePostInitializationEvent event) {
+    public void on(GameInitializationEvent event) {
         this.service.init();
     }
 
@@ -61,5 +70,24 @@ public class Main {
                 transaction.setCustom(item.createSnapshot());
             }
         }
+    }
+
+    @Listener
+    public void on(Attribute.RegistryEvent event) {
+        TypeToken<GameProfile> token = TypeToken.of(GameProfile.class);
+        Attribute<GameProfile> possession = event.register("aaa-possession", token, Byte.MIN_VALUE, (value) -> {
+            GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
+            return Text.of(TextColors.YELLOW, profile.getName().orElse("[Server]"), " is possessed of this item");
+        });
+        CommandExecutor executor = (src, args) -> {
+            if (src instanceof Player) {
+                ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());
+                possession.setValues(item, ImmutableList.of(((Player) src).getProfile()));
+                return CommandResult.success();
+            } else {
+                return CommandResult.empty();
+            }
+        };
+        Sponge.getCommandManager().register(this, CommandSpec.builder().executor(executor).build(), "aaa-possess");
     }
 }
