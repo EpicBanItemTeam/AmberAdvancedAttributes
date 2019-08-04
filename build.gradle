@@ -11,6 +11,7 @@ buildscript {
 plugins {
     id 'java'
     id 'org.spongepowered.plugin' version '0.8.1'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
 }
 
 group = 'io.izzel.amberadvancedattributes'
@@ -31,8 +32,15 @@ dependencies {
 
 sponge.plugin.id = 'amberadvancedattributes'
 
-defaultTasks 'clean', 'build'
+defaultTasks 'clean', 'build', 'shadowJar'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+shadowJar {
+    minimize()
+    dependencies {
+        it.include it.dependency('com.github.IzzelAliz:.*')
+    }
 }
