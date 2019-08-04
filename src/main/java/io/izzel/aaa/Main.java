@@ -6,6 +6,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import io.izzel.aaa.data.DataUtil;
+import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeKeys;
 import io.izzel.aaa.service.AttributeService;
@@ -75,6 +76,7 @@ public class Main {
 
     @Listener
     public void on(Attribute.RegistryEvent event) {
+        event.register("aaa-attack", TypeToken.of(RangeValue.class), values -> ImmutableList.of()); // TODO
         event.register("aaa-possession", TypeToken.of(GameProfile.class), Byte.MIN_VALUE, (value) -> {
             GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
             return Text.of(TextColors.YELLOW, profile.getName().orElse("[Server]"), " is possessed of this item");
