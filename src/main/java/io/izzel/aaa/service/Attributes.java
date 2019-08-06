@@ -3,7 +3,7 @@ package io.izzel.aaa.service;
 import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.profile.GameProfile;
 
-public class AttributeKeys {
+public final class Attributes {
     public static final Attribute<RangeValue> ATTACK;
     public static final Attribute<GameProfile> POSSESSION;
 
@@ -14,7 +14,11 @@ public class AttributeKeys {
     static {
         AttributeService service = AttributeService.instance();
 
-        ATTACK = service.<RangeValue>getAttributeById("aaa-attack").orElseThrow(AttributeKeys::error);
-        POSSESSION = service.<GameProfile>getAttributeById("aaa-possession").orElseThrow(AttributeKeys::error);
+        ATTACK = service.<RangeValue>getAttributeById("aaa-attack").orElseThrow(Attributes::error);
+        POSSESSION = service.<GameProfile>getAttributeById("aaa-possession").orElseThrow(Attributes::error);
+    }
+
+    private Attributes() {
+        throw new UnsupportedOperationException();
     }
 }

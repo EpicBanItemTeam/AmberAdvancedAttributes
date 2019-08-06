@@ -8,7 +8,7 @@ import com.google.inject.Inject;
 import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attribute;
-import io.izzel.aaa.service.AttributeKeys;
+import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeServiceImpl;
 import org.slf4j.Logger;
@@ -84,7 +84,7 @@ public class Main {
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
                 ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());
-                AttributeKeys.POSSESSION.setValues(item, ImmutableList.of(((Player) src).getProfile()));
+                Attributes.POSSESSION.setValues(item, ImmutableList.of(((Player) src).getProfile()));
                 return CommandResult.success();
             } else {
                 return CommandResult.empty();

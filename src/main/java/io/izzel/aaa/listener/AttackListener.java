@@ -2,9 +2,7 @@ package io.izzel.aaa.listener;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
-import io.izzel.aaa.service.AttributeKeys;
-import io.izzel.aaa.data.RangeValue;
-import io.izzel.aaa.service.AttributeService;
+import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.entity.damage.DamageModifier;
@@ -24,7 +22,7 @@ public class AttackListener {
     public void on(DamageEntityEvent event, @Root Player player) {
         Inventory query = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(EquipmentInventory.class));
         Streams.stream(query.<Slot>slots()).map(Inventory::peek).filter(Optional::isPresent).map(Optional::get)
-            .forEach(itemStack -> AttributeKeys.ATTACK.getValues(itemStack).forEach(v ->
+            .forEach(itemStack -> Attributes.ATTACK.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                         v.getFunction(), ImmutableSet.of())));
