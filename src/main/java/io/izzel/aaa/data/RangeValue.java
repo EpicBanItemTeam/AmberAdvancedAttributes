@@ -38,6 +38,22 @@ public final class RangeValue implements DataSerializable {
         }
     }
 
+    public boolean isRelative() {
+        return this.isRelative;
+    }
+
+    public double getLowerBound() {
+        return this.lowerBound;
+    }
+
+    public double getUpperBound() {
+        return this.upperBound;
+    }
+
+    public double getSize() {
+        return this.diff;
+    }
+
     @Override
     public int getContentVersion() {
         return 0;
