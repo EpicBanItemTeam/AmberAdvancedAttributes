@@ -15,6 +15,7 @@ import org.spongepowered.api.item.inventory.equipment.EquipmentInventory;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 
 import java.util.Optional;
+import java.util.Random;
 
 public class AttackListener {
 
@@ -25,7 +26,8 @@ public class AttackListener {
             .forEach(itemStack -> Attributes.ATTACK.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                        v.getFunction(), ImmutableSet.of())));
+                        v.getFunction(this.random), ImmutableSet.of())));
     }
 
+    private final Random random = new Random();
 }

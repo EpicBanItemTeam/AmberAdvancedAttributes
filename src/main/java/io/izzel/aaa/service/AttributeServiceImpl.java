@@ -5,6 +5,7 @@ import com.google.common.reflect.TypeToken;
 import io.izzel.aaa.Main;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.ImmutableData;
+import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.DataSerializable;
@@ -40,6 +41,7 @@ public class AttributeServiceImpl implements AttributeService {
                 .builder(new Data.Builder())
                 .immutableClass(ImmutableData.class)
                 .id("data").name("AmberAdvancedAttributes").build();
+        Sponge.getDataManager().registerBuilder(RangeValue.class, RangeValue.builder());
     }
 
     @Override
