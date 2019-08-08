@@ -25,12 +25,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-
 public class TracingListener {
 
-    private static final double P = Math.PI / 180D;
     private static final double DISTANCE = 64;
 
     @Listener
@@ -47,7 +43,12 @@ public class TracingListener {
             .orElse(DoubleUnaryOperator.identity());
         double tracing = operator.applyAsDouble(0D);
         if (tracing != 0D) {
-            Vector3d vec = player.getRotation(), pos = player.getPosition();
+            Vector3d rot = player.getHeadRotation();
+            double pitch = rot.getX();
+            double yaw = rot.getY();
+            double xz = Math.cos(Math.toRadians(pitch));
+            Vector3d vec = new Vector3d(-xz * Math.sin(Math.toRadians(yaw)), -Math.sin(Math.toRadians(pitch)), xz * Math.cos(Math.toRadians(yaw)));
+            Vector3d pos = player.getPosition();
             Optional<Living> target = player.getNearbyEntities(DISTANCE).stream()
                 .filter(Living.class::isInstance)
                 .map(Living.class::cast)
@@ -64,23 +65,12 @@ public class TracingListener {
         return Math.acos(a.dot(b) / (a.length() * b.length()));
     }
 
-    private static Quaterniond euler(Vector3d rot) {
-        double ex = rot.getX() * P / 2D;
-        double ey = rot.getY() * P / 2D;
-        double ez = rot.getZ() * P / 2D;
-        double qx = sin(ex) * cos(ey) * cos(ez) + cos(ex) * sin(ey) * sin(ez);
-        double qy = cos(ex) * sin(ey) * cos(ez) - sin(ex) * cos(ey) * sin(ez);
-        double qz = cos(ex) * cos(ey) * sin(ez) - sin(ex) * sin(ey) * cos(ez);
-        double qw = cos(ex) * cos(ey) * cos(ez) + sin(ex) * sin(ey) * sin(ez);
-        return Quaterniond.from(qx, qy, qz, qw);
-    }
-
     private static Vector3d rotate(Vector3d from, Vector3d to, double angle) {
-        if (angle(from, to) <= 1) {
+        if (angle(from, to) <= Math.toRadians(1)) {
             return to;
         } else {
             Vector3d pivot = from.cross(to).normalize().mul(angle);
-            return euler(pivot).rotate(from);
+            return Quaterniond.fromAngleRadAxis(Math.toRadians(angle), pivot).rotate(from);
         }
     }
 
