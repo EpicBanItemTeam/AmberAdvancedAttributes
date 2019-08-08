@@ -69,8 +69,7 @@ public class TracingListener {
         if (angle(from, to) <= Math.toRadians(1)) {
             return to;
         } else {
-            Vector3d pivot = from.cross(to).normalize().mul(angle);
-            return Quaterniond.fromAngleRadAxis(Math.toRadians(angle), pivot).rotate(from);
+            return Quaterniond.fromAngleRadAxis(Math.toRadians(angle), from.cross(to)).rotate(from);
         }
     }
 
