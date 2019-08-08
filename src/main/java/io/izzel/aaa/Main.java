@@ -36,6 +36,9 @@ import java.util.TreeMap;
 
 @Plugin(id = "amberadvancedattributes")
 public class Main {
+
+    public static Main INSTANCE;
+
     public final Logger logger;
     public final AttributeServiceImpl service;
 
@@ -43,6 +46,7 @@ public class Main {
 
     @Inject
     public Main(Logger logger) {
+        INSTANCE = this;
         this.logger = logger;
         this.service = new AttributeServiceImpl(this);
     }
