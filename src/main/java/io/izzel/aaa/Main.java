@@ -5,12 +5,12 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.data.RangeValue;
-import io.izzel.aaa.service.Attribute;
-import io.izzel.aaa.service.Attributes;
-import io.izzel.aaa.service.AttributeService;
-import io.izzel.aaa.service.AttributeServiceImpl;
+import io.izzel.aaa.service.*;
+import io.izzel.amber.commons.i18n.AmberLocale;
+import io.izzel.amber.commons.i18n.args.Arg;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
@@ -28,10 +28,10 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 @Plugin(id = "amberadvancedattributes")
@@ -41,14 +41,18 @@ public class Main {
 
     public final Logger logger;
     public final AttributeServiceImpl service;
+    public final AmberLocale locale;
+    private final Injector injector;
 
     private final Text loreSeparator = Text.of();
 
     @Inject
-    public Main(Logger logger) {
+    public Main(Logger logger, AmberLocale locale, Injector injector) {
         INSTANCE = this;
         this.logger = logger;
         this.service = new AttributeServiceImpl(this);
+        this.locale = locale;
+        this.injector = injector;
     }
 
     @Listener
@@ -78,12 +82,15 @@ public class Main {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Listener
     public void on(Attribute.RegistryEvent event) {
-        event.register("aaa-attack", TypeToken.of(RangeValue.class), values -> ImmutableList.of()); // TODO
+        event.register("aaa-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("attack"));
+        event.register("aaa-tracing", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("tracing"));
         event.register("aaa-possession", TypeToken.of(GameProfile.class), Byte.MIN_VALUE, (value) -> {
             GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
-            return Text.of(TextColors.YELLOW, profile.getName().orElse("[Server]"), " is possessed of this item");
+            return locale.getAs("attributes.possession.lore", TypeToken.of(Text.class),
+                ((Optional) profile.getName()).orElse(Arg.ref("attributes.possession.none"))).orElseThrow(RuntimeException::new);
         });
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
