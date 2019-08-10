@@ -27,7 +27,6 @@ public class AttackListener {
         Stream.concat(Streams.stream(player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(EquipmentInventory.class)).slots())
             .map(Inventory::peek), Stream.of(player.getItemInHand(HandTypes.MAIN_HAND), player.getItemInHand(HandTypes.OFF_HAND)))
             .filter(Optional::isPresent).map(Optional::get).forEach(itemStack -> {
-            System.out.println(itemStack);
             Attributes.ATTACK.getValues(itemStack).forEach(v ->
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                         .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
