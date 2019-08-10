@@ -6,6 +6,8 @@ import com.google.common.collect.Streams;
 import com.google.inject.Singleton;
 import io.izzel.aaa.Main;
 import io.izzel.aaa.service.Attributes;
+import org.spongepowered.api.data.property.AbstractProperty;
+import org.spongepowered.api.data.property.entity.EyeLocationProperty;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.User;
@@ -103,7 +105,11 @@ public class TracingListener {
             }
 
             Vector3d velocity = projectile.getVelocity();
-            Vector3d direction = living.getLocation().getPosition().sub(projectile.getLocation().getPosition());
+            Vector3d direction = living.getLocation().getPosition().sub(
+                projectile.getProperty(EyeLocationProperty.class)
+                    .map(AbstractProperty::getValue)
+                    .orElse(projectile.getLocation().getPosition())
+            );
             projectile.setVelocity(rotate(velocity, direction, tracingValue));
 
         }
