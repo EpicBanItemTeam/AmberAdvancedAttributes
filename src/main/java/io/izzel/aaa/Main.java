@@ -8,18 +8,23 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.data.RangeValue;
+import io.izzel.aaa.listener.AttackListener;
+import io.izzel.aaa.listener.PossessionListener;
+import io.izzel.aaa.listener.TracingListener;
 import io.izzel.aaa.service.*;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -29,12 +34,13 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
-@Plugin(id = "amberadvancedattributes")
+@Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")
 public class Main {
 
     public static Main INSTANCE;
@@ -85,13 +91,17 @@ public class Main {
     @SuppressWarnings("unchecked")
     @Listener
     public void on(Attribute.RegistryEvent event) {
+        EventManager eventManager = Sponge.getEventManager();
         event.register("aaa-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("attack"));
+        eventManager.registerListeners(this, injector.getInstance(AttackListener.class));
         event.register("aaa-tracing", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("tracing"));
+        eventManager.registerListeners(this, injector.getInstance(TracingListener.class));
         event.register("aaa-possession", TypeToken.of(GameProfile.class), Byte.MIN_VALUE, (value) -> {
             GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
             return locale.getAs("attributes.possession.lore", TypeToken.of(Text.class),
                 ((Optional) profile.getName()).orElse(Arg.ref("attributes.possession.none"))).orElseThrow(RuntimeException::new);
         });
+        eventManager.registerListeners(this, injector.getInstance(PossessionListener.class));
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
                 ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());
@@ -102,5 +112,24 @@ public class Main {
             }
         };
         Sponge.getCommandManager().register(this, CommandSpec.builder().executor(executor).build(), "aaa-possess");
+        // todo 暂时用这个
+        Sponge.getCommandManager().register(this, CommandSpec.builder()
+            .child(CommandSpec.builder()
+                .arguments(GenericArguments.string(Text.of("attr")), GenericArguments.integer(Text.of("value")))
+                .executor((src, args) -> {
+                    try {
+                        Integer value = args.<Integer>getOne("value").get();
+                        Field attr = Attributes.class.getDeclaredField(args.<String>getOne("attr").orElse(""));
+                        attr.setAccessible(true);
+                        Attribute attribute = (Attribute) attr.get(null);
+                        ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).get();
+                        attribute.setValues(itemStack, ImmutableList.of(new RangeValue(value, value, false)));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return CommandResult.success();
+                })
+                .build(), "add")
+            .build(), "aaa");
     }
 }

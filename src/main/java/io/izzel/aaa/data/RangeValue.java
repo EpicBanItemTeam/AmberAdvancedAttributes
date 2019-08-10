@@ -18,7 +18,7 @@ public final class RangeValue implements DataSerializable {
     private final double upperBound;
     private final double diff;
 
-    private RangeValue(double lower, double upper, boolean isRelative) {
+    public RangeValue(double lower, double upper, boolean isRelative) {
         Preconditions.checkArgument(Double.isFinite(lower) && Double.isFinite(upper), "bounds should be finite");
         double diff = upper - lower;
         Preconditions.checkArgument(diff >= 0, "lower bound should be smaller than upper bound");
