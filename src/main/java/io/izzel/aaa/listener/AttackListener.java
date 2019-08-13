@@ -64,12 +64,12 @@ public class AttackListener {
                         Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                                     .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                                v.getFunction(this.random), ImmutableSet.of()));
+                                d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
                     } else if (from instanceof Player) {
                         Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                                     .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                                v.getFunction(this.random), ImmutableSet.of()));
+                                d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
                     }
                 }
             });
