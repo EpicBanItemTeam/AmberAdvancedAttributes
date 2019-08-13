@@ -1,12 +1,48 @@
 package io.izzel.aaa.service;
 
+import io.izzel.aaa.data.FixedValue;
 import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.profile.GameProfile;
 
 public final class Attributes {
     public static final Attribute<RangeValue> ATTACK;
-    public static final Attribute<GameProfile> POSSESSION;
+    public static final Attribute<RangeValue> PVP_ATTACK;
+    public static final Attribute<RangeValue> PVE_ATTACK;
+    public static final Attribute<RangeValue> DEFENSE;
+    public static final Attribute<RangeValue> PVP_DEFENSE;
+    public static final Attribute<RangeValue> PVE_DEFENSE;
+    public static final Attribute<RangeValue> REFLECT;
+    public static final Attribute<RangeValue> PVP_REFLECT;
+    public static final Attribute<RangeValue> PVE_REFLECT;
+
+    public static final Attribute<RangeValue> CRIT;
+    public static final Attribute<RangeValue> CRIT_RATE;
+    public static final Attribute<RangeValue> BLOCK;
+    public static final Attribute<RangeValue> BLOCK_RATE;
+    public static final Attribute<RangeValue> DODGE;
+    public static final Attribute<RangeValue> ACCURACY;
     public static final Attribute<RangeValue> TRACING;
+    public static final Attribute<RangeValue> ACCELERATE;
+
+    public static final Attribute<FixedValue> ATTACK_SPEED;
+    public static final Attribute<FixedValue> MOVE_SPEED;
+    public static final Attribute<FixedValue> DURABILITY;
+    public static final Attribute<FixedValue> UNBREAKABLE;
+    public static final Attribute<RangeValue> LOOT_RATE;
+    public static final Attribute<RangeValue> BURN;
+    public static final Attribute<RangeValue> BURN_RATE;
+    public static final Attribute<RangeValue> LIFE_STEAL; // 他 ...
+    public static final Attribute<RangeValue> LIFE_STEAL_RATE;
+    public static final Attribute<FixedValue> MAX_HEALTH;
+    public static final Attribute<FixedValue> ATTACK_RANGE;
+    public static final Attribute<RangeValue> STARVATION;
+    public static final Attribute<RangeValue> SATURATION;
+    public static final Attribute<RangeValue> REGENERATION;
+    public static final Attribute<RangeValue> KNOCKBACK;
+    public static final Attribute<RangeValue> INSTANT_DEATH;
+    public static final Attribute<FixedValue> INSTANT_DEATH_IMMUNE;
+
+    public static final Attribute<GameProfile> POSSESSION;
 
     private static RuntimeException error() {
         return new RuntimeException("The class is loaded too early! ");
@@ -18,6 +54,38 @@ public final class Attributes {
         ATTACK = service.<RangeValue>getAttributeById("aaa-attack").orElseThrow(Attributes::error);
         POSSESSION = service.<GameProfile>getAttributeById("aaa-possession").orElseThrow(Attributes::error);
         TRACING = service.<RangeValue>getAttributeById("aaa-tracing").orElseThrow(Attributes::error);
+        PVP_ATTACK = service.<RangeValue>getAttributeById("aaa-pvp-attack").orElseThrow(Attributes::error);
+        PVE_ATTACK = service.<RangeValue>getAttributeById("aaa-pve-attack").orElseThrow(Attributes::error);
+        DEFENSE = service.<RangeValue>getAttributeById("aaa-defense").orElseThrow(Attributes::error);
+        PVP_DEFENSE = service.<RangeValue>getAttributeById("aaa-pvp-defense").orElseThrow(Attributes::error);
+        PVE_DEFENSE = service.<RangeValue>getAttributeById("aaa-pve-defense").orElseThrow(Attributes::error);
+        REFLECT = service.<RangeValue>getAttributeById("aaa-reflect").orElseThrow(Attributes::error);
+        PVP_REFLECT = service.<RangeValue>getAttributeById("aaa-pvp-reflect").orElseThrow(Attributes::error);
+        PVE_REFLECT = service.<RangeValue>getAttributeById("aaa-pve-reflect").orElseThrow(Attributes::error);
+        CRIT = service.<RangeValue>getAttributeById("aaa-critical").orElseThrow(Attributes::error);
+        CRIT_RATE = service.<RangeValue>getAttributeById("aaa-critical-rate").orElseThrow(Attributes::error);
+        BLOCK = service.<RangeValue>getAttributeById("aaa-block").orElseThrow(Attributes::error);
+        BLOCK_RATE = service.<RangeValue>getAttributeById("aaa-block-rate").orElseThrow(Attributes::error);
+        DODGE = service.<RangeValue>getAttributeById("aaa-dodge").orElseThrow(Attributes::error);
+        ACCURACY = service.<RangeValue>getAttributeById("aaa-accuracy").orElseThrow(Attributes::error);
+        ACCELERATE = service.<RangeValue>getAttributeById("aaa-accelerate").orElseThrow(Attributes::error);
+        ATTACK_SPEED = service.<FixedValue>getAttributeById("aaa-attack-speed").orElseThrow(Attributes::error);
+        MOVE_SPEED = service.<FixedValue>getAttributeById("aaa-move-speed").orElseThrow(Attributes::error);
+        DURABILITY = service.<FixedValue>getAttributeById("aaa-durability").orElseThrow(Attributes::error);
+        UNBREAKABLE = service.<FixedValue>getAttributeById("aaa-unbreakable").orElseThrow(Attributes::error);
+        LOOT_RATE = service.<RangeValue>getAttributeById("aaa-loot-rate").orElseThrow(Attributes::error);
+        BURN = service.<RangeValue>getAttributeById("aaa-burn").orElseThrow(Attributes::error);
+        BURN_RATE = service.<RangeValue>getAttributeById("aaa-burn-rate").orElseThrow(Attributes::error);
+        LIFE_STEAL = service.<RangeValue>getAttributeById("aaa-life-steal").orElseThrow(Attributes::error);
+        LIFE_STEAL_RATE = service.<RangeValue>getAttributeById("aaa-life-steal-rate").orElseThrow(Attributes::error);
+        MAX_HEALTH = service.<FixedValue>getAttributeById("aaa-max-health").orElseThrow(Attributes::error);
+        ATTACK_RANGE = service.<FixedValue>getAttributeById("aaa-attack-range").orElseThrow(Attributes::error);
+        STARVATION = service.<RangeValue>getAttributeById("aaa-starvation").orElseThrow(Attributes::error);
+        SATURATION = service.<RangeValue>getAttributeById("aaa-saturation").orElseThrow(Attributes::error);
+        REGENERATION = service.<RangeValue>getAttributeById("aaa-regeneration").orElseThrow(Attributes::error);
+        KNOCKBACK = service.<RangeValue>getAttributeById("aaa-knockback").orElseThrow(Attributes::error);
+        INSTANT_DEATH = service.<RangeValue>getAttributeById("aaa-instant-death").orElseThrow(Attributes::error);
+        INSTANT_DEATH_IMMUNE = service.<FixedValue>getAttributeById("aaa-instant-death-immune").orElseThrow(Attributes::error);
     }
 
     private Attributes() {

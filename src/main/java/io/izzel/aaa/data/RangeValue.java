@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
 
 @NonnullByDefault
-public final class RangeValue implements DataSerializable {
+public class RangeValue implements DataSerializable {
     private final boolean isRelative;
     private final double lowerBound;
     private final double upperBound;

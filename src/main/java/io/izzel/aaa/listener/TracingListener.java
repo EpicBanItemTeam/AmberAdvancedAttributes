@@ -2,22 +2,18 @@ package io.izzel.aaa.listener;
 
 import com.flowpowered.math.imaginary.Quaterniond;
 import com.flowpowered.math.vector.Vector3d;
-import com.google.common.collect.Streams;
 import com.google.inject.Singleton;
 import io.izzel.aaa.Main;
+import io.izzel.aaa.Util;
 import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.data.property.AbstractProperty;
 import org.spongepowered.api.data.property.entity.EyeLocationProperty;
-import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.projectile.Projectile;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.SpawnEntityEvent;
-import org.spongepowered.api.item.inventory.Inventory;
-import org.spongepowered.api.item.inventory.equipment.EquipmentInventory;
-import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.scheduler.Task;
 
 import java.lang.ref.WeakReference;
@@ -28,7 +24,6 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Singleton
 public class TracingListener {
@@ -41,9 +36,7 @@ public class TracingListener {
         if (!projectiles.isEmpty()) {
             event.getContext().get(EventContextKeys.OWNER).flatMap(User::getPlayer).ifPresent(player -> {
                 double[] tracing = {0D};
-                Stream.concat(Streams.stream(player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(EquipmentInventory.class)).slots())
-                    .map(Inventory::peek), Stream.of(player.getItemInHand(HandTypes.MAIN_HAND), player.getItemInHand(HandTypes.OFF_HAND)))
-                    .filter(Optional::isPresent).map(Optional::get)
+                Util.items(player)
                     .map(Attributes.TRACING::getValues)
                     .flatMap(Collection::stream)
                     .map(it -> it.getFunction(ThreadLocalRandom.current()))

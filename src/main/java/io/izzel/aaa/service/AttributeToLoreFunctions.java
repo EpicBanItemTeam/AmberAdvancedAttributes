@@ -15,7 +15,7 @@ public class AttributeToLoreFunctions {
 
     private static final DecimalFormat FORMAT = new DecimalFormat("+0.#;-0.#");
 
-    public static AttributeToLoreFunction<RangeValue> rangeValue(String id) {
+    public static <T extends RangeValue> AttributeToLoreFunction<T> rangeValue(String id) {
         AmberLocale locale = Main.INSTANCE.locale;
         return values -> values.stream().map(it -> {
             String lower = it.isRelative() ? FORMAT.format(it.getLowerBound() * 100D) + "%" : FORMAT.format(it.getLowerBound());
