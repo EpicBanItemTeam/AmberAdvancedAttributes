@@ -17,8 +17,6 @@ public final class Attributes {
 
     public static final Attribute<RangeValue> CRIT;
     public static final Attribute<RangeValue> CRIT_RATE;
-    public static final Attribute<RangeValue> BLOCK;
-    public static final Attribute<RangeValue> BLOCK_RATE;
     public static final Attribute<RangeValue> DODGE;
     public static final Attribute<RangeValue> ACCURACY;
     public static final Attribute<RangeValue> TRACING;
@@ -64,8 +62,6 @@ public final class Attributes {
         PVE_REFLECT = service.<RangeValue>getAttributeById("aaa-pve-reflect").orElseThrow(Attributes::error);
         CRIT = service.<RangeValue>getAttributeById("aaa-critical").orElseThrow(Attributes::error);
         CRIT_RATE = service.<RangeValue>getAttributeById("aaa-critical-rate").orElseThrow(Attributes::error);
-        BLOCK = service.<RangeValue>getAttributeById("aaa-block").orElseThrow(Attributes::error);
-        BLOCK_RATE = service.<RangeValue>getAttributeById("aaa-block-rate").orElseThrow(Attributes::error);
         DODGE = service.<RangeValue>getAttributeById("aaa-dodge").orElseThrow(Attributes::error);
         ACCURACY = service.<RangeValue>getAttributeById("aaa-accuracy").orElseThrow(Attributes::error);
         ACCELERATE = service.<RangeValue>getAttributeById("aaa-accelerate").orElseThrow(Attributes::error);

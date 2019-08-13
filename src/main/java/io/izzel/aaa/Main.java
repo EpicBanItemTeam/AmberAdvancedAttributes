@@ -113,8 +113,6 @@ public class Main {
         event.register("aaa-pve-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pve-reflect"));
         event.register("aaa-critical", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("critical"));
         event.register("aaa-critical-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("critical-rate"));
-        event.register("aaa-block", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("block"));
-        event.register("aaa-block-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("block-rate"));
         event.register("aaa-dodge", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("dodge"));
         event.register("aaa-accuracy", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accuracy"));
         event.register("aaa-accelerate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accelerate"));

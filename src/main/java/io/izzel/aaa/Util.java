@@ -1,22 +1,28 @@
 package io.izzel.aaa;
 
-import com.google.common.collect.Streams;
-import org.spongepowered.api.data.type.HandTypes;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.inventory.Inventory;
+import com.google.common.collect.ImmutableList;
+import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.equipment.EquipmentInventory;
-import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
+import org.spongepowered.api.item.inventory.equipment.EquipmentType;
+import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public class Util {
 
-    public static Stream<ItemStack> items(Player player) {
-        return Stream.concat(Streams.stream(player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(EquipmentInventory.class)).slots())
-            .map(Inventory::peek), Stream.of(player.getItemInHand(HandTypes.MAIN_HAND), player.getItemInHand(HandTypes.OFF_HAND)))
-            .filter(Optional::isPresent).map(Optional::get);
+    private static final List<EquipmentType> TYPES = ImmutableList.of(
+        EquipmentTypes.HEADWEAR,
+        EquipmentTypes.CHESTPLATE,
+        EquipmentTypes.LEGGINGS,
+        EquipmentTypes.BOOTS,
+        EquipmentTypes.OFF_HAND,
+        EquipmentTypes.MAIN_HAND
+    );
+
+    public static Stream<ItemStack> items(Equipable equipable) {
+        return TYPES.stream().map(equipable::getEquipped).filter(Optional::isPresent).map(Optional::get);
     }
 
 }
