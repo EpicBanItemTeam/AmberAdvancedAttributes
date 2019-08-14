@@ -23,9 +23,9 @@ public final class Attributes {
     public static final Attribute<RangeValue> TRACING;
     public static final Attribute<RangeValue> ACCELERATE;
 
-    public static final Attribute<FixedValue> ATTACK_SPEED;
+    public static final Attribute<FixedValue> ATTACK_SPEED; // todo
     public static final Attribute<FixedValue> MOVE_SPEED;
-    public static final Attribute<FixedValue> DURABILITY;
+    public static final Attribute<RangeValue> DURABILITY;
     public static final Attribute<FixedValue> UNBREAKABLE;
     public static final Attribute<RangeValue> LOOT_RATE;
     public static final Attribute<RangeValue> BURN;
@@ -69,7 +69,7 @@ public final class Attributes {
         ACCELERATE = service.<RangeValue>getAttributeById("aaa-accelerate").orElseThrow(Attributes::error);
         ATTACK_SPEED = service.<FixedValue>getAttributeById("aaa-attack-speed").orElseThrow(Attributes::error);
         MOVE_SPEED = service.<FixedValue>getAttributeById("aaa-move-speed").orElseThrow(Attributes::error);
-        DURABILITY = service.<FixedValue>getAttributeById("aaa-durability").orElseThrow(Attributes::error);
+        DURABILITY = service.<RangeValue>getAttributeById("aaa-durability").orElseThrow(Attributes::error);
         UNBREAKABLE = service.<FixedValue>getAttributeById("aaa-unbreakable").orElseThrow(Attributes::error);
         LOOT_RATE = service.<RangeValue>getAttributeById("aaa-loot-rate").orElseThrow(Attributes::error);
         BURN = service.<RangeValue>getAttributeById("aaa-burn").orElseThrow(Attributes::error);

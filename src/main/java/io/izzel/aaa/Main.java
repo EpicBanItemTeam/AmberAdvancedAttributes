@@ -120,8 +120,8 @@ public class Main {
         event.register("aaa-accelerate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accelerate"));
         event.register("aaa-attack-speed", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("attack-speed"));
         event.register("aaa-move-speed", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("move-speed"));
-        event.register("aaa-durability", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("durability"));
-        event.register("aaa-unbreakable", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("unbreakable"));
+        event.register("aaa-durability", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.durability());
+        event.register("aaa-unbreakable", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.markerValue("unbreakable"));
         event.register("aaa-loot-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("loot-rate"));
         event.register("aaa-burn", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn"));
         event.register("aaa-burn-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn-rate"));
@@ -134,7 +134,7 @@ public class Main {
         event.register("aaa-regeneration", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("regeneration"));
         event.register("aaa-knockback", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("knockback"));
         event.register("aaa-instant-death", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("instant-death"));
-        event.register("aaa-instant-death-immune", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("instant-death-immune"));
+        event.register("aaa-instant-death-immune", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.markerValue("instant-death-immune"));
         eventManager.registerListeners(this, injector.getInstance(MiscListener.class));
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {

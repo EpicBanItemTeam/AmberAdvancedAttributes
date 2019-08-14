@@ -30,4 +30,18 @@ public class AttributeToLoreFunctions {
         }).map(it -> new AbstractMap.SimpleEntry<>((byte) 0, it)).collect(Collectors.toList());
     }
 
+    public static <T extends RangeValue> AttributeToLoreFunction<T> markerValue(String id) {
+        AmberLocale locale = Main.INSTANCE.locale;
+        return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte) 0,
+            locale.getAs(String.format("attributes.%s.value", id), TypeToken.of(Text.class)).orElseThrow(RuntimeException::new)))
+            .collect(Collectors.toList());
+    }
+
+    public static AttributeToLoreFunction<RangeValue> durability() {
+        AmberLocale locale = Main.INSTANCE.locale;
+        return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte)0,
+            locale.getAs("attributes.durability.value", TypeToken.of(Text.class),
+            it.getLowerBound(), it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
+    }
+
 }
