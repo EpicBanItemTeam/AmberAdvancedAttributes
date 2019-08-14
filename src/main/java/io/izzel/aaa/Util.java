@@ -29,14 +29,18 @@ public class Util {
         return TYPES.stream().map(equipable::getEquipped).filter(Optional::isPresent).map(Optional::get);
     }
 
-    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
-        double[] ret = {0D};
+    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
+        double[] ret = {value};
         items(equipable)
             .map(attribute::getValues)
             .flatMap(Collection::stream)
             .map(it -> it.getFunction(ThreadLocalRandom.current()))
             .forEach(it -> ret[0] += it.applyAsDouble(ret[0]));
         return ret[0];
+    }
+
+    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
+        return allOf(equipable, attribute, 0D);
     }
 
 }

@@ -9,6 +9,8 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.projectile.Projectile;
+import org.spongepowered.api.entity.projectile.source.ProjectileSource;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.cause.entity.damage.DamageModifier;
@@ -21,6 +23,7 @@ import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
 
@@ -29,10 +32,20 @@ public class AttackListener {
 
     private final Random random = new Random();
 
+    private Optional<Equipable> getBySource(EntityDamageSource source) {
+        Entity from = source.getSource();
+        if (from instanceof Projectile) {
+            ProjectileSource shooter = ((Projectile) from).getShooter();
+            if (shooter instanceof Equipable) return Optional.of(((Equipable) shooter));
+            else return Optional.empty();
+        } else if (from instanceof Equipable) {
+            return Optional.of(((Equipable) from));
+        } else return Optional.empty();
+    }
+
     @Listener(order = Order.EARLY)
     public void onAttack(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        Entity from = source.getSource();
-        if (from instanceof Equipable) {
+        getBySource(source).ifPresent(from -> {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
             Util.items(((Equipable) from)).forEach(itemStack -> {
                 Attributes.ATTACK.getValues(itemStack).forEach(v ->
@@ -51,7 +64,7 @@ public class AttackListener {
                             v.getFunction(this.random), ImmutableSet.of()));
                 }
             });
-        }
+        });
     }
 
     private DoubleUnaryOperator defense(RangeValue value) {
@@ -73,31 +86,29 @@ public class AttackListener {
                             .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                         defense(v), ImmutableSet.of()));
                 if (source instanceof EntityDamageSource) {
-                    Entity from = ((EntityDamageSource) source).getSource();
-                    if (from instanceof Player && to instanceof Player) {
-                        Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
-                            event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                                defense(v), ImmutableSet.of()));
-                    } else if (from instanceof Player) {
-                        Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
-                            event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                                defense(v), ImmutableSet.of()));
-                    }
+                    getBySource(((EntityDamageSource) source)).ifPresent(from -> {
+                        if (from instanceof Player && to instanceof Player) {
+                            Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
+                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                                        .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
+                                    defense(v), ImmutableSet.of()));
+                        } else if (from instanceof Player) {
+                            Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
+                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                                        .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
+                                    defense(v), ImmutableSet.of()));
+                        }
+                    });
                 }
             });
         }
     }
 
     @Listener(order = Order.FIRST)
-    public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
+    public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
             double dodge = Util.allOf(((Equipable) to), Attributes.DODGE);
-            double accuracy = 0D;
-            if (source instanceof EntityDamageSource && ((EntityDamageSource) source).getSource() instanceof Equipable) {
-                accuracy = Util.allOf(((Equipable) ((EntityDamageSource) source).getSource()), Attributes.ACCURACY);
-            }
+            double accuracy = getBySource(source).map(it -> Util.allOf(it, Attributes.ACCURACY)).orElse(0D);
             if (random.nextDouble() < dodge - accuracy) {
                 event.setCancelled(true);
             }
@@ -106,22 +117,21 @@ public class AttackListener {
 
     @Listener(order = Order.DEFAULT)
     public void onCrit(DamageEntityEvent event, @First EntityDamageSource source) {
-        if (source.getSource() instanceof Equipable) {
-            double crit = Util.allOf(((Equipable) source.getSource()), Attributes.CRIT);
-            double critRate = Util.allOf(((Equipable) source.getSource()), Attributes.CRIT_RATE);
+        getBySource(source).ifPresent(from -> {
+            double crit = Util.allOf(from, Attributes.CRIT);
+            double critRate = Util.allOf(from, Attributes.CRIT_RATE);
             if (random.nextDouble() < critRate) {
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                         .type(DamageModifierTypes.CRITICAL_HIT).build(),
                     d -> d * crit, ImmutableSet.of());
             }
-        }
+        });
     }
 
     @Listener(order = Order.LATE)
     public void onInstantDeath(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        Entity from = source.getSource();
-        if (from instanceof Equipable) {
-            double instantDeath = Util.allOf(((Equipable) from), Attributes.INSTANT_DEATH);
+        getBySource(source).ifPresent(from -> {
+            double instantDeath = Util.allOf(from, Attributes.INSTANT_DEATH);
             boolean instantImmune = false;
             if (to instanceof Equipable) {
                 instantImmune = Util.items(((Equipable) to)).map(Attributes.INSTANT_DEATH_IMMUNE::getValues)
@@ -134,13 +144,12 @@ public class AttackListener {
                         .type(DamageModifierTypes.CRITICAL_HIT).build(),
                     d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
             }
-        }
+        });
     }
 
     @Listener(order = Order.LAST)
     public void onReflect(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        Entity from = source.getSource();
-        if (to instanceof Equipable) {
+        getBySource(source).ifPresent(from -> {
             double reflectRate = Util.allOf(((Equipable) to), Attributes.REFLECT_RATE);
             if (random.nextDouble() < reflectRate) {
                 double reflect = Util.allOf(((Equipable) to), Attributes.REFLECT);
@@ -151,9 +160,10 @@ public class AttackListener {
                     pveReflect = Util.allOf(((Player) to), Attributes.PVE_REFLECT);
                 }
                 double total = reflect + pvpReflect + pveReflect;
-                from.damage(event.getFinalDamage() * total, EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
+                ((Entity) from).damage(event.getFinalDamage() * total,
+                    EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
             }
-        }
+        });
     }
 
 }
