@@ -10,6 +10,7 @@ import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.data.FixedValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.listener.AttackListener;
+import io.izzel.aaa.listener.MiscListener;
 import io.izzel.aaa.listener.PossessionListener;
 import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.service.*;
@@ -134,6 +135,7 @@ public class Main {
         event.register("aaa-knockback", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("knockback"));
         event.register("aaa-instant-death", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("instant-death"));
         event.register("aaa-instant-death-immune", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("instant-death-immune"));
+        eventManager.registerListeners(this, injector.getInstance(MiscListener.class));
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
                 ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());

@@ -1,6 +1,7 @@
 package io.izzel.aaa.listener;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import io.izzel.aaa.service.Attributes;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.entity.living.player.Player;
@@ -13,6 +14,7 @@ import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import java.util.Collection;
 import java.util.Optional;
 
+@Singleton
 public class PossessionListener {
 
     @Inject private AmberLocale locale;

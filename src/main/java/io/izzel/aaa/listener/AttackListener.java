@@ -55,7 +55,7 @@ public class AttackListener {
     }
 
     private DoubleUnaryOperator defense(RangeValue value) {
-        if (!value.isRelative()) return d -> -value.getFunction(this.random).applyAsDouble(d);
+        if (!value.isRelative()) return d -> Math.max(-value.getFunction(this.random).applyAsDouble(d), 0D);
         else {
             double amount = random.nextBoolean()
                 ? value.getLowerBound() + value.getSize() * random.nextDouble()
