@@ -18,7 +18,7 @@ public class RangeValue implements DataSerializable {
     private final double upperBound;
     private final double diff;
 
-    public RangeValue(double lower, double upper, boolean isRelative) {
+    private RangeValue(double lower, double upper, boolean isRelative) {
         Preconditions.checkArgument(Double.isFinite(lower) && Double.isFinite(upper), "bounds should be finite");
         double diff = upper - lower;
         Preconditions.checkArgument(diff >= 0, "lower bound should be smaller than upper bound");
@@ -68,16 +68,16 @@ public class RangeValue implements DataSerializable {
                 .set(Queries.CONTENT_VERSION, this.getContentVersion());
     }
 
-    public static RangeValue absolute(double value) {
-        return new RangeValue(value, value, false);
+    public static RangeValue.Fixed absolute(double value) {
+        return new RangeValue.Fixed(value, false);
     }
 
     public static RangeValue absolute(double lowerBound, double upperBound) {
         return new RangeValue(lowerBound, upperBound, false);
     }
 
-    public static RangeValue relative(double value) {
-        return new RangeValue(value, value, true);
+    public static RangeValue.Fixed relative(double value) {
+        return new RangeValue.Fixed(value, true);
     }
 
     public static RangeValue relative(double lowerBound, double upperBound) {
@@ -104,10 +104,26 @@ public class RangeValue implements DataSerializable {
                 double lowerBound = container.getDouble(LOWER_BOUND).orElseThrow(IllegalArgumentException::new);
                 double upperBound = container.getDouble(UPPER_BOUND).orElseThrow(IllegalArgumentException::new);
                 boolean isRelative = container.getBoolean(RELATIVE).orElse(Boolean.FALSE);
-                return Optional.of(new RangeValue(lowerBound, upperBound, isRelative));
+                if (lowerBound == upperBound) {
+                    return Optional.of(new RangeValue.Fixed(lowerBound, isRelative));
+                } else {
+                    return Optional.of(new RangeValue(lowerBound, upperBound, isRelative));
+                }
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
             }
+        }
+    }
+
+    @NonnullByDefault
+    public static final class Fixed extends RangeValue {
+        private Fixed(double value, boolean isRelative) {
+            super(value, value, isRelative);
+        }
+
+        @Override
+        public DoubleUnaryOperator getFunction(Random random) {
+            return isRelative() ? d -> d * getLowerBound() : d -> getLowerBound();
         }
     }
 }

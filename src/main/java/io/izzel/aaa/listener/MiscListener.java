@@ -119,10 +119,10 @@ public class MiscListener {
         stack.getType().getDefaultProperty(UseLimitProperty.class).map(AbstractProperty::getValue)
             .ifPresent(max -> {
                 Optional<RangeValue> opt = Attributes.DURABILITY.getValues(stack).stream()
-                    .reduce((a, b) -> new RangeValue(a.getLowerBound() + b.getLowerBound(),
-                        a.getUpperBound() + b.getUpperBound(), false));
+                    .reduce((a, b) -> RangeValue.absolute(a.getLowerBound() + b.getLowerBound(),
+                        a.getUpperBound() + b.getUpperBound()));
                 if (opt.isPresent()) {
-                    RangeValue value = new RangeValue(opt.get().getLowerBound() - 1, opt.get().getUpperBound(), false);
+                    RangeValue value = RangeValue.absolute(opt.get().getLowerBound() - 1, opt.get().getUpperBound());
                     if (((int) value.getLowerBound()) == 0) {
                         event.setRemainingDuration(0);
                     } else {

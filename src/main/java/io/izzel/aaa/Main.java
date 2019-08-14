@@ -7,7 +7,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.izzel.aaa.data.DataUtil;
-import io.izzel.aaa.data.FixedValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.listener.AttackListener;
 import io.izzel.aaa.listener.MiscListener;
@@ -118,24 +117,24 @@ public class Main {
         event.register("aaa-dodge", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("dodge"));
         event.register("aaa-accuracy", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accuracy"));
         event.register("aaa-accelerate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accelerate"));
-        event.register("aaa-attack-speed", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("attack-speed"));
-        event.register("aaa-move-speed", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("move-speed"));
+        event.register("aaa-attack-speed", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("attack-speed"));
+        event.register("aaa-move-speed", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("move-speed"));
         event.register("aaa-durability", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.durability());
-        event.register("aaa-unbreakable", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.markerValue("unbreakable"));
+        event.register("aaa-unbreakable", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.markerValue("unbreakable"));
         event.register("aaa-loot-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("loot-rate"));
         event.register("aaa-loot-immune", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.markerValue("loot-immune"));
         event.register("aaa-burn", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn"));
         event.register("aaa-burn-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn-rate"));
         event.register("aaa-life-steal", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("life-steal"));
         event.register("aaa-life-steal-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("life-steal-rate"));
-        event.register("aaa-max-health", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("max-health"));
-        event.register("aaa-attack-range", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.rangeValue("attack-range"));
+        event.register("aaa-max-health", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("max-health"));
+        event.register("aaa-attack-range", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("attack-range"));
         event.register("aaa-starvation", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("starvation"));
         event.register("aaa-saturation", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("saturation"));
         event.register("aaa-regeneration", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("regeneration"));
         event.register("aaa-knockback", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("knockback"));
         event.register("aaa-instant-death", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("instant-death"));
-        event.register("aaa-instant-death-immune", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.markerValue("instant-death-immune"));
+        event.register("aaa-instant-death-immune", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.markerValue("instant-death-immune"));
         eventManager.registerListeners(this, injector.getInstance(MiscListener.class));
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
@@ -158,7 +157,7 @@ public class Main {
                         attr.setAccessible(true);
                         Attribute attribute = (Attribute) attr.get(null);
                         ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).get();
-                        attribute.setValues(itemStack, ImmutableList.of(new RangeValue(value, value, false)));
+                        attribute.setValues(itemStack, ImmutableList.of(RangeValue.absolute(value)));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
