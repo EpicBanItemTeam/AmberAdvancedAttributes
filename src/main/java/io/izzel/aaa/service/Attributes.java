@@ -14,6 +14,7 @@ public final class Attributes {
     public static final Attribute<RangeValue> REFLECT;
     public static final Attribute<RangeValue> PVP_REFLECT;
     public static final Attribute<RangeValue> PVE_REFLECT;
+    public static final Attribute<RangeValue> REFLECT_RATE;
 
     public static final Attribute<RangeValue> CRIT;
     public static final Attribute<RangeValue> CRIT_RATE;
@@ -60,6 +61,7 @@ public final class Attributes {
         REFLECT = service.<RangeValue>getAttributeById("aaa-reflect").orElseThrow(Attributes::error);
         PVP_REFLECT = service.<RangeValue>getAttributeById("aaa-pvp-reflect").orElseThrow(Attributes::error);
         PVE_REFLECT = service.<RangeValue>getAttributeById("aaa-pve-reflect").orElseThrow(Attributes::error);
+        REFLECT_RATE = service.<RangeValue>getAttributeById("aaa-reflect-rate").orElseThrow(Attributes::error);
         CRIT = service.<RangeValue>getAttributeById("aaa-critical").orElseThrow(Attributes::error);
         CRIT_RATE = service.<RangeValue>getAttributeById("aaa-critical-rate").orElseThrow(Attributes::error);
         DODGE = service.<RangeValue>getAttributeById("aaa-dodge").orElseThrow(Attributes::error);

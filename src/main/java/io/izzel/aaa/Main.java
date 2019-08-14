@@ -111,6 +111,7 @@ public class Main {
         event.register("aaa-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("reflect"));
         event.register("aaa-pvp-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pvp-reflect"));
         event.register("aaa-pve-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pve-reflect"));
+        event.register("aaa-reflect-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("reflect-rate"));
         event.register("aaa-critical", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("critical"));
         event.register("aaa-critical-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("critical-rate"));
         event.register("aaa-dodge", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("dodge"));

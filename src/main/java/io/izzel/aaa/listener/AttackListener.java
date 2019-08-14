@@ -13,6 +13,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.cause.entity.damage.DamageModifier;
 import org.spongepowered.api.event.cause.entity.damage.DamageModifierTypes;
+import org.spongepowered.api.event.cause.entity.damage.DamageTypes;
 import org.spongepowered.api.event.cause.entity.damage.source.DamageSource;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DamageEntityEvent;
@@ -28,7 +29,7 @@ public class AttackListener {
 
     private final Random random = new Random();
 
-    @Listener
+    @Listener(order = Order.EARLY)
     public void onAttack(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         Entity from = source.getSource();
         if (from instanceof Equipable) {
@@ -59,11 +60,11 @@ public class AttackListener {
             double amount = random.nextBoolean()
                 ? value.getLowerBound() + value.getSize() * random.nextDouble()
                 : value.getUpperBound() - value.getSize() * random.nextDouble();
-            return d -> -(1D - (1D / (1D + amount))) * d;
+            return d -> ((1D / (1D + amount)) - 1D) * d;
         }
     }
 
-    @Listener
+    @Listener(order = Order.EARLY)
     public void onDefense(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
             Util.items(((Equipable) to)).forEach(itemStack -> {
@@ -89,7 +90,7 @@ public class AttackListener {
         }
     }
 
-    @Listener(order = Order.EARLY)
+    @Listener(order = Order.FIRST)
     public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
             double dodge = Util.allOf(((Equipable) to), Attributes.DODGE);
@@ -103,7 +104,7 @@ public class AttackListener {
         }
     }
 
-    @Listener(order = Order.LATE)
+    @Listener(order = Order.DEFAULT)
     public void onCrit(DamageEntityEvent event, @First EntityDamageSource source) {
         if (source.getSource() instanceof Equipable) {
             double crit = Util.allOf(((Equipable) source.getSource()), Attributes.CRIT);
@@ -116,7 +117,7 @@ public class AttackListener {
         }
     }
 
-    @Listener(order = Order.LAST)
+    @Listener(order = Order.LATE)
     public void onInstantDeath(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         Entity from = source.getSource();
         if (from instanceof Equipable) {
@@ -132,6 +133,25 @@ public class AttackListener {
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                         .type(DamageModifierTypes.CRITICAL_HIT).build(),
                     d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
+            }
+        }
+    }
+
+    @Listener(order = Order.LAST)
+    public void onReflect(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
+        Entity from = source.getSource();
+        if (to instanceof Equipable) {
+            double reflectRate = Util.allOf(((Equipable) to), Attributes.REFLECT_RATE);
+            if (random.nextDouble() < reflectRate) {
+                double reflect = Util.allOf(((Equipable) to), Attributes.REFLECT);
+                double pvpReflect = 0D, pveReflect = 0D;
+                if (to instanceof Player && from instanceof Player) {
+                    pvpReflect = Util.allOf(((Player) to), Attributes.PVP_REFLECT);
+                } else if (to instanceof Player) {
+                    pveReflect = Util.allOf(((Player) to), Attributes.PVE_REFLECT);
+                }
+                double total = reflect + pvpReflect + pveReflect;
+                from.damage(event.getFinalDamage() * total, EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
             }
         }
     }
