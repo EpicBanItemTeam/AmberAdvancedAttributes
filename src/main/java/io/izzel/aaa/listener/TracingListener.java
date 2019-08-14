@@ -1,5 +1,6 @@
 package io.izzel.aaa.listener;
 
+import com.flowpowered.math.GenericMath;
 import com.flowpowered.math.imaginary.Quaterniond;
 import com.flowpowered.math.vector.Vector3d;
 import com.google.inject.Singleton;
@@ -17,11 +18,9 @@ import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.scheduler.Task;
 
 import java.lang.ref.WeakReference;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -35,13 +34,8 @@ public class TracingListener {
         List<Projectile> projectiles = event.getEntities().stream().filter(Projectile.class::isInstance).map(Projectile.class::cast).collect(Collectors.toList());
         if (!projectiles.isEmpty()) {
             event.getContext().get(EventContextKeys.OWNER).flatMap(User::getPlayer).ifPresent(player -> {
-                double[] tracing = {0D};
-                Util.items(player)
-                    .map(Attributes.TRACING::getValues)
-                    .flatMap(Collection::stream)
-                    .map(it -> it.getFunction(ThreadLocalRandom.current()))
-                    .forEach(it -> tracing[0] += it.applyAsDouble(tracing[0]));
-                if (tracing[0] != 0D) {
+                double tracing = Util.allOf(player, Attributes.TRACING);
+                if (Math.abs(tracing) > GenericMath.DBL_EPSILON) {
                     Vector3d rot = player.getHeadRotation();
                     double pitch = rot.getX();
                     double yaw = rot.getY();
@@ -56,7 +50,7 @@ public class TracingListener {
                     if (target.isPresent()) {
                         for (Projectile projectile : projectiles) {
                             Task.builder().delayTicks(1).intervalTicks(1)
-                                .execute(new RedirectProjectileTask(tracing[0], projectile, target.get())).submit(Main.INSTANCE);
+                                .execute(new RedirectProjectileTask(tracing, projectile, target.get())).submit(Main.INSTANCE);
                         }
                     }
                 }
