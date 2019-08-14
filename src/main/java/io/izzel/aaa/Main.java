@@ -123,6 +123,7 @@ public class Main {
         event.register("aaa-durability", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.durability());
         event.register("aaa-unbreakable", TypeToken.of(FixedValue.class), AttributeToLoreFunctions.markerValue("unbreakable"));
         event.register("aaa-loot-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("loot-rate"));
+        event.register("aaa-loot-immune", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.markerValue("loot-immune"));
         event.register("aaa-burn", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn"));
         event.register("aaa-burn-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn-rate"));
         event.register("aaa-life-steal", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("life-steal"));

@@ -28,6 +28,7 @@ public final class Attributes {
     public static final Attribute<RangeValue> DURABILITY;
     public static final Attribute<FixedValue> UNBREAKABLE;
     public static final Attribute<RangeValue> LOOT_RATE;
+    public static final Attribute<RangeValue> LOOT_IMMUNE;
     public static final Attribute<RangeValue> BURN;
     public static final Attribute<RangeValue> BURN_RATE;
     public static final Attribute<RangeValue> LIFE_STEAL; // 他 ...
@@ -72,6 +73,7 @@ public final class Attributes {
         DURABILITY = service.<RangeValue>getAttributeById("aaa-durability").orElseThrow(Attributes::error);
         UNBREAKABLE = service.<FixedValue>getAttributeById("aaa-unbreakable").orElseThrow(Attributes::error);
         LOOT_RATE = service.<RangeValue>getAttributeById("aaa-loot-rate").orElseThrow(Attributes::error);
+        LOOT_IMMUNE = service.<RangeValue>getAttributeById("aaa-loot-immune").orElseThrow(Attributes::error);
         BURN = service.<RangeValue>getAttributeById("aaa-burn").orElseThrow(Attributes::error);
         BURN_RATE = service.<RangeValue>getAttributeById("aaa-burn-rate").orElseThrow(Attributes::error);
         LIFE_STEAL = service.<RangeValue>getAttributeById("aaa-life-steal").orElseThrow(Attributes::error);
