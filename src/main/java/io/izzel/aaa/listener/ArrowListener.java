@@ -9,53 +9,50 @@ import io.izzel.aaa.Util;
 import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.data.property.AbstractProperty;
 import org.spongepowered.api.data.property.entity.EyeLocationProperty;
+import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.entity.living.Living;
-import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.entity.projectile.Projectile;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.SpawnEntityEvent;
 import org.spongepowered.api.scheduler.Task;
 
 import java.lang.ref.WeakReference;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Singleton
-public class TracingListener {
+public class ArrowListener {
 
     private static final double DISTANCE = 64;
 
+    @SuppressWarnings("unchecked")
     @Listener
-    public void on(SpawnEntityEvent event) {
-        List<Projectile> projectiles = event.getEntities().stream().filter(Projectile.class::isInstance).map(Projectile.class::cast).collect(Collectors.toList());
-        if (!projectiles.isEmpty()) {
-            event.getContext().get(EventContextKeys.OWNER).flatMap(User::getPlayer).ifPresent(player -> {
-                double tracing = Util.allOf(player, Attributes.TRACING);
+    public <T extends Equipable & Living> void on(SpawnEntityEvent event) {
+        event.getEntities().stream().filter(Projectile.class::isInstance).map(Projectile.class::cast)
+            .filter(it -> it.getShooter() instanceof Equipable && it.getShooter() instanceof Living)
+            .forEach(projectile -> {
+                T shooter = (T) projectile.getShooter();
+                double tracing = Util.allOf(shooter, Attributes.TRACING);
                 if (Math.abs(tracing) > GenericMath.DBL_EPSILON) {
-                    Vector3d rot = player.getHeadRotation();
+                    Vector3d rot = shooter.getHeadRotation();
                     double pitch = rot.getX();
                     double yaw = rot.getY();
                     double xz = Math.cos(Math.toRadians(pitch));
                     Vector3d vec = new Vector3d(-xz * Math.sin(Math.toRadians(yaw)), -Math.sin(Math.toRadians(pitch)), xz * Math.cos(Math.toRadians(yaw)));
-                    Vector3d pos = player.getPosition();
-                    Optional<Living> target = player.getNearbyEntities(DISTANCE).stream()
-                        .filter(it -> it != player)
+                    Vector3d pos = shooter.getLocation().getPosition();
+                    shooter.getNearbyEntities(DISTANCE).stream()
+                        .filter(it -> it != shooter)
                         .filter(Living.class::isInstance)
                         .map(Living.class::cast)
-                        .min(Comparator.comparingDouble(it -> angle(vec, it.getLocation().getPosition().sub(pos))));
-                    if (target.isPresent()) {
-                        for (Projectile projectile : projectiles) {
-                            Task.builder().delayTicks(1).intervalTicks(1)
-                                .execute(new RedirectProjectileTask(tracing, projectile, target.get())).submit(Main.INSTANCE);
-                        }
-                    }
+                        .min(Comparator.comparingDouble(it -> angle(vec, it.getLocation().getPosition().sub(pos))))
+                        .ifPresent(living -> Task.builder().delayTicks(1).intervalTicks(1)
+                            .execute(new RedirectProjectileTask(tracing, projectile, living)).submit(Main.INSTANCE));
+                }
+                double accelerate = Util.allOf(shooter, Attributes.ACCELERATE);
+                if (Math.abs(accelerate) > GenericMath.DBL_EPSILON) {
+                    Task.builder().delayTicks(1).intervalTicks(1).execute(new AccelerateProjectileTask(accelerate, projectile));
                 }
             });
-        }
     }
 
     private static double angle(Vector3d a, Vector3d b) {
@@ -67,6 +64,29 @@ public class TracingListener {
             return to;
         } else {
             return Quaterniond.fromAngleRadAxis(Math.toRadians(angle), from.cross(to)).rotate(from);
+        }
+    }
+
+    private static class AccelerateProjectileTask implements Consumer<Task> {
+
+        private final double accelerate;
+        private final WeakReference<Projectile> projectileWf;
+
+        public AccelerateProjectileTask(double accelerate, Projectile projectile) {
+            this.accelerate = 1D + accelerate / 10D;
+            this.projectileWf = new WeakReference<>(projectile);
+        }
+
+        @Override
+        public void accept(Task task) {
+            Projectile projectile = projectileWf.get();
+            if (projectile == null || projectile.isOnGround()) {
+                task.cancel();
+                return;
+            }
+
+            projectile.setVelocity(projectile.getVelocity().mul(accelerate));
+
         }
     }
 
@@ -86,7 +106,7 @@ public class TracingListener {
         public void accept(Task task) {
             Projectile projectile = projectileWf.get();
             Living living = targetWf.get();
-            if (projectile == null || living == null) {
+            if (projectile == null || projectile.isOnGround() || living == null) {
                 task.cancel();
                 return;
             }

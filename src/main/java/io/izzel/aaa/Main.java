@@ -11,7 +11,7 @@ import io.izzel.aaa.data.FixedValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.listener.AttackListener;
 import io.izzel.aaa.listener.PossessionListener;
-import io.izzel.aaa.listener.TracingListener;
+import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.service.*;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
@@ -96,7 +96,7 @@ public class Main {
         event.register("aaa-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("attack"));
         eventManager.registerListeners(this, injector.getInstance(AttackListener.class));
         event.register("aaa-tracing", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("tracing"));
-        eventManager.registerListeners(this, injector.getInstance(TracingListener.class));
+        eventManager.registerListeners(this, injector.getInstance(ArrowListener.class));
         event.register("aaa-possession", TypeToken.of(GameProfile.class), Byte.MIN_VALUE, (value) -> {
             GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
             return locale.getAs("attributes.possession.lore", TypeToken.of(Text.class),
