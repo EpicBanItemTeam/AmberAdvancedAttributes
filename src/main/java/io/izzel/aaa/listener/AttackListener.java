@@ -3,7 +3,9 @@ package io.izzel.aaa.listener;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Singleton;
 import io.izzel.aaa.Util;
+import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.entity.living.player.Player;
@@ -17,7 +19,9 @@ import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 
+import java.util.Collection;
 import java.util.Random;
+import java.util.function.DoubleUnaryOperator;
 
 @Singleton
 public class AttackListener {
@@ -49,6 +53,16 @@ public class AttackListener {
         }
     }
 
+    private DoubleUnaryOperator defense(RangeValue value) {
+        if (!value.isRelative()) return d -> -value.getFunction(this.random).applyAsDouble(d);
+        else {
+            double amount = random.nextBoolean()
+                ? value.getLowerBound() + value.getSize() * random.nextDouble()
+                : value.getUpperBound() - value.getSize() * random.nextDouble();
+            return d -> -(1D - (1D / (1D + amount))) * d;
+        }
+    }
+
     @Listener
     public void onDefense(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
@@ -56,19 +70,19 @@ public class AttackListener {
                 Attributes.DEFENSE.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                        d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
+                        defense(v), ImmutableSet.of()));
                 if (source instanceof EntityDamageSource) {
                     Entity from = ((EntityDamageSource) source).getSource();
                     if (from instanceof Player && to instanceof Player) {
                         Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                                     .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                                d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
+                                defense(v), ImmutableSet.of()));
                     } else if (from instanceof Player) {
                         Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                                     .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                                d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
+                                defense(v), ImmutableSet.of()));
                     }
                 }
             });
@@ -98,6 +112,26 @@ public class AttackListener {
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                         .type(DamageModifierTypes.CRITICAL_HIT).build(),
                     d -> d * crit, ImmutableSet.of());
+            }
+        }
+    }
+
+    @Listener(order = Order.LAST)
+    public void onInstantDeath(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
+        Entity from = source.getSource();
+        if (from instanceof Equipable) {
+            double instantDeath = Util.allOf(((Equipable) from), Attributes.INSTANT_DEATH);
+            boolean instantImmune = false;
+            if (to instanceof Equipable) {
+                instantImmune = Util.items(((Equipable) to)).map(Attributes.INSTANT_DEATH_IMMUNE::getValues)
+                    .flatMap(Collection::stream)
+                    .findAny().isPresent();
+            }
+            if (!instantImmune && random.nextDouble() < instantDeath) {
+                double damage = event.getFinalDamage();
+                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                        .type(DamageModifierTypes.CRITICAL_HIT).build(),
+                    d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
             }
         }
     }
