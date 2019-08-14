@@ -1,13 +1,16 @@
 package io.izzel.aaa.listener;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.inject.Singleton;
 import io.izzel.aaa.Util;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.Equipable;
+import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.projectile.Projectile;
 import org.spongepowered.api.entity.projectile.source.ProjectileSource;
@@ -21,11 +24,16 @@ import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.item.inventory.Carrier;
+import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.type.CarriedInventory;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
 
 @Singleton
 public class AttackListener {
@@ -164,6 +172,29 @@ public class AttackListener {
                     EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    @Listener
+    public <T extends Equipable & Entity> void onLoot(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
+        if (source.getSource() instanceof Equipable && to instanceof Carrier) {
+            T from = (T) source.getSource();
+            double loot = Util.allOf(from, Attributes.LOOT_RATE);
+            if (random.nextDouble() < loot) {
+                CarriedInventory<? extends Carrier> inventory = ((Carrier) to).getInventory();
+                List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
+                Inventory slot = slots.get(random.nextInt(slots.size()));
+                slot.poll(1).ifPresent(item -> {
+                    if (!Attributes.LOOT_IMMUNE.getValues(item).isEmpty()) {
+                        slot.offer(item);
+                    } else {
+                        Item entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));
+                        entityItem.offer(Keys.REPRESENTED_ITEM, item.createSnapshot());
+                        from.getLocation().getExtent().spawnEntity(entityItem);
+                    }
+                });
+            }
+        }
     }
 
 }
