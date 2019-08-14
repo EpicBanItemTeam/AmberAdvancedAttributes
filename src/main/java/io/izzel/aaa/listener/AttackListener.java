@@ -17,7 +17,6 @@ import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 
-import java.util.Collection;
 import java.util.Random;
 
 @Singleton
@@ -56,19 +55,19 @@ public class AttackListener {
             Util.items(((Equipable) to)).forEach(itemStack -> {
                 Attributes.DEFENSE.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                            .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
+                            .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                         d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
                 if (source instanceof EntityDamageSource) {
                     Entity from = ((EntityDamageSource) source).getSource();
                     if (from instanceof Player && to instanceof Player) {
                         Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                                    .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
+                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                 d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
                     } else if (from instanceof Player) {
                         Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                                    .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
+                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                 d -> -v.getFunction(this.random).applyAsDouble(d), ImmutableSet.of()));
                     }
                 }
@@ -79,22 +78,26 @@ public class AttackListener {
     @Listener(order = Order.EARLY)
     public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
-            double[] dodge = {0D};
-            double[] accuracy = {0D};
-            Util.items(((Equipable) to))
-                .map(Attributes.DODGE::getValues)
-                .flatMap(Collection::stream)
-                .map(it -> it.getFunction(random))
-                .forEach(it -> dodge[0] += it.applyAsDouble(dodge[0]));
+            double dodge = Util.allOf(((Equipable) to), Attributes.DODGE);
+            double accuracy = 0D;
             if (source instanceof EntityDamageSource && ((EntityDamageSource) source).getSource() instanceof Equipable) {
-                Util.items(((Equipable) ((EntityDamageSource) source).getSource()))
-                    .map(Attributes.ACCURACY::getValues)
-                    .flatMap(Collection::stream)
-                    .map(it -> it.getFunction(random))
-                    .forEach(it -> accuracy[0] += it.applyAsDouble(accuracy[0]));
+                accuracy = Util.allOf(((Equipable) ((EntityDamageSource) source).getSource()), Attributes.ACCURACY);
             }
-            if (random.nextDouble() < dodge[0] - accuracy[0]) {
+            if (random.nextDouble() < dodge - accuracy) {
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    @Listener(order = Order.LATE)
+    public void onCrit(DamageEntityEvent event, @First EntityDamageSource source) {
+        if (source.getSource() instanceof Equipable) {
+            double crit = Util.allOf(((Equipable) source.getSource()), Attributes.CRIT);
+            double critRate = Util.allOf(((Equipable) source.getSource()), Attributes.CRIT_RATE);
+            if (random.nextDouble() < critRate) {
+                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                        .type(DamageModifierTypes.CRITICAL_HIT).build(),
+                    d -> d * crit, ImmutableSet.of());
             }
         }
     }
