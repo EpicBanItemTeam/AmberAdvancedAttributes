@@ -1,5 +1,6 @@
 package io.izzel.aaa.service;
 
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.profile.GameProfile;
 
@@ -25,9 +26,9 @@ public final class Attributes {
     public static final Attribute<RangeValue.Fixed> ATTACK_SPEED; // todo
     public static final Attribute<RangeValue.Fixed> MOVE_SPEED;
     public static final Attribute<RangeValue> DURABILITY;
-    public static final Attribute<RangeValue.Fixed> UNBREAKABLE;
+    public static final Attribute<MarkerValue> UNBREAKABLE;
     public static final Attribute<RangeValue> LOOT_RATE;
-    public static final Attribute<RangeValue> LOOT_IMMUNE;
+    public static final Attribute<MarkerValue> LOOT_IMMUNE;
     public static final Attribute<RangeValue> BURN;
     public static final Attribute<RangeValue> BURN_RATE;
     public static final Attribute<RangeValue> LIFE_STEAL; // 他 ...
@@ -39,7 +40,7 @@ public final class Attributes {
     public static final Attribute<RangeValue> REGENERATION;
     public static final Attribute<RangeValue> KNOCKBACK;
     public static final Attribute<RangeValue> INSTANT_DEATH;
-    public static final Attribute<RangeValue.Fixed> INSTANT_DEATH_IMMUNE;
+    public static final Attribute<MarkerValue> INSTANT_DEATH_IMMUNE;
 
     public static final Attribute<GameProfile> POSSESSION;
 
@@ -70,9 +71,9 @@ public final class Attributes {
         ATTACK_SPEED = service.<RangeValue.Fixed>getAttributeById("aaa-attack-speed").orElseThrow(Attributes::error);
         MOVE_SPEED = service.<RangeValue.Fixed>getAttributeById("aaa-move-speed").orElseThrow(Attributes::error);
         DURABILITY = service.<RangeValue>getAttributeById("aaa-durability").orElseThrow(Attributes::error);
-        UNBREAKABLE = service.<RangeValue.Fixed>getAttributeById("aaa-unbreakable").orElseThrow(Attributes::error);
+        UNBREAKABLE = service.<MarkerValue>getAttributeById("aaa-unbreakable").orElseThrow(Attributes::error);
         LOOT_RATE = service.<RangeValue>getAttributeById("aaa-loot-rate").orElseThrow(Attributes::error);
-        LOOT_IMMUNE = service.<RangeValue>getAttributeById("aaa-loot-immune").orElseThrow(Attributes::error);
+        LOOT_IMMUNE = service.<MarkerValue>getAttributeById("aaa-loot-immune").orElseThrow(Attributes::error);
         BURN = service.<RangeValue>getAttributeById("aaa-burn").orElseThrow(Attributes::error);
         BURN_RATE = service.<RangeValue>getAttributeById("aaa-burn-rate").orElseThrow(Attributes::error);
         LIFE_STEAL = service.<RangeValue>getAttributeById("aaa-life-steal").orElseThrow(Attributes::error);
@@ -84,7 +85,7 @@ public final class Attributes {
         REGENERATION = service.<RangeValue>getAttributeById("aaa-regeneration").orElseThrow(Attributes::error);
         KNOCKBACK = service.<RangeValue>getAttributeById("aaa-knockback").orElseThrow(Attributes::error);
         INSTANT_DEATH = service.<RangeValue>getAttributeById("aaa-instant-death").orElseThrow(Attributes::error);
-        INSTANT_DEATH_IMMUNE = service.<RangeValue.Fixed>getAttributeById("aaa-instant-death-immune").orElseThrow(Attributes::error);
+        INSTANT_DEATH_IMMUNE = service.<MarkerValue>getAttributeById("aaa-instant-death-immune").orElseThrow(Attributes::error);
     }
 
     private Attributes() {

@@ -7,6 +7,7 @@ import org.spongepowered.api.data.persistence.DataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
@@ -66,6 +67,25 @@ public class RangeValue implements DataSerializable {
                 .set(Builder.UPPER_BOUND, this.upperBound)
                 .set(Builder.LOWER_BOUND, this.lowerBound)
                 .set(Queries.CONTENT_VERSION, this.getContentVersion());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.isRelative, this.lowerBound, this.upperBound);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != this) {
+            if (obj instanceof RangeValue) {
+                RangeValue that = (RangeValue) obj;
+                if (that.isRelative == this.isRelative) {
+                    return that.lowerBound == this.lowerBound && that.upperBound == this.upperBound;
+                }
+            }
+            return false;
+        }
+        return true;
     }
 
     public static RangeValue.Fixed absolute(double value) {
