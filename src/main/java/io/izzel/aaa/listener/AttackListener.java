@@ -157,21 +157,23 @@ public class AttackListener {
 
     @Listener(order = Order.LAST)
     public void onReflect(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        getBySource(source).ifPresent(from -> {
-            double reflectRate = Util.allOf(((Equipable) to), Attributes.REFLECT_RATE);
-            if (random.nextDouble() < reflectRate) {
-                double reflect = Util.allOf(((Equipable) to), Attributes.REFLECT);
-                double pvpReflect = 0D, pveReflect = 0D;
-                if (to instanceof Player && from instanceof Player) {
-                    pvpReflect = Util.allOf(((Player) to), Attributes.PVP_REFLECT);
-                } else if (to instanceof Player) {
-                    pveReflect = Util.allOf(((Player) to), Attributes.PVE_REFLECT);
+        if (to instanceof Equipable) {
+            getBySource(source).ifPresent(from -> {
+                double reflectRate = Util.allOf(((Equipable) to), Attributes.REFLECT_RATE);
+                if (random.nextDouble() < reflectRate) {
+                    double reflect = Util.allOf(((Equipable) to), Attributes.REFLECT);
+                    double pvpReflect = 0D, pveReflect = 0D;
+                    if (to instanceof Player && from instanceof Player) {
+                        pvpReflect = Util.allOf(((Player) to), Attributes.PVP_REFLECT);
+                    } else if (to instanceof Player) {
+                        pveReflect = Util.allOf(((Player) to), Attributes.PVE_REFLECT);
+                    }
+                    double total = reflect + pvpReflect + pveReflect;
+                    ((Entity) from).damage(event.getFinalDamage() * total,
+                        EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
                 }
-                double total = reflect + pvpReflect + pveReflect;
-                ((Entity) from).damage(event.getFinalDamage() * total,
-                    EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
-            }
-        });
+            });
+        }
     }
 
     @SuppressWarnings("unchecked")
