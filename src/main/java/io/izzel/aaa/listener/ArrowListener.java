@@ -3,6 +3,8 @@ package io.izzel.aaa.listener;
 import com.flowpowered.math.GenericMath;
 import com.flowpowered.math.imaginary.Quaterniond;
 import com.flowpowered.math.vector.Vector3d;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import io.izzel.aaa.Main;
 import io.izzel.aaa.util.EquipmentUtil;
@@ -25,6 +27,13 @@ public class ArrowListener {
 
     private static final double DISTANCE = 64;
 
+    private final Provider<Main> provider;
+
+    @Inject
+    public ArrowListener(Provider<Main> provider) {
+        this.provider = provider;
+    }
+
     @SuppressWarnings("unchecked")
     @Listener
     public <T extends Equipable & Living> void on(SpawnEntityEvent event) {
@@ -46,7 +55,7 @@ public class ArrowListener {
                         .map(Living.class::cast)
                         .min(Comparator.comparingDouble(it -> angle(vec, it.getLocation().getPosition().sub(pos))))
                         .ifPresent(living -> Task.builder().delayTicks(1).intervalTicks(1)
-                            .execute(new RedirectProjectileTask(tracing, projectile, living)).submit(Main.INSTANCE));
+                            .execute(new RedirectProjectileTask(tracing, projectile, living)).submit(this.provider.get()));
                 }
                 double accelerate = EquipmentUtil.allOf(shooter, Attributes.ACCELERATE);
                 if (Math.abs(accelerate) > GenericMath.DBL_EPSILON) {

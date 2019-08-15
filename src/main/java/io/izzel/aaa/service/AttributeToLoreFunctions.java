@@ -21,8 +21,8 @@ public class AttributeToLoreFunctions {
 
     private static final DecimalFormat FORMAT = new DecimalFormat("+0.#;-0.#");
 
-    public static <T extends RangeValue> AttributeToLoreFunction<T> rangeValue(String id) {
-        AmberLocale locale = Main.INSTANCE.locale;
+    public static <T extends RangeValue> AttributeToLoreFunction<T> rangeValue(Main plugin, String id) {
+        AmberLocale locale = plugin.locale;
         return values -> values.stream().map(it -> {
             String lower = it.isRelative() ? FORMAT.format(it.getLowerBound() * 100D) + "%" : FORMAT.format(it.getLowerBound());
             String higher = it.isRelative() ? FORMAT.format(it.getUpperBound() * 100D) + "%" : FORMAT.format(it.getUpperBound());
@@ -36,22 +36,22 @@ public class AttributeToLoreFunctions {
         }).map(it -> new AbstractMap.SimpleEntry<>((byte) 0, it)).collect(Collectors.toList());
     }
 
-    public static <T extends RangeValue> AttributeToLoreFunction<T> markerValue(String id) {
-        AmberLocale locale = Main.INSTANCE.locale;
+    public static <T extends RangeValue> AttributeToLoreFunction<T> markerValue(Main plugin, String id) {
+        AmberLocale locale = plugin.locale;
         return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte) 0,
             locale.getAs(String.format("attributes.%s.value", id), TypeToken.of(Text.class)).orElseThrow(RuntimeException::new)))
             .collect(Collectors.toList());
     }
 
-    public static AttributeToLoreFunction<RangeValue> durability() {
-        AmberLocale locale = Main.INSTANCE.locale;
+    public static AttributeToLoreFunction<RangeValue> durability(Main plugin) {
+        AmberLocale locale = plugin.locale;
         return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte) 0,
             locale.getAs("attributes.durability.value", TypeToken.of(Text.class),
                 (int) it.getLowerBound(), (int) it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
     }
 
-    public static AttributeToLoreFunction<GameProfile> profile() {
-        AmberLocale locale = Main.INSTANCE.locale;
+    public static AttributeToLoreFunction<GameProfile> profile(Main plugin) {
+        AmberLocale locale = plugin.locale;
         return values -> (values.stream().flatMap(it -> {
             String name = Sponge.getServer().getGameProfileManager().fill(it).join().getName().orElse("[Server]");
             Optional<Text> text = locale.getAs("attributes.possession.lore", TypeToken.of(Text.class), name);

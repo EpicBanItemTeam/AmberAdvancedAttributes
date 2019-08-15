@@ -39,11 +39,10 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
+
 @Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")
 public class Main {
-
-    public static Main INSTANCE;
-
     public final Logger logger;
     public final AmberLocale locale;
     public final AttributeServiceImpl service;
@@ -54,7 +53,6 @@ public class Main {
 
     @Inject
     public Main(Logger logger, AttributeServiceImpl service, AmberLocale locale, Injector injector) {
-        INSTANCE = this;
         this.logger = logger;
         this.locale = locale;
         this.service = service;
@@ -91,46 +89,53 @@ public class Main {
     @SuppressWarnings("unchecked")
     @Listener
     public void on(Attribute.RegistryEvent event) {
+        TypeToken<RangeValue> rangeType = TypeToken.of(RangeValue.class);
+        TypeToken<GameProfile> profileType = TypeToken.of(GameProfile.class);
+        TypeToken<RangeValue.Fixed> rangeFixedType = TypeToken.of(RangeValue.Fixed.class);
+
+        event.register("aaa-attack", rangeType, rangeValue(this, "attack"));
+        event.register("aaa-tracing", rangeType, rangeValue(this, "tracing"));
+        event.register("aaa-possession", profileType, profile(this));
+        event.register("aaa-pvp-attack", rangeType, rangeValue(this, "pvp-attack"));
+        event.register("aaa-pve-attack", rangeType, rangeValue(this, "pve-attack"));
+        event.register("aaa-defense", rangeType, rangeValue(this, "defense"));
+        event.register("aaa-pvp-defense", rangeType, rangeValue(this, "pvp-defense"));
+        event.register("aaa-pve-defense", rangeType, rangeValue(this, "pve-defense"));
+        event.register("aaa-reflect", rangeType, rangeValue(this, "reflect"));
+        event.register("aaa-pvp-reflect", rangeType, rangeValue(this, "pvp-reflect"));
+        event.register("aaa-pve-reflect", rangeType, rangeValue(this, "pve-reflect"));
+        event.register("aaa-reflect-rate", rangeType, rangeValue(this, "reflect-rate"));
+        event.register("aaa-critical", rangeType, rangeValue(this, "critical"));
+        event.register("aaa-critical-rate", rangeType, rangeValue(this, "critical-rate"));
+        event.register("aaa-dodge", rangeType, rangeValue(this, "dodge"));
+        event.register("aaa-accuracy", rangeType, rangeValue(this, "accuracy"));
+        event.register("aaa-accelerate", rangeType, rangeValue(this, "accelerate"));
+        event.register("aaa-attack-speed", rangeFixedType, rangeValue(this, "attack-speed"));
+        event.register("aaa-move-speed", rangeFixedType, rangeValue(this, "move-speed"));
+        event.register("aaa-durability", rangeType, durability(this));
+        event.register("aaa-unbreakable", rangeFixedType, markerValue(this, "unbreakable"));
+        event.register("aaa-loot-rate", rangeType, rangeValue(this, "loot-rate"));
+        event.register("aaa-loot-immune", rangeType, markerValue(this, "loot-immune"));
+        event.register("aaa-burn", rangeType, rangeValue(this, "burn"));
+        event.register("aaa-burn-rate", rangeType, rangeValue(this, "burn-rate"));
+        event.register("aaa-life-steal", rangeType, rangeValue(this, "life-steal"));
+        event.register("aaa-life-steal-rate", rangeType, rangeValue(this, "life-steal-rate"));
+        event.register("aaa-max-health", rangeFixedType, rangeValue(this, "max-health"));
+        event.register("aaa-attack-range", rangeFixedType, rangeValue(this, "attack-range"));
+        event.register("aaa-starvation", rangeType, rangeValue(this, "starvation"));
+        event.register("aaa-saturation", rangeType, rangeValue(this, "saturation"));
+        event.register("aaa-regeneration", rangeType, rangeValue(this, "regeneration"));
+        event.register("aaa-knockback", rangeType, rangeValue(this, "knockback"));
+        event.register("aaa-instant-death", rangeType, rangeValue(this, "instant-death"));
+        event.register("aaa-instant-death-immune", rangeFixedType, markerValue(this, "instant-death-immune"));
+
         EventManager eventManager = Sponge.getEventManager();
-        event.register("aaa-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("attack"));
-        eventManager.registerListeners(this, injector.getInstance(AttackListener.class));
-        event.register("aaa-tracing", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("tracing"));
-        eventManager.registerListeners(this, injector.getInstance(ArrowListener.class));
-        event.register("aaa-possession", TypeToken.of(GameProfile.class), AttributeToLoreFunctions.profile());
-        eventManager.registerListeners(this, injector.getInstance(PossessionListener.class));
-        event.register("aaa-pvp-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pvp-attack"));
-        event.register("aaa-pve-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pve-attack"));
-        event.register("aaa-defense", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("defense"));
-        event.register("aaa-pvp-defense", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pvp-defense"));
-        event.register("aaa-pve-defense", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pve-defense"));
-        event.register("aaa-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("reflect"));
-        event.register("aaa-pvp-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pvp-reflect"));
-        event.register("aaa-pve-reflect", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pve-reflect"));
-        event.register("aaa-reflect-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("reflect-rate"));
-        event.register("aaa-critical", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("critical"));
-        event.register("aaa-critical-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("critical-rate"));
-        event.register("aaa-dodge", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("dodge"));
-        event.register("aaa-accuracy", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accuracy"));
-        event.register("aaa-accelerate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("accelerate"));
-        event.register("aaa-attack-speed", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("attack-speed"));
-        event.register("aaa-move-speed", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("move-speed"));
-        event.register("aaa-durability", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.durability());
-        event.register("aaa-unbreakable", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.markerValue("unbreakable"));
-        event.register("aaa-loot-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("loot-rate"));
-        event.register("aaa-loot-immune", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.markerValue("loot-immune"));
-        event.register("aaa-burn", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn"));
-        event.register("aaa-burn-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("burn-rate"));
-        event.register("aaa-life-steal", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("life-steal"));
-        event.register("aaa-life-steal-rate", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("life-steal-rate"));
-        event.register("aaa-max-health", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("max-health"));
-        event.register("aaa-attack-range", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.rangeValue("attack-range"));
-        event.register("aaa-starvation", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("starvation"));
-        event.register("aaa-saturation", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("saturation"));
-        event.register("aaa-regeneration", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("regeneration"));
-        event.register("aaa-knockback", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("knockback"));
-        event.register("aaa-instant-death", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("instant-death"));
-        event.register("aaa-instant-death-immune", TypeToken.of(RangeValue.Fixed.class), AttributeToLoreFunctions.markerValue("instant-death-immune"));
-        eventManager.registerListeners(this, injector.getInstance(MiscListener.class));
+
+        eventManager.registerListeners(this, this.injector.getInstance(AttackListener.class));
+        eventManager.registerListeners(this, this.injector.getInstance(ArrowListener.class));
+        eventManager.registerListeners(this, this.injector.getInstance(PossessionListener.class));
+        eventManager.registerListeners(this, this.injector.getInstance(MiscListener.class));
+
         CommandExecutor executor = (src, args) -> {
             if (src instanceof Player) {
                 ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());
