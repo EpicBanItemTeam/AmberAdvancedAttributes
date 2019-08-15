@@ -45,18 +45,19 @@ public class Main {
     public static Main INSTANCE;
 
     public final Logger logger;
-    public final AttributeServiceImpl service;
     public final AmberLocale locale;
+    public final AttributeServiceImpl service;
+
     private final Injector injector;
 
     private final Text loreSeparator = Text.of();
 
     @Inject
-    public Main(Logger logger, AmberLocale locale, Injector injector) {
+    public Main(Logger logger, AttributeServiceImpl service, AmberLocale locale, Injector injector) {
         INSTANCE = this;
         this.logger = logger;
-        this.service = new AttributeServiceImpl(this);
         this.locale = locale;
+        this.service = service;
         this.injector = injector;
     }
 
