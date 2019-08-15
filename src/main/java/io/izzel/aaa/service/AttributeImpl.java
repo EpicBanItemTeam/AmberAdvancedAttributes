@@ -3,7 +3,6 @@ package io.izzel.aaa.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.reflect.TypeToken;
-import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.DataUtil;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.item.inventory.ItemStack;

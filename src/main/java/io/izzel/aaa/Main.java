@@ -8,13 +8,12 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.izzel.aaa.data.DataUtil;
 import io.izzel.aaa.data.RangeValue;
+import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.listener.AttackListener;
 import io.izzel.aaa.listener.MiscListener;
 import io.izzel.aaa.listener.PossessionListener;
-import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.service.*;
 import io.izzel.amber.commons.i18n.AmberLocale;
-import io.izzel.amber.commons.i18n.args.Arg;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
@@ -38,7 +37,6 @@ import org.spongepowered.api.text.Text;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 @Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")

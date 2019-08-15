@@ -55,7 +55,7 @@ public class AttackListener {
     public void onAttack(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
-            Util.items(((Equipable) from)).forEach(itemStack -> {
+            Util.items(from).forEach(itemStack -> {
                 Attributes.ATTACK.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
