@@ -45,16 +45,14 @@ public class AttributeToLoreFunctions {
 
     public static AttributeToLoreFunction<RangeValue> durability() {
         AmberLocale locale = Main.INSTANCE.locale;
-        return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte)0,
+        return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte) 0,
             locale.getAs("attributes.durability.value", TypeToken.of(Text.class),
-            it.getLowerBound(), it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
+                (int) it.getLowerBound(), (int) it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
     }
 
     public static AttributeToLoreFunction<GameProfile> profile() {
         AmberLocale locale = Main.INSTANCE.locale;
-        return values -> (values.isEmpty()
-                ? Streams.stream(locale.getAs("attributes.possession.none", TypeToken.of(Text.class)))
-                : values.stream().flatMap(it -> {
+        return values -> (values.stream().flatMap(it -> {
             String name = Sponge.getServer().getGameProfileManager().fill(it).join().getName().orElse("[Server]");
             Optional<Text> text = locale.getAs("attributes.possession.lore", TypeToken.of(Text.class), name);
             return Streams.stream(text);

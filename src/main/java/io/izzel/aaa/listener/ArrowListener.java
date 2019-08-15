@@ -112,11 +112,10 @@ public class ArrowListener {
             }
 
             Vector3d velocity = projectile.getVelocity();
-            Vector3d direction = living.getLocation().getPosition().sub(
-                projectile.getProperty(EyeLocationProperty.class)
-                    .map(AbstractProperty::getValue)
-                    .orElse(projectile.getLocation().getPosition())
-            );
+            Vector3d direction = living.getProperty(EyeLocationProperty.class)
+                .map(AbstractProperty::getValue).orElse(living.getLocation().getPosition())
+                .sub(projectile.getLocation().getPosition());
+
             projectile.setVelocity(rotate(velocity, direction, tracingValue));
 
         }

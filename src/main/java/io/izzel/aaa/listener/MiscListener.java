@@ -114,7 +114,7 @@ public class MiscListener {
     }
 
     @Listener
-    public void on(UseItemStackEvent event) {
+    public void on(UseItemStackEvent.Finish event) {
         ItemStack stack = event.getItemStackInUse().createStack();
         stack.getType().getDefaultProperty(UseLimitProperty.class).map(AbstractProperty::getValue)
             .ifPresent(max -> {
