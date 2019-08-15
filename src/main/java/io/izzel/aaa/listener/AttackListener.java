@@ -3,7 +3,7 @@ package io.izzel.aaa.listener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.inject.Singleton;
-import io.izzel.aaa.Util;
+import io.izzel.aaa.util.EquipmentUtil;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.data.key.Keys;
@@ -55,7 +55,7 @@ public class AttackListener {
     public void onAttack(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
-            Util.items(from).forEach(itemStack -> {
+            EquipmentUtil.items(from).forEach(itemStack -> {
                 Attributes.ATTACK.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
@@ -88,7 +88,7 @@ public class AttackListener {
     @Listener(order = Order.EARLY)
     public void onDefense(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
-            Util.items(((Equipable) to)).forEach(itemStack -> {
+            EquipmentUtil.items(((Equipable) to)).forEach(itemStack -> {
                 Attributes.DEFENSE.getValues(itemStack).forEach(v ->
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                             .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
@@ -115,8 +115,8 @@ public class AttackListener {
     @Listener(order = Order.FIRST)
     public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
-            double dodge = Util.allOf(((Equipable) to), Attributes.DODGE);
-            double accuracy = getBySource(source).map(it -> Util.allOf(it, Attributes.ACCURACY)).orElse(0D);
+            double dodge = EquipmentUtil.allOf(((Equipable) to), Attributes.DODGE);
+            double accuracy = getBySource(source).map(it -> EquipmentUtil.allOf(it, Attributes.ACCURACY)).orElse(0D);
             if (random.nextDouble() < dodge - accuracy) {
                 event.setCancelled(true);
             }
@@ -126,8 +126,8 @@ public class AttackListener {
     @Listener(order = Order.DEFAULT)
     public void onCrit(DamageEntityEvent event, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
-            double crit = Util.allOf(from, Attributes.CRIT);
-            double critRate = Util.allOf(from, Attributes.CRIT_RATE);
+            double crit = EquipmentUtil.allOf(from, Attributes.CRIT);
+            double critRate = EquipmentUtil.allOf(from, Attributes.CRIT_RATE);
             if (random.nextDouble() < critRate) {
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                         .type(DamageModifierTypes.CRITICAL_HIT).build(),
@@ -139,10 +139,10 @@ public class AttackListener {
     @Listener(order = Order.LATE)
     public void onInstantDeath(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
-            double instantDeath = Util.allOf(from, Attributes.INSTANT_DEATH);
+            double instantDeath = EquipmentUtil.allOf(from, Attributes.INSTANT_DEATH);
             boolean instantImmune = false;
             if (to instanceof Equipable) {
-                instantImmune = Util.items(((Equipable) to)).map(Attributes.INSTANT_DEATH_IMMUNE::getValues)
+                instantImmune = EquipmentUtil.items(((Equipable) to)).map(Attributes.INSTANT_DEATH_IMMUNE::getValues)
                     .flatMap(Collection::stream)
                     .findAny().isPresent();
             }
@@ -159,14 +159,14 @@ public class AttackListener {
     public void onReflect(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
             getBySource(source).ifPresent(from -> {
-                double reflectRate = Util.allOf(((Equipable) to), Attributes.REFLECT_RATE);
+                double reflectRate = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT_RATE);
                 if (random.nextDouble() < reflectRate) {
-                    double reflect = Util.allOf(((Equipable) to), Attributes.REFLECT);
+                    double reflect = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT);
                     double pvpReflect = 0D, pveReflect = 0D;
                     if (to instanceof Player && from instanceof Player) {
-                        pvpReflect = Util.allOf(((Player) to), Attributes.PVP_REFLECT);
+                        pvpReflect = EquipmentUtil.allOf(((Player) to), Attributes.PVP_REFLECT);
                     } else if (to instanceof Player) {
-                        pveReflect = Util.allOf(((Player) to), Attributes.PVE_REFLECT);
+                        pveReflect = EquipmentUtil.allOf(((Player) to), Attributes.PVE_REFLECT);
                     }
                     double total = reflect + pvpReflect + pveReflect;
                     ((Entity) from).damage(event.getFinalDamage() * total,
@@ -181,7 +181,7 @@ public class AttackListener {
     public <T extends Equipable & Entity> void onLoot(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (source.getSource() instanceof Equipable && to instanceof Carrier) {
             T from = (T) source.getSource();
-            double loot = Util.allOf(from, Attributes.LOOT_RATE);
+            double loot = EquipmentUtil.allOf(from, Attributes.LOOT_RATE);
             if (random.nextDouble() < loot) {
                 CarriedInventory<? extends Carrier> inventory = ((Carrier) to).getInventory();
                 List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
