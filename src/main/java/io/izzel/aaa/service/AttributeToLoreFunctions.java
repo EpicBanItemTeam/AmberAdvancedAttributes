@@ -1,14 +1,20 @@
 package io.izzel.aaa.service;
 
 import com.flowpowered.math.GenericMath;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
 import io.izzel.aaa.Main;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.amber.commons.i18n.AmberLocale;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 
 import java.text.DecimalFormat;
 import java.util.AbstractMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AttributeToLoreFunctions {
@@ -44,4 +50,14 @@ public class AttributeToLoreFunctions {
             it.getLowerBound(), it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
     }
 
+    public static AttributeToLoreFunction<GameProfile> profile() {
+        AmberLocale locale = Main.INSTANCE.locale;
+        return values -> (values.isEmpty()
+                ? Streams.stream(locale.getAs("attributes.possession.none", TypeToken.of(Text.class)))
+                : values.stream().flatMap(it -> {
+            String name = Sponge.getServer().getGameProfileManager().fill(it).join().getName().orElse("[Server]");
+            Optional<Text> text = locale.getAs("attributes.possession.lore", TypeToken.of(Text.class), name);
+            return Streams.stream(text);
+        })).map(v -> Maps.immutableEntry(Byte.MIN_VALUE, v)).collect(ImmutableList.toImmutableList());
+    }
 }

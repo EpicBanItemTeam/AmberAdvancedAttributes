@@ -97,11 +97,7 @@ public class Main {
         eventManager.registerListeners(this, injector.getInstance(AttackListener.class));
         event.register("aaa-tracing", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("tracing"));
         eventManager.registerListeners(this, injector.getInstance(ArrowListener.class));
-        event.register("aaa-possession", TypeToken.of(GameProfile.class), Byte.MIN_VALUE, (value) -> {
-            GameProfile profile = Sponge.getServer().getGameProfileManager().fill(value).join();
-            return locale.getAs("attributes.possession.lore", TypeToken.of(Text.class),
-                ((Optional) profile.getName()).orElse(Arg.ref("attributes.possession.none"))).orElseThrow(RuntimeException::new);
-        });
+        event.register("aaa-possession", TypeToken.of(GameProfile.class), AttributeToLoreFunctions.profile());
         eventManager.registerListeners(this, injector.getInstance(PossessionListener.class));
         event.register("aaa-pvp-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pvp-attack"));
         event.register("aaa-pve-attack", TypeToken.of(RangeValue.class), AttributeToLoreFunctions.rangeValue("pve-attack"));
