@@ -1,6 +1,7 @@
-package io.izzel.aaa.data;
+package io.izzel.aaa.util;
 
 import com.google.common.collect.ListMultimap;
+import io.izzel.aaa.data.Data;
 import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.persistence.InvalidDataException;

@@ -1,4 +1,4 @@
-package io.izzel.aaa;
+package io.izzel.aaa.util;
 
 import com.google.common.collect.ImmutableList;
 import io.izzel.aaa.data.RangeValue;
@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
-public class Util {
+public class EquipmentUtil {
 
     private static final List<EquipmentType> TYPES = ImmutableList.of(
         EquipmentTypes.HEADWEAR,

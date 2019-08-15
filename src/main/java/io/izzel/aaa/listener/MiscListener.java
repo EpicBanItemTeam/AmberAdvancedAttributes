@@ -95,7 +95,7 @@ public class MiscListener {
                 double speed = Util.allOf(((Equipable) entity), Attributes.MOVE_SPEED, DEFAULT_MOVE_SPEED);
                 entity.offer(Keys.WALKING_SPEED, speed);
             }
-            // TODO double attackSpeed = Util.allOf(((Equipable) entity), Attributes.ATTACK_SPEED, 0D);
+            // TODO double attackSpeed = EquipmentUtil.allOf(((Equipable) entity), Attributes.ATTACK_SPEED, 0D);
             //  Keys.ATTACK_SPEED
             if (entity.supports(Keys.MAX_HEALTH)) {
                 double max = Util.allOf(((Equipable) entity), Attributes.MAX_HEALTH, DEFAULT_MAX_HEALTH);
