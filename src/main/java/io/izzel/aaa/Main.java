@@ -1,24 +1,30 @@
 package io.izzel.aaa;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import io.izzel.aaa.util.DataUtil;
+import io.izzel.aaa.command.RangeValueElement;
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.listener.AttackListener;
 import io.izzel.aaa.listener.MiscListener;
 import io.izzel.aaa.listener.PossessionListener;
-import io.izzel.aaa.service.*;
+import io.izzel.aaa.service.Attribute;
+import io.izzel.aaa.service.AttributeService;
+import io.izzel.aaa.service.AttributeServiceImpl;
+import io.izzel.aaa.service.AttributeToLoreFunction;
+import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
@@ -34,9 +40,9 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
@@ -86,48 +92,45 @@ public class Main {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Listener
     public void on(Attribute.RegistryEvent event) {
-        TypeToken<RangeValue> rangeType = TypeToken.of(RangeValue.class);
-        TypeToken<GameProfile> profileType = TypeToken.of(GameProfile.class);
-        TypeToken<RangeValue.Fixed> rangeFixedType = TypeToken.of(RangeValue.Fixed.class);
+        CommandManager commandManager = Sponge.getCommandManager();
 
-        event.register("aaa-attack", rangeType, rangeValue(this, "attack"));
-        event.register("aaa-tracing", rangeType, rangeValue(this, "tracing"));
-        event.register("aaa-possession", profileType, profile(this));
-        event.register("aaa-pvp-attack", rangeType, rangeValue(this, "pvp-attack"));
-        event.register("aaa-pve-attack", rangeType, rangeValue(this, "pve-attack"));
-        event.register("aaa-defense", rangeType, rangeValue(this, "defense"));
-        event.register("aaa-pvp-defense", rangeType, rangeValue(this, "pvp-defense"));
-        event.register("aaa-pve-defense", rangeType, rangeValue(this, "pve-defense"));
-        event.register("aaa-reflect", rangeType, rangeValue(this, "reflect"));
-        event.register("aaa-pvp-reflect", rangeType, rangeValue(this, "pvp-reflect"));
-        event.register("aaa-pve-reflect", rangeType, rangeValue(this, "pve-reflect"));
-        event.register("aaa-reflect-rate", rangeType, rangeValue(this, "reflect-rate"));
-        event.register("aaa-critical", rangeType, rangeValue(this, "critical"));
-        event.register("aaa-critical-rate", rangeType, rangeValue(this, "critical-rate"));
-        event.register("aaa-dodge", rangeType, rangeValue(this, "dodge"));
-        event.register("aaa-accuracy", rangeType, rangeValue(this, "accuracy"));
-        event.register("aaa-accelerate", rangeType, rangeValue(this, "accelerate"));
-        event.register("aaa-attack-speed", rangeFixedType, rangeValue(this, "attack-speed"));
-        event.register("aaa-move-speed", rangeFixedType, rangeValue(this, "move-speed"));
-        event.register("aaa-durability", rangeType, durability(this));
-        event.register("aaa-unbreakable", rangeFixedType, markerValue(this, "unbreakable"));
-        event.register("aaa-loot-rate", rangeType, rangeValue(this, "loot-rate"));
-        event.register("aaa-loot-immune", rangeType, markerValue(this, "loot-immune"));
-        event.register("aaa-burn", rangeType, rangeValue(this, "burn"));
-        event.register("aaa-burn-rate", rangeType, rangeValue(this, "burn-rate"));
-        event.register("aaa-life-steal", rangeType, rangeValue(this, "life-steal"));
-        event.register("aaa-life-steal-rate", rangeType, rangeValue(this, "life-steal-rate"));
-        event.register("aaa-max-health", rangeFixedType, rangeValue(this, "max-health"));
-        event.register("aaa-attack-range", rangeFixedType, rangeValue(this, "attack-range"));
-        event.register("aaa-starvation", rangeType, rangeValue(this, "starvation"));
-        event.register("aaa-saturation", rangeType, rangeValue(this, "saturation"));
-        event.register("aaa-regeneration", rangeType, rangeValue(this, "regeneration"));
-        event.register("aaa-knockback", rangeType, rangeValue(this, "knockback"));
-        event.register("aaa-instant-death", rangeType, rangeValue(this, "instant-death"));
-        event.register("aaa-instant-death-immune", rangeFixedType, markerValue(this, "instant-death-immune"));
+        this.registerPossessValue(event, "possession", commandManager);
+        this.registerRangeValue(event, "attack", commandManager);
+        this.registerRangeValue(event, "tracing", commandManager);
+        this.registerRangeValue(event, "pvp-attack", commandManager);
+        this.registerRangeValue(event, "pve-attack", commandManager);
+        this.registerRangeValue(event, "defense", commandManager);
+        this.registerRangeValue(event, "pvp-defense", commandManager);
+        this.registerRangeValue(event, "pve-defense", commandManager);
+        this.registerRangeValue(event, "reflect", commandManager);
+        this.registerRangeValue(event, "pvp-reflect", commandManager);
+        this.registerRangeValue(event, "pve-reflect", commandManager);
+        this.registerRangeValue(event, "reflect-rate", commandManager);
+        this.registerRangeValue(event, "critical", commandManager);
+        this.registerRangeValue(event, "critical-rate", commandManager);
+        this.registerRangeValue(event, "dodge", commandManager);
+        this.registerRangeValue(event, "accuracy", commandManager);
+        this.registerRangeValue(event, "accelerate", commandManager);
+        this.registerRangeValueFixed(event, "attack-speed", commandManager);
+        this.registerRangeValueFixed(event, "move-speed", commandManager);
+        this.registerDurabilityValue(event, "durability", commandManager);
+        this.registerMarkerValue(event, "unbreakable", commandManager);
+        this.registerRangeValue(event, "loot-rate", commandManager);
+        this.registerMarkerValue(event, "loot-immune", commandManager);
+        this.registerRangeValue(event, "burn", commandManager);
+        this.registerRangeValue(event, "burn-rate", commandManager);
+        this.registerRangeValue(event, "life-steal", commandManager);
+        this.registerRangeValue(event, "life-steal-rate", commandManager);
+        this.registerRangeValueFixed(event, "max-health", commandManager);
+        this.registerRangeValueFixed(event, "attack-range", commandManager);
+        this.registerRangeValue(event, "starvation", commandManager);
+        this.registerRangeValue(event, "saturation", commandManager);
+        this.registerRangeValue(event, "regeneration", commandManager);
+        this.registerRangeValue(event, "knockback", commandManager);
+        this.registerRangeValue(event, "instant-death", commandManager);
+        this.registerMarkerValue(event, "instant-death-immune", commandManager);
 
         EventManager eventManager = Sponge.getEventManager();
 
@@ -135,35 +138,160 @@ public class Main {
         eventManager.registerListeners(this, this.injector.getInstance(ArrowListener.class));
         eventManager.registerListeners(this, this.injector.getInstance(PossessionListener.class));
         eventManager.registerListeners(this, this.injector.getInstance(MiscListener.class));
+    }
 
-        CommandExecutor executor = (src, args) -> {
-            if (src instanceof Player) {
-                ItemStack item = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty());
-                Attributes.POSSESSION.setValues(item, ImmutableList.of(((Player) src).getProfile()));
-                return CommandResult.success();
-            } else {
-                return CommandResult.empty();
-            }
-        };
-        Sponge.getCommandManager().register(this, CommandSpec.builder().executor(executor).build(), "aaa-possess");
-        // todo 暂时用这个
-        Sponge.getCommandManager().register(this, CommandSpec.builder()
-            .child(CommandSpec.builder()
-                .arguments(GenericArguments.string(Text.of("attr")), GenericArguments.integer(Text.of("value")))
+    private void registerDurabilityValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
+        this.registerRangeValue(event, durability(this), id, TypeToken.of(RangeValue.class), manager);
+    }
+
+    private void registerRangeValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
+        this.registerRangeValue(event, rangeValue(this, id), id, TypeToken.of(RangeValue.class), manager);
+    }
+
+    private void registerRangeValueFixed(Attribute.RegistryEvent event, String id, CommandManager manager) {
+        this.registerRangeValue(event, rangeValue(this, id), id, TypeToken.of(RangeValue.Fixed.class), manager);
+    }
+
+    private <T extends RangeValue> void registerRangeValue(Attribute.RegistryEvent event, AttributeToLoreFunction<T> f,
+                                                           String id, TypeToken<T> typeToken, CommandManager manager) {
+        boolean fixed = RangeValue.Fixed.class.isAssignableFrom(typeToken.getRawType());
+        Attribute<T> attribute = event.register("aaa-" + id, typeToken, f);
+        manager.register(this, CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-" + id)
+                .child(CommandSpec.builder()
+                        .executor((src, args) -> {
+                            if (src instanceof Player) {
+                                Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                                if (stackOptional.isPresent()) {
+                                    ItemStack stack = stackOptional.get();
+                                    if (DataUtil.hasData(stack)) {
+                                        attribute.clearValues(stack);
+                                        ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                        this.locale.to(src, "commands.clear-attribute", src.getName(), id);
+                                        return CommandResult.success();
+                                    }
+                                }
+                            }
+                            this.locale.to(src, "commands.nonexist-attribute");
+                            return CommandResult.success();
+                        })
+                        .build(), "clear")
+                .child(CommandSpec.builder()
+                        .arguments(new RangeValueElement(this.locale, fixed, Text.of("value")))
+                        .executor((src, args) -> {
+                            if (src instanceof Player) {
+                                Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                                Optional<T> rangeValueOptional = args.getOne(Text.of("value"));
+                                if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
+                                    ItemStack stack = stackOptional.get();
+                                    if (DataUtil.hasData(stack)) {
+                                        attribute.appendValue(stack, rangeValueOptional.get());
+                                        ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                        this.locale.to(src, "commands.append-attribute", src.getName(), id);
+                                        return CommandResult.success();
+                                    }
+                                }
+                            }
+                            this.locale.to(src, "commands.nonexist-attribute");
+                            return CommandResult.success();
+                        })
+                        .build(), "append")
+                .child(CommandSpec.builder()
+                        .arguments(new RangeValueElement(this.locale, fixed, Text.of("value")))
+                        .executor((src, args) -> {
+                            if (src instanceof Player) {
+                                Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                                Optional<T> rangeValueOptional = args.getOne(Text.of("value"));
+                                if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
+                                    ItemStack stack = stackOptional.get();
+                                    if (DataUtil.hasData(stack)) {
+                                        attribute.prependValue(stack, rangeValueOptional.get());
+                                        ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                        this.locale.to(src, "commands.prepend-attribute", src.getName(), id);
+                                        return CommandResult.success();
+                                    }
+                                }
+                            }
+                            this.locale.to(src, "commands.nonexist-attribute");
+                            return CommandResult.success();
+                        })
+                        .build(), "prepend")
+                .build(), "aaa-" + id);
+    }
+
+    private void registerMarkerValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
+        TypeToken<MarkerValue> token = TypeToken.of(MarkerValue.class);
+        Attribute<MarkerValue> attribute = event.register("aaa-" + id, token, markerValue(this, id));
+        manager.register(this, CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-" + id)
+                .arguments(GenericArguments.choices(Text.of("marked"), ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
                 .executor((src, args) -> {
-                    try {
-                        Integer value = args.<Integer>getOne("value").get();
-                        Field attr = Attributes.class.getDeclaredField(args.<String>getOne("attr").orElse(""));
-                        attr.setAccessible(true);
-                        Attribute attribute = (Attribute) attr.get(null);
-                        ItemStack itemStack = ((Player) src).getItemInHand(HandTypes.MAIN_HAND).get();
-                        attribute.setValues(itemStack, ImmutableList.of(RangeValue.absolute(value)));
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if (src instanceof Player) {
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        Optional<Boolean> marked = args.getOne(Text.of("marked"));
+                        if (stackOptional.isPresent() && marked.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                if (marked.get()) {
+                                    attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
+                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.locale.to(src, "commands.mark-attribute", src.getName(), id);
+                                    return CommandResult.success();
+                                } else {
+                                    attribute.clearValues(stack);
+                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.locale.to(src, "commands.unmark-attribute", src.getName(), id);
+                                    return CommandResult.success();
+                                }
+                            }
+                        }
                     }
+                    this.locale.to(src, "commands.nonexist-attribute");
                     return CommandResult.success();
                 })
-                .build(), "add")
-            .build(), "aaa");
+                .build(), "aaa-" + id);
+    }
+
+    private void registerPossessValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
+        TypeToken<GameProfile> token = TypeToken.of(GameProfile.class);
+        Attribute<GameProfile> attribute = event.register("aaa-" + id, token, profile(this));
+        manager.register(this, CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-possess")
+                .arguments(GenericArguments.optional(GenericArguments.player(Text.of("player"))))
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        Player target = args.<Player>getOne(Text.of("player")).orElse((Player) src);
+                        if (stackOptional.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                attribute.setValues(stack, ImmutableList.of(target.getProfile()));
+                                this.locale.to(src, "commands.mark-possession-attribute", target.getName());
+                                return CommandResult.success();
+                            }
+                        }
+                    }
+                    this.locale.to(src, "commands.nonexist-attribute");
+                    return CommandResult.success();
+                })
+                .build(), "aaa-possess");
+        manager.register(this, CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-publicize")
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        if (stackOptional.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                attribute.clearValues(stack);
+                                this.locale.to(src, "commands.unmark-possession-attribute");
+                                return CommandResult.success();
+                            }
+                        }
+                    }
+                    this.locale.to(src, "commands.nonexist-attribute");
+                    return CommandResult.success();
+                })
+                .build(), "aaa-publicize");
     }
 }

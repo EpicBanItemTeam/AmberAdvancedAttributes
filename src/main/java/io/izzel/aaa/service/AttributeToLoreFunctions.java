@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
 import io.izzel.aaa.Main;
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.Sponge;
@@ -36,11 +37,10 @@ public class AttributeToLoreFunctions {
         }).map(it -> new AbstractMap.SimpleEntry<>((byte) 0, it)).collect(Collectors.toList());
     }
 
-    public static <T extends RangeValue> AttributeToLoreFunction<T> markerValue(Main plugin, String id) {
+    public static AttributeToLoreFunction<MarkerValue> markerValue(Main plugin, String id) {
         AmberLocale locale = plugin.locale;
-        return values -> values.stream().map(it -> new AbstractMap.SimpleEntry<>((byte) 0,
-            locale.getAs(String.format("attributes.%s.value", id), TypeToken.of(Text.class)).orElseThrow(RuntimeException::new)))
-            .collect(Collectors.toList());
+        return values -> values.isEmpty() ? ImmutableList.of() : ImmutableList.of(Maps.immutableEntry((byte) 0,
+                locale.getAs(String.format("attributes.%s.value", id), TypeToken.of(Text.class)).orElseThrow(RuntimeException::new)));
     }
 
     public static AttributeToLoreFunction<RangeValue> durability(Main plugin) {

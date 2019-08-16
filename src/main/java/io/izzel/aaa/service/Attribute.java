@@ -29,6 +29,10 @@ public interface Attribute<T extends DataSerializable> {
 
     void setValues(ItemStack item, List<? extends T> values);
 
+    default void prependValue(ItemStack item, T value) {
+        this.setValues(item, ImmutableList.<T>builder().add(value).addAll(this.getValues(item)).build());
+    }
+
     default void appendValue(ItemStack item, T value) {
         this.setValues(item, ImmutableList.<T>builder().addAll(this.getValues(item)).add(value).build());
     }

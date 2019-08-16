@@ -8,6 +8,7 @@ import com.google.inject.Singleton;
 import io.izzel.aaa.Main;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.ImmutableData;
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataRegistration;
@@ -47,6 +48,7 @@ public class AttributeServiceImpl implements AttributeService {
                 .immutableClass(ImmutableData.class)
                 .id("data").name("AmberAdvancedAttributes").build();
         Sponge.getDataManager().registerBuilder(RangeValue.class, RangeValue.builder());
+        Sponge.getDataManager().registerBuilder(MarkerValue.class, MarkerValue.builder());
     }
 
     @Override
