@@ -3,6 +3,7 @@ package io.izzel.aaa.service;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.profile.GameProfile;
+import org.spongepowered.api.text.Text;
 
 public final class Attributes {
     public static final Attribute<RangeValue> ATTACK;
@@ -43,6 +44,8 @@ public final class Attributes {
     public static final Attribute<MarkerValue> INSTANT_DEATH_IMMUNE;
 
     public static final Attribute<GameProfile> POSSESSION;
+
+    public static final Attribute<Text> ORIGINAL_LORE;
 
     private static RuntimeException error() {
         return new RuntimeException("The class is loaded too early! ");
@@ -86,6 +89,7 @@ public final class Attributes {
         KNOCKBACK = service.<RangeValue>getAttributeById("aaa-knockback").orElseThrow(Attributes::error);
         INSTANT_DEATH = service.<RangeValue>getAttributeById("aaa-instant-death").orElseThrow(Attributes::error);
         INSTANT_DEATH_IMMUNE = service.<MarkerValue>getAttributeById("aaa-instant-death-immune").orElseThrow(Attributes::error);
+        ORIGINAL_LORE = service.<Text>getAttributeById("aaa-original-lore").orElseThrow(Attributes::error);
     }
 
     private Attributes() {

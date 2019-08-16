@@ -27,6 +27,10 @@ public final class DataUtil {
         return item.offer(data).isSuccessful();
     }
 
+    public static boolean dropData(ItemStack item) {
+        return item.remove(Data.class).isSuccessful();
+    }
+
     public static Data getOrCreateData(ItemStack item) {
         return item.getOrCreate(Data.class).orElseThrow(InvalidDataException::new);
     }

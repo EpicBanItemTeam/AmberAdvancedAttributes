@@ -39,11 +39,10 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 
@@ -131,6 +130,7 @@ public class Main {
         this.registerRangeValue(event, "knockback", commandManager);
         this.registerRangeValue(event, "instant-death", commandManager);
         this.registerMarkerValue(event, "instant-death-immune", commandManager);
+        this.registerTextValue(event, "original-lore", commandManager);
 
         EventManager eventManager = Sponge.getEventManager();
 
@@ -138,6 +138,62 @@ public class Main {
         eventManager.registerListeners(this, this.injector.getInstance(ArrowListener.class));
         eventManager.registerListeners(this, this.injector.getInstance(PossessionListener.class));
         eventManager.registerListeners(this, this.injector.getInstance(MiscListener.class));
+    }
+
+    private void registerTextValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
+        Attribute<Text> attribute = event.register("aaa-" + id, TypeToken.of(Text.class), values -> ImmutableList.of());
+        manager.register(this, CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-init")
+                        .executor((src, args) -> {
+                            if (src instanceof Player) {
+                                Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                                if (stackOptional.isPresent()) {
+                                    ItemStack stack = stackOptional.get();
+                                    if (DataUtil.hasData(stack)) {
+                                        this.locale.to(src, "commands.already-initialized");
+                                        return CommandResult.success();
+                                    } else {
+                                        attribute.setValues(stack, stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of()));
+                                        ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                        this.locale.to(src, "commands.init-succeed");
+                                        return CommandResult.success();
+                                    }
+                                }
+                            }
+                            this.locale.to(src, "commands.nonexist-attribute");
+                            return CommandResult.success();
+                        })
+                        .build(), "aaa-init");
+        manager.register(this, CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-drop")
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        AtomicBoolean isCallbackExecuted = new AtomicBoolean(false);
+                        Text ok = this.locale.getAs("commands.drop-warning-ok", TypeToken.of(Text.class)).orElseThrow(RuntimeException::new);
+                        Text warning = this.locale.getAs("commands.drop-warning", TypeToken.of(Text.class)).orElseThrow(RuntimeException::new);
+                        src.sendMessage(Text.builder().append(warning).append(ok.toBuilder().onClick(TextActions.executeCallback(value -> {
+                            if (!isCallbackExecuted.getAndSet(true)) {
+                                Optional<ItemStack> stackOptional = ((Player) value).getItemInHand(HandTypes.MAIN_HAND);
+                                if (stackOptional.isPresent()) {
+                                    ItemStack stack = stackOptional.get();
+                                    if (DataUtil.hasData(stack)) {
+                                        List<Text> lore = attribute.getValues(stack);
+                                        DataUtil.dropData(stack);
+                                        stack.offer(Keys.ITEM_LORE, lore);
+                                        ((Player) value).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                        this.locale.to(value, "commands.drop-succeed");
+                                        return;
+                                    }
+                                }
+                                this.locale.to(value, "commands.nonexist-attribute");
+                            }
+                        })).build()).build());
+                        return CommandResult.success();
+                    }
+                    this.locale.to(src, "commands.nonexist-attribute");
+                    return CommandResult.success();
+                })
+                .build(), "aaa-drop");
     }
 
     private void registerDurabilityValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
