@@ -21,7 +21,7 @@ public interface Attribute<T extends DataSerializable> {
 
     String getId();
 
-    TypeToken<T> getToken();
+    Class<T> getDataClass();
 
     ImmutableListMultimap<Byte, Text> getLoreTexts(List<? extends T> values);
 
@@ -46,10 +46,10 @@ public interface Attribute<T extends DataSerializable> {
         /**
          * @throws IllegalArgumentException if {@code id} is already registered
          */
-        <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> token, AttributeToLoreFunction<T> toLoreFunction) throws IllegalArgumentException;
+        <T extends DataSerializable> Attribute<T> register(String id, Class<T> dataClass, AttributeToLoreFunction<T> toLoreFunction) throws IllegalArgumentException;
 
-        default <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> token, byte priority, Function<? super T, ? extends Text> function) throws IllegalArgumentException {
-            return this.register(id, token, values -> values.stream().<Text>map(function).map(text -> Maps.immutableEntry(priority, text)).collect(ImmutableList.toImmutableList()));
+        default <T extends DataSerializable> Attribute<T> register(String id, Class<T> dataClass, byte priority, Function<? super T, ? extends Text> function) throws IllegalArgumentException {
+            return this.register(id, dataClass, values -> values.stream().<Text>map(function).map(text -> Maps.immutableEntry(priority, text)).collect(ImmutableList.toImmutableList()));
         }
     }
 }

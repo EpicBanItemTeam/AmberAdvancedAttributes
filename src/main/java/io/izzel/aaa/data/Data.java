@@ -95,8 +95,7 @@ public class Data extends AbstractData<Data, ImmutableData> {
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
             String key = entry.getKey();
             DataQuery query = DataQuery.of(key);
-            TypeToken<?> token = entry.getValue().getToken();
-            Class<? extends DataSerializable> clazz = token.getRawType().asSubclass(DataSerializable.class);
+            Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
             this.data.replaceValues(key, container.getSerializableList(query, clazz).orElse(ImmutableList.of()));
         }
         return Optional.of(this);

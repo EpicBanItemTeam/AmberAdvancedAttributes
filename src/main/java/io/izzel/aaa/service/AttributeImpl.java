@@ -19,12 +19,12 @@ import java.util.stream.Stream;
 @NonnullByDefault
 public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
     private final AttributeToLoreFunction<T> toLoreFunction;
-    private final TypeToken<T> token;
+    private final Class<T> dataClass;
     private final String id;
 
-    AttributeImpl(String id, TypeToken<T> token, AttributeToLoreFunction<T> toLoreFunction) {
+    AttributeImpl(String id, Class<T> dataClass, AttributeToLoreFunction<T> toLoreFunction) {
         this.toLoreFunction = toLoreFunction;
-        this.token = token;
+        this.dataClass = dataClass;
         this.id = id;
     }
 
@@ -34,8 +34,8 @@ public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
     }
 
     @Override
-    public TypeToken<T> getToken() {
-        return this.token;
+    public Class<T> getDataClass() {
+        return this.dataClass;
     }
 
     @Override

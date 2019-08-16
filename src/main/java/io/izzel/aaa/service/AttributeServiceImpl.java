@@ -65,9 +65,9 @@ public class AttributeServiceImpl implements AttributeService {
         }
 
         @Override
-        public <T extends DataSerializable> Attribute<T> register(String id, TypeToken<T> t, AttributeToLoreFunction<T> f) {
+        public <T extends DataSerializable> Attribute<T> register(String id, Class<T> c, AttributeToLoreFunction<T> f) {
             Preconditions.checkArgument(!attributeMap.containsKey(id), "Duplicate id");
-            AttributeImpl<T> impl = new AttributeImpl<>(id, t, f);
+            AttributeImpl<T> impl = new AttributeImpl<>(id, c, f);
             attributeMap.put(id, impl);
             return impl;
         }

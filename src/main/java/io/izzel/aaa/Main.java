@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import io.izzel.aaa.command.RangeValueElement;
@@ -141,7 +140,7 @@ public class Main {
     }
 
     private void registerTextValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
-        Attribute<Text> attribute = event.register("aaa-" + id, TypeToken.of(Text.class), values -> ImmutableList.of());
+        Attribute<Text> attribute = event.register("aaa-" + id, Text.class, values -> ImmutableList.of());
         manager.register(this, CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-init")
                         .executor((src, args) -> {
@@ -195,21 +194,21 @@ public class Main {
     }
 
     private void registerDurabilityValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
-        this.registerRangeValue(event, durability(this), id, TypeToken.of(RangeValue.class), manager);
+        this.registerRangeValue(event, durability(this), id, RangeValue.class, manager);
     }
 
     private void registerRangeValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
-        this.registerRangeValue(event, rangeValue(this, id), id, TypeToken.of(RangeValue.class), manager);
+        this.registerRangeValue(event, rangeValue(this, id), id, RangeValue.class, manager);
     }
 
     private void registerRangeValueFixed(Attribute.RegistryEvent event, String id, CommandManager manager) {
-        this.registerRangeValue(event, rangeValue(this, id), id, TypeToken.of(RangeValue.Fixed.class), manager);
+        this.registerRangeValue(event, rangeValue(this, id), id, RangeValue.Fixed.class, manager);
     }
 
     private <T extends RangeValue> void registerRangeValue(Attribute.RegistryEvent event, AttributeToLoreFunction<T> f,
-                                                           String id, TypeToken<T> typeToken, CommandManager manager) {
-        boolean fixed = RangeValue.Fixed.class.isAssignableFrom(typeToken.getRawType());
-        Attribute<T> attribute = event.register("aaa-" + id, typeToken, f);
+                                                           String id, Class<T> dataClass, CommandManager manager) {
+        boolean fixed = RangeValue.Fixed.class.isAssignableFrom(dataClass);
+        Attribute<T> attribute = event.register("aaa-" + id, dataClass, f);
         manager.register(this, CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-" + id)
                 .child(CommandSpec.builder()
@@ -274,8 +273,7 @@ public class Main {
     }
 
     private void registerMarkerValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
-        TypeToken<MarkerValue> token = TypeToken.of(MarkerValue.class);
-        Attribute<MarkerValue> attribute = event.register("aaa-" + id, token, markerValue(this, id));
+        Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, markerValue(this, id));
         manager.register(this, CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-" + id)
                 .arguments(GenericArguments.choices(Text.of("marked"), ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
@@ -307,8 +305,7 @@ public class Main {
     }
 
     private void registerPossessValue(Attribute.RegistryEvent event, String id, CommandManager manager) {
-        TypeToken<GameProfile> token = TypeToken.of(GameProfile.class);
-        Attribute<GameProfile> attribute = event.register("aaa-" + id, token, profile(this));
+        Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, profile(this));
         manager.register(this, CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-possess")
                 .arguments(GenericArguments.optional(GenericArguments.player(Text.of("player"))))
