@@ -83,7 +83,10 @@ public class Data extends AbstractData<Data, ImmutableData> {
     protected DataContainer fillContainer(DataContainer dataContainer) {
         DataContainer container = super.fillContainer(dataContainer);
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
-            container.set(DataQuery.of(entry.getKey()), this.data.get(entry.getKey()));
+            List<Object> values = this.data.get(entry.getKey());
+            if (!values.isEmpty()) {
+                container.set(DataQuery.of(entry.getKey()), values);
+            }
         }
         return container;
     }
