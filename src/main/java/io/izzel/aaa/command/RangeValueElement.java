@@ -41,7 +41,7 @@ public class RangeValueElement extends CommandElement {
         try {
             if (string.endsWith("%")) {
                 double lowerBound = Double.parseDouble(string.substring(0, string.length() - 1));
-                if (this.fixedValue && args.hasNext() && args.peek().equals("to")) {
+                if (!this.fixedValue && args.hasNext() && args.peek().equals("to")) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
@@ -56,7 +56,7 @@ public class RangeValueElement extends CommandElement {
                 }
             } else {
                 double lowerBound = Double.parseDouble(string);
-                if (this.fixedValue && args.hasNext() && args.peek().equals("to")) {
+                if (!this.fixedValue && args.hasNext() && args.peek().equals("to")) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
@@ -79,9 +79,9 @@ public class RangeValueElement extends CommandElement {
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
         CommandArgs.Snapshot snapshot = args.getSnapshot();
-        if (this.fixedValue && args.nextIfPresent().isPresent()) {
+        if (!this.fixedValue && args.nextIfPresent().isPresent()) {
             Optional<String> literal = args.nextIfPresent();
-            if (literal.isPresent()) {
+            if (literal.isPresent() && !args.hasNext()) {
                 args.applySnapshot(snapshot);
                 return ImmutableList.of("to");
             }
