@@ -3,9 +3,9 @@ package io.izzel.aaa.listener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.inject.Singleton;
-import io.izzel.aaa.util.EquipmentUtil;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
+import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
@@ -57,17 +57,17 @@ public class AttackListener {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
             EquipmentUtil.items(from).forEach(itemStack -> {
                 Attributes.ATTACK.getValues(itemStack).forEach(v ->
-                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK))
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                         v.getFunction(this.random), ImmutableSet.of()));
                 if (from instanceof Player && to instanceof Player) {
                     Attributes.PVP_ATTACK.getValues(itemStack).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                             v.getFunction(this.random), ImmutableSet.of()));
                 } else if (from instanceof Player) {
                     Attributes.PVE_ATTACK.getValues(itemStack).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                             v.getFunction(this.random), ImmutableSet.of()));
                 }
@@ -90,19 +90,19 @@ public class AttackListener {
         if (to instanceof Equipable) {
             EquipmentUtil.items(((Equipable) to)).forEach(itemStack -> {
                 Attributes.DEFENSE.getValues(itemStack).forEach(v ->
-                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.DEFENSE))
                             .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                         defense(v), ImmutableSet.of()));
                 if (source instanceof EntityDamageSource) {
                     getBySource(((EntityDamageSource) source)).ifPresent(from -> {
                         if (from instanceof Player && to instanceof Player) {
                             Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
-                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_DEFENSE))
                                         .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                     defense(v), ImmutableSet.of()));
                         } else if (from instanceof Player) {
                             Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
-                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_DEFENSE))
                                         .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                     defense(v), ImmutableSet.of()));
                         }
@@ -183,18 +183,22 @@ public class AttackListener {
             T from = (T) source.getSource();
             double loot = EquipmentUtil.allOf(from, Attributes.LOOT_RATE);
             if (random.nextDouble() < loot) {
-                CarriedInventory<? extends Carrier> inventory = ((Carrier) to).getInventory();
-                List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
-                Inventory slot = slots.get(random.nextInt(slots.size()));
-                slot.poll(1).ifPresent(item -> {
-                    if (!Attributes.LOOT_IMMUNE.getValues(item).isEmpty()) {
-                        slot.offer(item);
-                    } else {
-                        Item entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));
-                        entityItem.offer(Keys.REPRESENTED_ITEM, item.createSnapshot());
-                        from.getLocation().getExtent().spawnEntity(entityItem);
-                    }
-                });
+                try {
+                    CarriedInventory<? extends Carrier> inventory = ((Carrier) to).getInventory();
+                    List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
+                    Inventory slot = slots.get(random.nextInt(slots.size()));
+                    slot.poll(1).ifPresent(item -> {
+                        if (!Attributes.LOOT_IMMUNE.getValues(item).isEmpty()) {
+                            slot.offer(item);
+                        } else {
+                            Item entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));
+                            entityItem.offer(Keys.REPRESENTED_ITEM, item.createSnapshot());
+                            from.getLocation().getExtent().spawnEntity(entityItem);
+                        }
+                    });
+                } catch (Throwable ignored) {
+                    // TODO java.lang.AbstractMethodError: Method net/minecraft/entity/monster/EntityZombie.getInventory()Lorg/spongepowered/api/item/inventory/type/CarriedInventory; is abstract
+                }
             }
         }
     }
