@@ -20,6 +20,7 @@ import io.izzel.aaa.service.AttributeServiceImpl;
 import io.izzel.aaa.service.AttributeToLoreFunction;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
+import io.izzel.amber.commons.i18n.args.Arg;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandManager;
@@ -39,7 +40,6 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.action.TextActions;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -169,9 +169,7 @@ public class Main {
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         AtomicBoolean isCallbackExecuted = new AtomicBoolean(false);
-                        Text ok = this.locale.getAs("commands.drop-warning-ok", TypeToken.of(Text.class)).orElseThrow(RuntimeException::new);
-                        Text warning = this.locale.getAs("commands.drop-warning", TypeToken.of(Text.class)).orElseThrow(RuntimeException::new);
-                        src.sendMessage(Text.builder().append(warning).append(ok.toBuilder().onClick(TextActions.executeCallback(value -> {
+                        locale.to(src, "commands.drop-warning", Arg.ref("commands.drop-warning-ok").withCallback(value -> {
                             if (!isCallbackExecuted.getAndSet(true)) {
                                 Optional<ItemStack> stackOptional = ((Player) value).getItemInHand(HandTypes.MAIN_HAND);
                                 if (stackOptional.isPresent()) {
@@ -187,7 +185,7 @@ public class Main {
                                 }
                                 this.locale.to(value, "commands.nonexist-attribute");
                             }
-                        })).build()).build());
+                        }));
                         return CommandResult.success();
                     }
                     this.locale.to(src, "commands.nonexist-attribute");
