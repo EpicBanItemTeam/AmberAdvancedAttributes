@@ -149,17 +149,17 @@ public class Main {
                                 if (stackOptional.isPresent()) {
                                     ItemStack stack = stackOptional.get();
                                     if (DataUtil.hasData(stack)) {
-                                        this.locale.to(src, "commands.already-initialized");
+                                        this.locale.to(src, "commands.init.already-exist");
                                         return CommandResult.success();
                                     } else {
                                         attribute.setValues(stack, stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of()));
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.init-succeed");
+                                        this.locale.to(src, "commands.init.succeed");
                                         return CommandResult.success();
                                     }
                                 }
                             }
-                            this.locale.to(src, "commands.nonexist-attribute");
+                            this.locale.to(src, "commands.drop.nonexist");
                             return CommandResult.success();
                         })
                         .build(), "aaa-init");
@@ -168,7 +168,7 @@ public class Main {
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         AtomicBoolean isCallbackExecuted = new AtomicBoolean(false);
-                        locale.to(src, "commands.drop-warning", Arg.ref("commands.drop-warning-ok").withCallback(value -> {
+                        locale.to(src, "commands.drop.warning", Arg.ref("commands.drop.warning-ok").withCallback(value -> {
                             if (!isCallbackExecuted.getAndSet(true)) {
                                 Optional<ItemStack> stackOptional = ((Player) value).getItemInHand(HandTypes.MAIN_HAND);
                                 if (stackOptional.isPresent()) {
@@ -178,16 +178,16 @@ public class Main {
                                         DataUtil.dropData(stack);
                                         stack.offer(Keys.ITEM_LORE, lore);
                                         ((Player) value).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(value, "commands.drop-succeed");
+                                        this.locale.to(value, "commands.drop.succeed");
                                         return;
                                     }
                                 }
-                                this.locale.to(value, "commands.nonexist-attribute");
+                                this.locale.to(value, "commands.drop.nonexist");
                             }
                         }));
                         return CommandResult.success();
                     }
-                    this.locale.to(src, "commands.nonexist-attribute");
+                    this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();
                 })
                 .build(), "aaa-drop");
@@ -220,12 +220,12 @@ public class Main {
                                     if (DataUtil.hasData(stack)) {
                                         attribute.clearValues(stack);
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.clear-attribute", stack, id);
+                                        this.locale.to(src, "commands.range.clear-attribute", stack, id);
                                         return CommandResult.success();
                                     }
                                 }
                             }
-                            this.locale.to(src, "commands.nonexist-attribute");
+                            this.locale.to(src, "commands.drop.nonexist");
                             return CommandResult.success();
                         })
                         .build(), "clear")
@@ -240,12 +240,12 @@ public class Main {
                                     if (DataUtil.hasData(stack)) {
                                         attribute.appendValue(stack, rangeValueOptional.get());
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.append-attribute", stack, id);
+                                        this.locale.to(src, "commands.range.append-attribute", stack, id);
                                         return CommandResult.success();
                                     }
                                 }
                             }
-                            this.locale.to(src, "commands.nonexist-attribute");
+                            this.locale.to(src, "commands.drop.nonexist");
                             return CommandResult.success();
                         })
                         .build(), "append")
@@ -260,12 +260,12 @@ public class Main {
                                     if (DataUtil.hasData(stack)) {
                                         attribute.prependValue(stack, rangeValueOptional.get());
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.prepend-attribute", stack, id);
+                                        this.locale.to(src, "commands.range.prepend-attribute", stack, id);
                                         return CommandResult.success();
                                     }
                                 }
                             }
-                            this.locale.to(src, "commands.nonexist-attribute");
+                            this.locale.to(src, "commands.drop.nonexist");
                             return CommandResult.success();
                         })
                         .build(), "prepend")
@@ -287,18 +287,18 @@ public class Main {
                                 if (marked.get()) {
                                     attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.locale.to(src, "commands.mark-attribute", stack, id);
+                                    this.locale.to(src, "commands.marker.mark-attribute", stack, id);
                                     return CommandResult.success();
                                 } else {
                                     attribute.clearValues(stack);
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.locale.to(src, "commands.unmark-attribute", stack, id);
+                                    this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
                                     return CommandResult.success();
                                 }
                             }
                         }
                     }
-                    this.locale.to(src, "commands.nonexist-attribute");
+                    this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();
                 })
                 .build(), "aaa-" + id);
@@ -317,12 +317,12 @@ public class Main {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.setValues(stack, ImmutableList.of(target.getProfile()));
-                                this.locale.to(src, "commands.mark-possession-attribute", target.getName());
+                                this.locale.to(src, "commands.possess.mark-attribute", target.getName());
                                 return CommandResult.success();
                             }
                         }
                     }
-                    this.locale.to(src, "commands.nonexist-attribute");
+                    this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();
                 })
                 .build(), "aaa-possess");
@@ -335,12 +335,12 @@ public class Main {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.clearValues(stack);
-                                this.locale.to(src, "commands.unmark-possession-attribute");
+                                this.locale.to(src, "commands.possess.unmark-attribute");
                                 return CommandResult.success();
                             }
                         }
                     }
-                    this.locale.to(src, "commands.nonexist-attribute");
+                    this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();
                 })
                 .build(), "aaa-publicize");
