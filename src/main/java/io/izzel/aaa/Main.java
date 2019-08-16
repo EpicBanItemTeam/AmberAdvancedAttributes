@@ -221,7 +221,7 @@ public class Main {
                                     if (DataUtil.hasData(stack)) {
                                         attribute.clearValues(stack);
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.clear-attribute", src.getName(), id);
+                                        this.locale.to(src, "commands.clear-attribute", stack, id);
                                         return CommandResult.success();
                                     }
                                 }
@@ -241,7 +241,7 @@ public class Main {
                                     if (DataUtil.hasData(stack)) {
                                         attribute.appendValue(stack, rangeValueOptional.get());
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.append-attribute", src.getName(), id);
+                                        this.locale.to(src, "commands.append-attribute", stack, id);
                                         return CommandResult.success();
                                     }
                                 }
@@ -261,7 +261,7 @@ public class Main {
                                     if (DataUtil.hasData(stack)) {
                                         attribute.prependValue(stack, rangeValueOptional.get());
                                         ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(src, "commands.prepend-attribute", src.getName(), id);
+                                        this.locale.to(src, "commands.prepend-attribute", stack, id);
                                         return CommandResult.success();
                                     }
                                 }
@@ -289,12 +289,12 @@ public class Main {
                                 if (marked.get()) {
                                     attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.locale.to(src, "commands.mark-attribute", src.getName(), id);
+                                    this.locale.to(src, "commands.mark-attribute", stack, id);
                                     return CommandResult.success();
                                 } else {
                                     attribute.clearValues(stack);
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.locale.to(src, "commands.unmark-attribute", src.getName(), id);
+                                    this.locale.to(src, "commands.unmark-attribute", stack, id);
                                     return CommandResult.success();
                                 }
                             }
