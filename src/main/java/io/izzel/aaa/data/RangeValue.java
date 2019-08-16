@@ -1,5 +1,6 @@
 package io.izzel.aaa.data;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.data.*;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
@@ -86,6 +87,15 @@ public class RangeValue implements DataSerializable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .add("isRelative", isRelative)
+            .add("lowerBound", lowerBound)
+            .add("upperBound", upperBound)
+            .toString();
     }
 
     public static RangeValue.Fixed absolute(double value) {

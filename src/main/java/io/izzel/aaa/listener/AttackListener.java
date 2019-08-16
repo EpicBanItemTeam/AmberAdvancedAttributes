@@ -57,17 +57,17 @@ public class AttackListener {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
             EquipmentUtil.items(from).forEach(itemStack -> {
                 Attributes.ATTACK.getValues(itemStack).forEach(v ->
-                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK))
+                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK).with(v))
                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                         v.getFunction(this.random), ImmutableSet.of()));
                 if (from instanceof Player && to instanceof Player) {
                     Attributes.PVP_ATTACK.getValues(itemStack).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK))
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                             v.getFunction(this.random), ImmutableSet.of()));
                 } else if (from instanceof Player) {
                     Attributes.PVE_ATTACK.getValues(itemStack).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK))
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                             v.getFunction(this.random), ImmutableSet.of()));
                 }
@@ -89,20 +89,22 @@ public class AttackListener {
     public void onDefense(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
             EquipmentUtil.items(((Equipable) to)).forEach(itemStack -> {
-                Attributes.DEFENSE.getValues(itemStack).forEach(v ->
-                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.DEFENSE))
+                Attributes.DEFENSE.getValues(itemStack).forEach(v -> {
+                    System.out.println(itemStack + " " + v);
+                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.DEFENSE).with(v))
                             .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                        defense(v), ImmutableSet.of()));
+                        defense(v), ImmutableSet.of());
+                });
                 if (source instanceof EntityDamageSource) {
                     getBySource(((EntityDamageSource) source)).ifPresent(from -> {
                         if (from instanceof Player && to instanceof Player) {
                             Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
-                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_DEFENSE))
+                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_DEFENSE).with(v))
                                         .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                     defense(v), ImmutableSet.of()));
                         } else if (from instanceof Player) {
                             Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
-                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_DEFENSE))
+                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_DEFENSE).with(v))
                                         .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                     defense(v), ImmutableSet.of()));
                         }
