@@ -40,12 +40,12 @@ public class RangeValueElement extends CommandElement {
         String string = args.next();
         try {
             if (string.endsWith("%")) {
-                double lowerBound = Double.parseDouble(string.substring(0, string.length() - 1));
+                double lowerBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
                 if (!this.fixedValue && args.hasNext() && args.peek().equals("to")) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
-                        double upperBound = Double.parseDouble(string.substring(0, string.length() - 1));
+                        double upperBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
                         return RangeValue.relative(lowerBound, upperBound);
                     } else {
                         Optional<Text> text = this.locale.getAs("commands.args.range-consistency", this.token);
