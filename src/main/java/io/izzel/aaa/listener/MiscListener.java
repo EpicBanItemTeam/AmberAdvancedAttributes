@@ -9,9 +9,10 @@ import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.manipulator.immutable.item.ImmutableDurabilityData;
 import org.spongepowered.api.data.manipulator.mutable.entity.HealthData;
-import org.spongepowered.api.data.property.AbstractProperty;
-import org.spongepowered.api.data.property.item.UseLimitProperty;
+import org.spongepowered.api.data.manipulator.mutable.item.DurabilityData;
+import org.spongepowered.api.data.value.mutable.MutableBoundedValue;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.Listener;
@@ -22,13 +23,12 @@ import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.data.Supports;
-import org.spongepowered.api.event.item.inventory.UseItemStackEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.Random;
 
 @Singleton
@@ -87,7 +87,7 @@ public class MiscListener {
 
     private static final double DEFAULT_MOVE_SPEED = 0.1D, DEFAULT_MAX_HEALTH = 20D;
 
-    @Listener
+    @Listener()
     public void on(ChangeEntityEquipmentEvent event) {
         Entity entity = event.getTargetEntity();
         if (entity instanceof Equipable) {
@@ -106,33 +106,42 @@ public class MiscListener {
         Transaction<ItemStackSnapshot> transaction = event.getTransaction();
         if (transaction.isValid()) {
             ItemStack stack = transaction.getFinal().createStack();
-            if (!Attributes.UNBREAKABLE.getValues(stack).isEmpty()) {
-                stack.offer(Keys.UNBREAKABLE, true);
-                stack.offer(Keys.HIDE_UNBREAKABLE, true);
+            ItemStackSnapshot originalStack = transaction.getOriginal();
+            if (originalStack.getType().equals(stack.getType()) && stack.supports(DurabilityData.class)) {
+                DurabilityData newData = stack.get(DurabilityData.class).get();
+                ImmutableDurabilityData oldData = originalStack.getOrCreate(ImmutableDurabilityData.class).get();
+
+                if (Attributes.UNBREAKABLE.getValues(stack).isEmpty()) {
+                    stack.offer(Keys.HIDE_UNBREAKABLE, Boolean.FALSE);
+                    newData.set(newData.unbreakable().set(Boolean.FALSE));
+
+                    List<RangeValue> data = Attributes.DURABILITY.getValues(stack);
+                    if (!data.isEmpty()) {
+                        MutableBoundedValue<Integer> durability = newData.durability();
+                        double lower = data.stream().mapToDouble(RangeValue::getLowerBound).sum();
+                        double upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+
+                        lower = lower + durability.get() - oldData.durability().get();
+                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(lower, upper)));
+
+                        stack.offer(newData.set(durability.set(Math.min((int) lower, durability.getMaxValue()))));
+                    }
+                } else {
+                    stack.offer(Keys.HIDE_UNBREAKABLE, Boolean.TRUE);
+                    newData.set(newData.unbreakable().set(Boolean.TRUE));
+
+                    List<RangeValue> data = Attributes.DURABILITY.getValues(stack);
+                    if (!data.isEmpty()) {
+                        MutableBoundedValue<Integer> durability = newData.durability();
+                        double upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+
+                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(upper)));
+
+                        stack.offer(newData.set(durability.set(Math.min((int) upper, durability.getMaxValue()))));
+                    }
+                }
+                transaction.setCustom(stack.createSnapshot());
             }
         }
     }
-
-    @Listener
-    public void on(UseItemStackEvent.Finish event) {
-        ItemStack stack = event.getItemStackInUse().createStack();
-        stack.getType().getDefaultProperty(UseLimitProperty.class).map(AbstractProperty::getValue)
-            .ifPresent(max -> {
-                Optional<RangeValue> opt = Attributes.DURABILITY.getValues(stack).stream()
-                    .reduce((a, b) -> RangeValue.absolute(a.getLowerBound() + b.getLowerBound(),
-                        a.getUpperBound() + b.getUpperBound()));
-                if (opt.isPresent()) {
-                    RangeValue value = RangeValue.absolute(opt.get().getLowerBound() - 1, opt.get().getUpperBound());
-                    if (((int) value.getLowerBound()) == 0) {
-                        event.setRemainingDuration(0);
-                    } else {
-                        double p = value.getLowerBound() / value.getUpperBound();
-                        int remain = Math.min((int) (p * max), 1);
-                        event.setRemainingDuration(remain);
-                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(value));
-                    }
-                }
-            });
-    }
-
 }
