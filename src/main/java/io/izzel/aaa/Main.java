@@ -32,6 +32,7 @@ import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -68,7 +69,7 @@ public class Main {
         this.service.init();
     }
 
-    @Listener
+    @Listener(order = Order.LATE)
     public void on(ChangeEntityEquipmentEvent event) {
         Transaction<ItemStackSnapshot> transaction = event.getTransaction();
         if (transaction.isValid()) {
