@@ -29,7 +29,7 @@ public class PossessionListener {
             .map(Attributes.POSSESSION::getValues)
             .flatMap(Collection::stream)
             .anyMatch(it -> !it.getUniqueId().equals(player.getUniqueId()))
-            && !player.hasPermission("aaa.possession-bypass")) {
+            && !player.hasPermission("amberadvancedattributes.possession-bypass")) {
             event.setCancelled(true);
             locale.to(player, "attributes.possession.no-permission");
         }
