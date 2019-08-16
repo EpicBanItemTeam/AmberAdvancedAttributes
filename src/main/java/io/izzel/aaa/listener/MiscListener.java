@@ -3,9 +3,9 @@ package io.izzel.aaa.listener;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.izzel.aaa.util.EquipmentUtil;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
+import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
@@ -85,7 +85,7 @@ public class MiscListener {
         }
     }
 
-    private static final double DEFAULT_MOVE_SPEED = 0.7D, DEFAULT_MAX_HEALTH = 20D;
+    private static final double DEFAULT_MOVE_SPEED = 0.1D, DEFAULT_MAX_HEALTH = 20D;
 
     @Listener
     public void on(ChangeEntityEquipmentEvent event) {
