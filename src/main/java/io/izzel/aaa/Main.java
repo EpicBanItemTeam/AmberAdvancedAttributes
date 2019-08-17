@@ -2,7 +2,7 @@ package io.izzel.aaa;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import io.izzel.aaa.command.AAACommandManager;
+import io.izzel.aaa.command.AttributeCommands;
 import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.listener.AttackListener;
 import io.izzel.aaa.listener.MiscListener;
@@ -16,22 +16,23 @@ import org.spongepowered.api.plugin.Plugin;
 
 @Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")
 public class Main {
-    private final AAACommandManager commandManager;
     private final AttributeServiceImpl service;
+    private final AttributeCommands commands;
     private final EventManager eventManager;
     private final Injector injector;
 
+
     @Inject
-    public Main(AttributeServiceImpl serviceImpl, AAACommandManager commandManagerImpl, EventManager e, Injector i) {
-        this.commandManager = commandManagerImpl;
-        this.service = serviceImpl;
+    public Main(AttributeServiceImpl service, AttributeCommands commands, EventManager e, Injector i) {
+        this.commands = commands;
+        this.service = service;
         this.eventManager = e;
         this.injector = i;
     }
 
     @Listener
     public void on(GameInitializationEvent event) {
-        this.commandManager.init();
+        this.commands.init();
         this.service.init();
     }
 

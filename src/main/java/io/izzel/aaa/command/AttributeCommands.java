@@ -43,7 +43,7 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
  * @author ustc_zzzz
  */
 @Singleton
-public class AAACommandManager {
+public class AttributeCommands {
     private static final Text LORE_SEPARATOR = Text.of();
 
     private final Provider<Main> pluginProvider;
@@ -52,7 +52,7 @@ public class AAACommandManager {
     private final AmberLocale locale;
 
     @Inject
-    public AAACommandManager(Provider<Main> plugin, CommandManager c, EventManager e, AmberLocale locale) {
+    public AttributeCommands(Provider<Main> plugin, CommandManager c, EventManager e, AmberLocale locale) {
         this.pluginProvider = plugin;
         this.commandManager = c;
         this.eventManager = e;
