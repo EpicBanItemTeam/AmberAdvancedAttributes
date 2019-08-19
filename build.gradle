@@ -19,8 +19,8 @@ configurations {
     group = 'io.izzel.amberadvancedattributes'
     sponge.plugin.id = 'amberadvancedattributes'
 
-    build.dependsOn shadowJar
     defaultTasks 'clean', 'build'
+    tasks.build.dependsOn tasks.shadowJar
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
@@ -38,6 +38,7 @@ repositories {
 dependencies {
     compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
     compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
+    compile 'com.github.randombyte-developer:byte-items:v2.4.1'
 }
 
 shadowJar {

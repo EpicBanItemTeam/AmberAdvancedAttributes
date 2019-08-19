@@ -8,6 +8,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import io.izzel.aaa.Main;
+import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attribute;
@@ -31,11 +32,13 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 
@@ -44,16 +47,20 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
  */
 @Singleton
 public class AttributeCommands {
+    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
     private static final Text LORE_SEPARATOR = Text.of();
 
     private final Provider<Main> pluginProvider;
+    private final ByteItemsHandler biHandler;
+
     private final CommandManager commandManager;
     private final EventManager eventManager;
     private final AmberLocale locale;
 
     @Inject
-    public AttributeCommands(Provider<Main> plugin, CommandManager c, EventManager e, AmberLocale locale) {
+    public AttributeCommands(Provider<Main> plugin, ByteItemsHandler biHandler, CommandManager c, EventManager e, AmberLocale locale) {
         this.pluginProvider = plugin;
+        this.biHandler = biHandler;
         this.commandManager = c;
         this.eventManager = e;
         this.locale = locale;
@@ -125,6 +132,11 @@ public class AttributeCommands {
         this.registerMarkerValue(plugin, event, "instant-death-immune");
         this.registerPossessValue(plugin, event, "possession");
         this.registerTextValue(plugin, event, "original-lore");
+        this.registerItemsCommand(plugin);
+    }
+
+    private void registerItemsCommand(Main plugin) {
+        this.commandManager.register(plugin, this.getItemsCommand(), "aaa-items");
     }
 
     private void registerTextValue(Main plugin, Attribute.RegistryEvent event, String id) {
@@ -163,6 +175,57 @@ public class AttributeCommands {
         Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, function);
         this.commandManager.register(plugin, this.getPossessCommand(id, attribute), "aaa-possess");
         this.commandManager.register(plugin, this.getPublicizeCommand(id, attribute), "aaa-publicize");
+    }
+
+    private CommandSpec getItemsCommand() {
+        return CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-items")
+                .arguments(GenericArguments.firstParsing(
+                        GenericArguments.literal(Text.of("give"), "give"),
+                        GenericArguments.literal(Text.of("save"), "save")),
+                        GenericArguments.string(Text.of("name")))
+                .executor((src, args) -> {
+                    String name = args.<String>getOne(Text.of("name")).orElse("null");
+                    if (!NAME_PATTERN.matcher(name).matches()) {
+                        this.locale.to(src, "commands.byte-items.invalid-name", name);
+                        return CommandResult.success();
+                    }
+                    if (args.hasAny(Text.of("save"))) {
+                        if (src instanceof Player) {
+                            Player player = (Player) src;
+                            Optional<ItemStack> stackOptional = player.getItemInHand(HandTypes.MAIN_HAND);
+                            if (stackOptional.isPresent()) {
+                                ItemStack stack = stackOptional.get();
+                                if (DataUtil.hasData(stack)) {
+                                    stack.remove(Keys.ITEM_LORE); // lore texts are generated
+                                    player.setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.biHandler.save(name, player);
+                                    this.locale.to(src, "commands.byte-items.save-succeed", name, "aaa-" + name);
+                                    return CommandResult.success();
+                                }
+                            }
+                        }
+                        this.locale.to(src, "commands.drop.nonexist");
+                    }
+                    if (args.hasAny(Text.of("give"))) {
+                        if (src instanceof Player) {
+                            Player player = (Player) src;
+                            ItemStackSnapshot snapshot = this.biHandler.read(name);
+                            if (snapshot.isEmpty()) {
+                                this.locale.to(src, "commands.byte-items.nonexist", name, "aaa-" + name);
+                                return CommandResult.success();
+                            }
+                            InventoryTransactionResult result = player.getInventory().offer(snapshot.createStack());
+                            if (InventoryTransactionResult.Type.SUCCESS.equals(result.getType())) {
+                                this.locale.to(src, "commands.byte-items.give-succeed", name, "aaa-" + name);
+                                return CommandResult.success();
+                            }
+                        }
+                        this.locale.to(src, "commands.byte-items.full");
+                    }
+                    return CommandResult.success();
+                })
+                .build();
     }
 
     private CommandSpec getDropCommand(String id, Attribute<Text> attribute) {
