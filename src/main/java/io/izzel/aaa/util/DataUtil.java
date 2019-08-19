@@ -15,6 +15,10 @@ import java.util.Optional;
  */
 public final class DataUtil {
 
+    private DataUtil() {
+        throw new UnsupportedOperationException();
+    }
+
     public static boolean hasData(ItemStack item) {
         return item.get(Data.class).isPresent();
     }
@@ -37,9 +41,5 @@ public final class DataUtil {
 
     public static <T extends DataSerializable> void collectLore(ListMultimap<Byte, Text> t, ItemStack i, Attribute<T> a) {
         t.putAll(a.getLoreTexts(a.getValues(i)));
-    }
-
-    private DataUtil() {
-        throw new UnsupportedOperationException();
     }
 }

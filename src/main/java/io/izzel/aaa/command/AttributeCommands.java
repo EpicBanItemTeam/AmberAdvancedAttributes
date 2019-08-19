@@ -1,13 +1,10 @@
 package io.izzel.aaa.command;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.*;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import io.izzel.aaa.Main;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -39,6 +36,7 @@ import org.spongepowered.api.text.Text;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 
@@ -50,7 +48,7 @@ public class AttributeCommands {
     private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
     private static final Text LORE_SEPARATOR = Text.of();
 
-    private final Provider<Main> pluginProvider;
+    private final Provider<AmberAdvancedAttributes> pluginProvider;
     private final ByteItemsHandler biHandler;
 
     private final CommandManager commandManager;
@@ -58,7 +56,7 @@ public class AttributeCommands {
     private final AmberLocale locale;
 
     @Inject
-    public AttributeCommands(Provider<Main> plugin, ByteItemsHandler biHandler, CommandManager c, EventManager e, AmberLocale locale) {
+    public AttributeCommands(Provider<AmberAdvancedAttributes> plugin, ByteItemsHandler biHandler, CommandManager c, EventManager e, AmberLocale locale) {
         this.pluginProvider = plugin;
         this.biHandler = biHandler;
         this.commandManager = c;
@@ -67,7 +65,7 @@ public class AttributeCommands {
     }
 
     public void init() {
-        Main plugin = this.pluginProvider.get();
+        AmberAdvancedAttributes plugin = this.pluginProvider.get();
         this.eventManager.registerListener(plugin, Attribute.RegistryEvent.class, Order.EARLY, this::on);
         this.eventManager.registerListener(plugin, ChangeEntityEquipmentEvent.class, Order.LATE, this::on);
     }
@@ -95,7 +93,7 @@ public class AttributeCommands {
     }
 
     private void on(Attribute.RegistryEvent event) {
-        Main plugin = this.pluginProvider.get();
+        AmberAdvancedAttributes plugin = this.pluginProvider.get();
         this.registerRangeValue(plugin, event, "attack");
         this.registerRangeValue(plugin, event, "tracing");
         this.registerRangeValue(plugin, event, "pvp-attack");
@@ -132,49 +130,59 @@ public class AttributeCommands {
         this.registerMarkerValue(plugin, event, "instant-death-immune");
         this.registerPossessValue(plugin, event, "possession");
         this.registerTextValue(plugin, event, "original-lore");
+        //todo:custom lore value need
+//        this.registerCustomTextValue(plugin, event, "custom-lore");
         this.registerItemsCommand(plugin);
     }
 
-    private void registerItemsCommand(Main plugin) {
+    private void registerItemsCommand(AmberAdvancedAttributes plugin) {
         this.commandManager.register(plugin, this.getItemsCommand(), "aaa-items");
     }
 
-    private void registerTextValue(Main plugin, Attribute.RegistryEvent event, String id) {
+    private void registerTextValue(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<Text> function = values -> ImmutableList.of();
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
-        this.commandManager.register(plugin, this.getInitCommand(id, attribute), "aaa-init");
-        this.commandManager.register(plugin, this.getDropCommand(id, attribute), "aaa-drop");
+        //what to do next? edit command?
     }
 
-    private void registerDurabilityValue(Main plugin, Attribute.RegistryEvent event, String id) {
+    private void registerCustomTextValue(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<Text> function = values -> values.stream()
+                .map(text -> Maps.immutableEntry((byte) 0, (Text) text))
+                .collect(Collectors.toList());
+        Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
+        this.commandManager.register(plugin, this.getInitCommand(attribute), "aaa-init");
+        this.commandManager.register(plugin, this.getDropCommand(attribute), "aaa-drop");
+    }
+
+    private void registerDurabilityValue(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue> function = durability(this.locale);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(plugin, this.getRangeCommand(id, false, attribute), "aaa-" + id);
     }
 
-    private void registerRangeValue(Main plugin, Attribute.RegistryEvent event, String id) {
+    private void registerRangeValue(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue> function = rangeValue(this.locale, id);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(plugin, this.getRangeCommand(id, false, attribute), "aaa-" + id);
     }
 
-    private void registerRangeValueFixed(Main plugin, Attribute.RegistryEvent event, String id) {
+    private void registerRangeValueFixed(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue.Fixed> function = rangeValue(this.locale, id);
         Attribute<RangeValue.Fixed> attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
         this.commandManager.register(plugin, this.getRangeCommand(id, true, attribute), "aaa-" + id);
     }
 
-    private void registerMarkerValue(Main plugin, Attribute.RegistryEvent event, String id) {
+    private void registerMarkerValue(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<MarkerValue> function = markerValue(this.locale, id);
         Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, function);
         this.commandManager.register(plugin, this.getMarkerCommand(id, attribute), "aaa-" + id);
     }
 
-    private void registerPossessValue(Main plugin, Attribute.RegistryEvent event, String id) {
+    private void registerPossessValue(AmberAdvancedAttributes plugin, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<GameProfile> function = profile(this.locale);
         Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, function);
-        this.commandManager.register(plugin, this.getPossessCommand(id, attribute), "aaa-possess");
-        this.commandManager.register(plugin, this.getPublicizeCommand(id, attribute), "aaa-publicize");
+        this.commandManager.register(plugin, this.getPossessCommand(attribute), "aaa-possess");
+        this.commandManager.register(plugin, this.getPublicizeCommand(attribute), "aaa-publicize");
     }
 
     private CommandSpec getItemsCommand() {
@@ -228,7 +236,7 @@ public class AttributeCommands {
                 .build();
     }
 
-    private CommandSpec getDropCommand(String id, Attribute<Text> attribute) {
+    private CommandSpec getDropCommand(Attribute<Text> attribute) {
         return CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-drop")
                 .executor((src, args) -> {
@@ -260,7 +268,7 @@ public class AttributeCommands {
                 .build();
     }
 
-    private CommandSpec getInitCommand(String id, Attribute<Text> attribute) {
+    private CommandSpec getInitCommand(Attribute<Text> attribute) {
         return CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-init")
                 .executor((src, args) -> {
@@ -270,13 +278,12 @@ public class AttributeCommands {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 this.locale.to(src, "commands.init.already-exist");
-                                return CommandResult.success();
                             } else {
                                 attribute.setValues(stack, stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of()));
                                 ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                 this.locale.to(src, "commands.init.succeed");
-                                return CommandResult.success();
                             }
+                            return CommandResult.success();
                         }
                     }
                     this.locale.to(src, "commands.drop.nonexist");
@@ -377,13 +384,12 @@ public class AttributeCommands {
                                     attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                     this.locale.to(src, "commands.marker.mark-attribute", stack, id);
-                                    return CommandResult.success();
                                 } else {
                                     attribute.clearValues(stack);
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                     this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
-                                    return CommandResult.success();
                                 }
+                                return CommandResult.success();
                             }
                         }
                     }
@@ -393,7 +399,7 @@ public class AttributeCommands {
                 .build();
     }
 
-    private CommandSpec getPublicizeCommand(String id, Attribute<GameProfile> attribute) {
+    private CommandSpec getPublicizeCommand(Attribute<GameProfile> attribute) {
         return CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-publicize")
                 .executor((src, args) -> {
@@ -414,7 +420,7 @@ public class AttributeCommands {
                 .build();
     }
 
-    private CommandSpec getPossessCommand(String id, Attribute<GameProfile> attribute) {
+    private CommandSpec getPossessCommand(Attribute<GameProfile> attribute) {
         return CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-possess")
                 .arguments(GenericArguments.optional(GenericArguments.player(Text.of("player"))))

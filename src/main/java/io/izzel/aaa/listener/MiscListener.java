@@ -34,22 +34,23 @@ import java.util.Random;
 @Singleton
 public class MiscListener {
 
+    private static final double DEFAULT_MOVE_SPEED = 0.1D, DEFAULT_MAX_HEALTH = 20D;
     private final Random random = new Random();
 
     @Inject
     public MiscListener(PluginContainer container) {
         Object plugin = container.getInstance().orElseThrow(RuntimeException::new);
         Task.builder().delayTicks(20).intervalTicks(20).execute(() ->
-            Sponge.getServer().getOnlinePlayers().forEach(player -> {
-                double saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
-                double starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
-                int food = player.get(Keys.FOOD_LEVEL).orElse(0);
-                player.offer(Keys.FOOD_LEVEL, food + (int) (saturation - starvation));
-                double regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
-                double max = player.get(Keys.MAX_HEALTH).orElse(0D);
-                double health = player.get(Keys.HEALTH).orElse(0D);
-                player.offer(Keys.HEALTH, Math.min(max, health + regen));
-            })).submit(plugin);
+                Sponge.getServer().getOnlinePlayers().forEach(player -> {
+                    double saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
+                    double starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
+                    int food = player.get(Keys.FOOD_LEVEL).orElse(0);
+                    player.offer(Keys.FOOD_LEVEL, food + (int) (saturation - starvation));
+                    double regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
+                    double max = player.get(Keys.MAX_HEALTH).orElse(0D);
+                    double health = player.get(Keys.HEALTH).orElse(0D);
+                    player.offer(Keys.HEALTH, Math.min(max, health + regen));
+                })).submit(plugin);
     }
 
     @Listener
@@ -84,8 +85,6 @@ public class MiscListener {
             event.setKnockbackModifier(event.getKnockbackModifier() + (int) knockback);
         }
     }
-
-    private static final double DEFAULT_MOVE_SPEED = 0.1D, DEFAULT_MAX_HEALTH = 20D;
 
     @Listener()
     public void on(ChangeEntityEquipmentEvent event) {

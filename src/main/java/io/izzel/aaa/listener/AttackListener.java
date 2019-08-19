@@ -57,19 +57,19 @@ public class AttackListener {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
             EquipmentUtil.items(from).forEach(itemStack -> {
                 Attributes.ATTACK.getValues(itemStack).forEach(v ->
-                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK).with(v))
-                            .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                        v.getFunction(this.random), ImmutableSet.of()));
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK).with(v))
+                                        .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
+                                v.getFunction(this.random), ImmutableSet.of()));
                 if (from instanceof Player && to instanceof Player) {
                     Attributes.PVP_ATTACK.getValues(itemStack).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
-                                .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                            v.getFunction(this.random), ImmutableSet.of()));
+                            event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
+                                            .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
+                                    v.getFunction(this.random), ImmutableSet.of()));
                 } else if (from instanceof Player) {
                     Attributes.PVE_ATTACK.getValues(itemStack).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
-                                .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                            v.getFunction(this.random), ImmutableSet.of()));
+                            event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
+                                            .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
+                                    v.getFunction(this.random), ImmutableSet.of()));
                 }
             });
         });
@@ -79,8 +79,8 @@ public class AttackListener {
         if (!value.isRelative()) return d -> Math.max(-value.getFunction(this.random).applyAsDouble(d), 0D);
         else {
             double amount = random.nextBoolean()
-                ? value.getLowerBound() + value.getSize() * random.nextDouble()
-                : value.getUpperBound() - value.getSize() * random.nextDouble();
+                    ? value.getLowerBound() + value.getSize() * random.nextDouble()
+                    : value.getUpperBound() - value.getSize() * random.nextDouble();
             return d -> ((1D / (1D + amount)) - 1D) * d;
         }
     }
@@ -92,21 +92,21 @@ public class AttackListener {
                 Attributes.DEFENSE.getValues(itemStack).forEach(v -> {
                     System.out.println(itemStack + " " + v);
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.DEFENSE).with(v))
-                            .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                        defense(v), ImmutableSet.of());
+                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
+                            defense(v), ImmutableSet.of());
                 });
                 if (source instanceof EntityDamageSource) {
                     getBySource(((EntityDamageSource) source)).ifPresent(from -> {
                         if (from instanceof Player && to instanceof Player) {
                             Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
-                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_DEFENSE).with(v))
-                                        .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                                    defense(v), ImmutableSet.of()));
+                                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_DEFENSE).with(v))
+                                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
+                                            defense(v), ImmutableSet.of()));
                         } else if (from instanceof Player) {
                             Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
-                                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_DEFENSE).with(v))
-                                        .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
-                                    defense(v), ImmutableSet.of()));
+                                    event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_DEFENSE).with(v))
+                                                    .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
+                                            defense(v), ImmutableSet.of()));
                         }
                     });
                 }
@@ -132,8 +132,8 @@ public class AttackListener {
             double critRate = EquipmentUtil.allOf(from, Attributes.CRIT_RATE);
             if (random.nextDouble() < critRate) {
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                        .type(DamageModifierTypes.CRITICAL_HIT).build(),
-                    d -> d * crit, ImmutableSet.of());
+                                .type(DamageModifierTypes.CRITICAL_HIT).build(),
+                        d -> d * crit, ImmutableSet.of());
             }
         });
     }
@@ -145,14 +145,14 @@ public class AttackListener {
             boolean instantImmune = false;
             if (to instanceof Equipable) {
                 instantImmune = EquipmentUtil.items(((Equipable) to)).map(Attributes.INSTANT_DEATH_IMMUNE::getValues)
-                    .flatMap(Collection::stream)
-                    .findAny().isPresent();
+                        .flatMap(Collection::stream)
+                        .findAny().isPresent();
             }
             if (!instantImmune && random.nextDouble() < instantDeath) {
                 double damage = event.getFinalDamage();
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                        .type(DamageModifierTypes.CRITICAL_HIT).build(),
-                    d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
+                                .type(DamageModifierTypes.CRITICAL_HIT).build(),
+                        d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
             }
         });
     }
@@ -172,7 +172,7 @@ public class AttackListener {
                     }
                     double total = reflect + pvpReflect + pveReflect;
                     ((Entity) from).damage(event.getFinalDamage() * total,
-                        EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
+                            EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
                 }
             });
         }

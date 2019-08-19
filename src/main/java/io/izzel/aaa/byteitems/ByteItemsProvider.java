@@ -4,9 +4,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 import de.randombyte.byteitems.api.ByteItemsService;
-import io.izzel.aaa.Main;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.CommandException;
@@ -35,11 +34,11 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
     private final ServiceManager serviceManager;
     private final PluginManager pluginManager;
     private final EventManager eventManager;
-    private final Provider<Main> provider;
+    private final Provider<AmberAdvancedAttributes> provider;
     private final AmberLocale locale;
 
     @Inject
-    public ByteItemsProvider(AmberLocale locale, Provider<Main> provider, Game game) {
+    public ByteItemsProvider(AmberLocale locale, Provider<AmberAdvancedAttributes> provider, Game game) {
         this.commandManager = game.getCommandManager();
         this.serviceManager = game.getServiceManager();
         this.pluginManager = game.getPluginManager();

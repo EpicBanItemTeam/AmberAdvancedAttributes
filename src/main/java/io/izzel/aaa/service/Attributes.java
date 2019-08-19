@@ -48,10 +48,6 @@ public final class Attributes {
 
     public static final Attribute<Text> ORIGINAL_LORE;
 
-    private static <T extends DataSerializable> Attribute<T> getAttributeById(AttributeService s, String id) {
-        return s.<T>getAttributeById(id).orElseThrow(() -> new RuntimeException("The class is loaded too early! "));
-    }
-
     static {
         AttributeService service = AttributeService.instance();
 
@@ -99,5 +95,9 @@ public final class Attributes {
 
     private Attributes() {
         throw new UnsupportedOperationException();
+    }
+
+    private static <T extends DataSerializable> Attribute<T> getAttributeById(AttributeService s, String id) {
+        return s.<T>getAttributeById(id).orElseThrow(() -> new RuntimeException("The class is loaded too early! "));
     }
 }

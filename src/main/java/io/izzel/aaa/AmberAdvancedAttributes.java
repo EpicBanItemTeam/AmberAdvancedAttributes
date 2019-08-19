@@ -15,7 +15,7 @@ import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 
 @Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")
-public class Main {
+public class AmberAdvancedAttributes {
     private final AttributeServiceImpl service;
     private final AttributeCommands commands;
     private final EventManager eventManager;
@@ -23,7 +23,7 @@ public class Main {
 
 
     @Inject
-    public Main(AttributeServiceImpl service, AttributeCommands commands, EventManager e, Injector i) {
+    public AmberAdvancedAttributes(AttributeServiceImpl service, AttributeCommands commands, EventManager e, Injector i) {
         this.commands = commands;
         this.service = service;
         this.eventManager = e;

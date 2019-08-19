@@ -30,6 +30,26 @@ public class RangeValue implements DataSerializable {
         this.diff = diff;
     }
 
+    public static RangeValue.Fixed absolute(double value) {
+        return new RangeValue.Fixed(value, false);
+    }
+
+    public static RangeValue absolute(double lowerBound, double upperBound) {
+        return new RangeValue(lowerBound, upperBound, false);
+    }
+
+    public static RangeValue.Fixed relative(double value) {
+        return new RangeValue.Fixed(value, true);
+    }
+
+    public static RangeValue relative(double lowerBound, double upperBound) {
+        return new RangeValue(lowerBound, upperBound, true);
+    }
+
+    public static DataBuilder<RangeValue> builder() {
+        return new RangeValue.Builder();
+    }
+
     public DoubleUnaryOperator getFunction(Random random) {
         if (random.nextBoolean()) {
             double amount = this.lowerBound + this.diff * random.nextDouble();
@@ -92,30 +112,10 @@ public class RangeValue implements DataSerializable {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-            .add("isRelative", isRelative)
-            .add("lowerBound", lowerBound)
-            .add("upperBound", upperBound)
-            .toString();
-    }
-
-    public static RangeValue.Fixed absolute(double value) {
-        return new RangeValue.Fixed(value, false);
-    }
-
-    public static RangeValue absolute(double lowerBound, double upperBound) {
-        return new RangeValue(lowerBound, upperBound, false);
-    }
-
-    public static RangeValue.Fixed relative(double value) {
-        return new RangeValue.Fixed(value, true);
-    }
-
-    public static RangeValue relative(double lowerBound, double upperBound) {
-        return new RangeValue(lowerBound, upperBound, true);
-    }
-
-    public static DataBuilder<RangeValue> builder() {
-        return new RangeValue.Builder();
+                .add("isRelative", isRelative)
+                .add("lowerBound", lowerBound)
+                .add("upperBound", upperBound)
+                .toString();
     }
 
     @NonnullByDefault

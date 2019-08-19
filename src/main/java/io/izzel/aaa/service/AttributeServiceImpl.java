@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import io.izzel.aaa.Main;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.ImmutableData;
 import io.izzel.aaa.data.MarkerValue;
@@ -30,7 +30,7 @@ import java.util.Map;
 @Singleton
 @NonnullByDefault
 public class AttributeServiceImpl implements AttributeService {
-    private final Provider<Main> pluginProvider;
+    private final Provider<AmberAdvancedAttributes> pluginProvider;
     private final ServiceManager serviceManager;
     private final EventManager eventManager;
     private final DataManager dataManager;
@@ -39,7 +39,7 @@ public class AttributeServiceImpl implements AttributeService {
     private final Map<String, Attribute<?>> attributeMapUnmodifiable = Collections.unmodifiableMap(this.attributeMap);
 
     @Inject
-    public AttributeServiceImpl(Provider<Main> pluginProvider, ServiceManager s, EventManager e, DataManager d) {
+    public AttributeServiceImpl(Provider<AmberAdvancedAttributes> pluginProvider, ServiceManager s, EventManager e, DataManager d) {
         this.pluginProvider = pluginProvider;
         this.serviceManager = s;
         this.eventManager = e;

@@ -17,6 +17,7 @@ public interface ByteItemsHandler {
 
     /**
      * Save item in main hand to id and return
+     *
      * @throws CommandException if it is failed to save
      */
     ItemStackSnapshot save(String id, Player player) throws CommandException;

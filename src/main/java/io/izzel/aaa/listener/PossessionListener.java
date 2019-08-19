@@ -17,19 +17,20 @@ import java.util.Optional;
 @Singleton
 public class PossessionListener {
 
-    @Inject private AmberLocale locale;
+    @Inject
+    private AmberLocale locale;
 
     @Listener
     public void on(AffectSlotEvent event, @Root Player player) {
         if (event.getTransactions().stream()
-            .map(SlotTransaction::getSlot)
-            .map(Inventory::peek)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .map(Attributes.POSSESSION::getValues)
-            .flatMap(Collection::stream)
-            .anyMatch(it -> !it.getUniqueId().equals(player.getUniqueId()))
-            && !player.hasPermission("amberadvancedattributes.possession-bypass")) {
+                .map(SlotTransaction::getSlot)
+                .map(Inventory::peek)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(Attributes.POSSESSION::getValues)
+                .flatMap(Collection::stream)
+                .anyMatch(it -> !it.getUniqueId().equals(player.getUniqueId()))
+                && !player.hasPermission("amberadvancedattributes.possession-bypass")) {
             event.setCancelled(true);
             locale.to(player, "attributes.possession.no-permission");
         }

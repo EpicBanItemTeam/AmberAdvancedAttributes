@@ -24,6 +24,14 @@ public final class MarkerValue implements DataSerializable {
         this.container = DataContainer.createNew().set(Queries.CONTENT_VERSION, this.getContentVersion());
     }
 
+    public static MarkerValue of() {
+        return Builder.INSTANCE;
+    }
+
+    public static DataBuilder<MarkerValue> builder() {
+        return new Builder();
+    }
+
     @Override
     public int getContentVersion() {
         return 0;
@@ -42,14 +50,6 @@ public final class MarkerValue implements DataSerializable {
     @Override
     public boolean equals(Object obj) {
         return this == obj;
-    }
-
-    public static MarkerValue of() {
-        return Builder.INSTANCE;
-    }
-
-    public static DataBuilder<MarkerValue> builder() {
-        return new Builder();
     }
 
     @NonnullByDefault

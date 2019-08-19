@@ -17,12 +17,12 @@ import java.util.stream.Stream;
 public class EquipmentUtil {
 
     private static final List<EquipmentType> TYPES = ImmutableList.of(
-        EquipmentTypes.HEADWEAR,
-        EquipmentTypes.CHESTPLATE,
-        EquipmentTypes.LEGGINGS,
-        EquipmentTypes.BOOTS,
-        EquipmentTypes.OFF_HAND,
-        EquipmentTypes.MAIN_HAND
+            EquipmentTypes.HEADWEAR,
+            EquipmentTypes.CHESTPLATE,
+            EquipmentTypes.LEGGINGS,
+            EquipmentTypes.BOOTS,
+            EquipmentTypes.OFF_HAND,
+            EquipmentTypes.MAIN_HAND
     );
 
     public static Stream<ItemStack> items(Equipable equipable) {
@@ -32,10 +32,10 @@ public class EquipmentUtil {
     public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
         double[] ret = {value};
         items(equipable)
-            .map(attribute::getValues)
-            .flatMap(Collection::stream)
-            .map(it -> it.getFunction(ThreadLocalRandom.current()))
-            .forEach(it -> ret[0] += it.applyAsDouble(ret[0]));
+                .map(attribute::getValues)
+                .flatMap(Collection::stream)
+                .map(it -> it.getFunction(ThreadLocalRandom.current()))
+                .forEach(it -> ret[0] += it.applyAsDouble(ret[0]));
         return ret[0];
     }
 
