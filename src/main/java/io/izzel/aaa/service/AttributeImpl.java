@@ -45,7 +45,7 @@ public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
 
     @Override
     public ImmutableList<T> getValues(ItemStack item) {
-        return DataUtil.getData(item).map(data -> ImmutableList.<T>copyOf(data.get(this))).orElse(ImmutableList.of());
+        return DataUtil.getData(item).map(data -> data.get(this)).orElse(ImmutableList.of());
     }
 
     @Override

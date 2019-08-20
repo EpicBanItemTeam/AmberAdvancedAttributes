@@ -1,6 +1,9 @@
 package io.izzel.aaa.data;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.data.*;
@@ -25,10 +28,9 @@ public class Data extends AbstractData<Data, ImmutableData> {
         this.data.putAll(data);
     }
 
-    public <T extends DataSerializable> List<? extends T> get(Attribute<T> attribute) {
-        @SuppressWarnings("unchecked")
-        List<T> result = (List) this.data.get(attribute.getId());
-        return result;
+    public <T extends DataSerializable> ImmutableList<T> get(Attribute<T> attribute) {
+        List<?> values = this.data.get(attribute.getId());
+        return values.stream().map(attribute.getDataClass()::cast).collect(ImmutableList.toImmutableList());
     }
 
     public <T extends DataSerializable> Data set(Attribute<T> attribute, List<? extends T> value) {
