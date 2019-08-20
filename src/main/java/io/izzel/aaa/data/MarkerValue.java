@@ -1,9 +1,6 @@
 package io.izzel.aaa.data;
 
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataSerializable;
-import org.spongepowered.api.data.DataView;
-import org.spongepowered.api.data.Queries;
+import org.spongepowered.api.data.*;
 import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.DataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
@@ -28,8 +25,8 @@ public final class MarkerValue implements DataSerializable {
         return Builder.INSTANCE;
     }
 
-    public static DataBuilder<MarkerValue> builder() {
-        return new Builder();
+    public static void register(DataManager dataManager) {
+        dataManager.registerBuilder(MarkerValue.class, new MarkerValue.Builder());
     }
 
     @Override

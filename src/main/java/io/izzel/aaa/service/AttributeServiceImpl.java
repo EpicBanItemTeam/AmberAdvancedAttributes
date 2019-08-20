@@ -6,12 +6,10 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.data.Data;
-import io.izzel.aaa.data.ImmutableData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataManager;
-import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.EventManager;
@@ -47,23 +45,15 @@ public class AttributeServiceImpl implements AttributeService {
     }
 
     public void init() {
-        this.registerData();
+        Data.register(this.dataManager);
+        RangeValue.register(this.dataManager);
+        MarkerValue.register(this.dataManager);
         this.serviceManager.setProvider(this.pluginProvider.get(), AttributeService.class, this);
         this.eventManager.registerListener(this.pluginProvider.get(), GameAboutToStartServerEvent.class, event -> {
             try (CauseStackManager.StackFrame stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {
                 Sponge.getEventManager().post(new RegistryEvent(stackFrame.getCurrentCause()));
             }
         });
-    }
-
-    private void registerData() {
-        DataRegistration.builder()
-                .dataClass(Data.class)
-                .builder(new Data.Builder())
-                .immutableClass(ImmutableData.class)
-                .id("data").name("AmberAdvancedAttributes").build();
-        this.dataManager.registerBuilder(RangeValue.class, RangeValue.builder());
-        this.dataManager.registerBuilder(MarkerValue.class, MarkerValue.builder());
     }
 
     @Override

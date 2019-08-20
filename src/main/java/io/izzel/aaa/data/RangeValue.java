@@ -46,8 +46,8 @@ public class RangeValue implements DataSerializable {
         return new RangeValue(lowerBound, upperBound, true);
     }
 
-    public static DataBuilder<RangeValue> builder() {
-        return new RangeValue.Builder();
+    public static void register(DataManager dataManager) {
+        dataManager.registerBuilder(RangeValue.class, new RangeValue.Builder());
     }
 
     public DoubleUnaryOperator getFunction(Random random) {

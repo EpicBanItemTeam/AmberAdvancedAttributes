@@ -28,6 +28,14 @@ public class Data extends AbstractData<Data, ImmutableData> {
         this.data.putAll(data);
     }
 
+    public static void register(DataManager dataManager) {
+        DataRegistration.builder()
+                .dataClass(Data.class)
+                .builder(new Data.Builder())
+                .immutableClass(ImmutableData.class)
+                .id("data").name("AmberAdvancedAttributes").build();
+    }
+
     public <T extends DataSerializable> ImmutableList<T> get(Attribute<T> attribute) {
         List<?> values = this.data.get(attribute.getId());
         return values.stream().map(attribute.getDataClass()::cast).collect(ImmutableList.toImmutableList());
