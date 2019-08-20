@@ -1,9 +1,6 @@
 package io.izzel.aaa.data;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.*;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.data.*;
@@ -82,9 +79,17 @@ public class Data extends AbstractData<Data, ImmutableData> {
     protected DataContainer fillContainer(DataContainer dataContainer) {
         DataContainer container = super.fillContainer(dataContainer);
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
-            List<Object> values = this.data.get(entry.getKey());
+            String key = entry.getKey();
+            List<?> values = this.data.get(key);
             if (!values.isEmpty()) {
-                container.set(DataQuery.of(entry.getKey()), values);
+                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
+                if (MarkerValue.class == clazz) {
+                    DataQuery query = DataQuery.of(key);
+                    container.set(query, values.size());
+                } else {
+                    DataQuery query = DataQuery.of(key);
+                    container.set(query, values);
+                }
             }
         }
         return container;
@@ -94,8 +99,16 @@ public class Data extends AbstractData<Data, ImmutableData> {
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
             String key = entry.getKey();
             DataQuery query = DataQuery.of(key);
-            Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
-            this.data.replaceValues(key, container.getSerializableList(query, clazz).orElse(ImmutableList.of()));
+            if (container.contains(query)) {
+                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
+                if (MarkerValue.class == clazz) {
+                    List<?> values = Collections.nCopies(container.getInt(query).orElse(0), MarkerValue.of());
+                    this.data.replaceValues(key, values);
+                } else {
+                    List<?> values = container.getSerializableList(query, clazz).orElse(ImmutableList.of());
+                    this.data.replaceValues(key, values);
+                }
+            }
         }
         return Optional.of(this);
     }
