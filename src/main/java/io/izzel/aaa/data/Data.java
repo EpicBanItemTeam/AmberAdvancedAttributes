@@ -81,7 +81,10 @@ public class Data extends AbstractData<Data, ImmutableData> {
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
             String key = entry.getKey();
             List<?> values = this.data.get(key);
-            if (!values.isEmpty()) {
+            if (values.isEmpty()) {
+                DataQuery query = DataQuery.of(key);
+                container.remove(query);
+            } else {
                 Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
                 if (MarkerValue.class == clazz) {
                     DataQuery query = DataQuery.of(key);
@@ -108,6 +111,8 @@ public class Data extends AbstractData<Data, ImmutableData> {
                     List<?> values = container.getSerializableList(query, clazz).orElse(ImmutableList.of());
                     this.data.replaceValues(key, values);
                 }
+            } else {
+                this.data.removeAll(key);
             }
         }
         return Optional.of(this);
