@@ -1,16 +1,13 @@
 package io.izzel.aaa.data;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.data.*;
-import org.spongepowered.api.data.manipulator.DataManipulatorBuilder;
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractData;
 import org.spongepowered.api.data.merge.MergeFunction;
-import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -29,9 +26,10 @@ public class Data extends AbstractData<Data, ImmutableData> {
     }
 
     public static void register(DataManager dataManager) {
+        Objects.requireNonNull(dataManager);
         DataRegistration.builder()
                 .dataClass(Data.class)
-                .builder(new Data.Builder())
+                .builder(new DataBuilder())
                 .immutableClass(ImmutableData.class)
                 .id("data").name("AmberAdvancedAttributes").build();
     }
@@ -64,7 +62,7 @@ public class Data extends AbstractData<Data, ImmutableData> {
     @Override
     public Optional<Data> from(DataContainer container) {
         try {
-            return this.fromContainer(container);
+            return Optional.of(fromContainer(container, this));
         } catch (InvalidDataException e) {
             return Optional.empty();
         }
@@ -87,10 +85,13 @@ public class Data extends AbstractData<Data, ImmutableData> {
 
     @Override
     protected DataContainer fillContainer(DataContainer dataContainer) {
-        DataContainer container = super.fillContainer(dataContainer);
+        return fillContainer(super.fillContainer(dataContainer), this.data);
+    }
+
+    static DataContainer fillContainer(DataContainer container, ListMultimap<String, ?> data) {
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
             String key = entry.getKey();
-            List<?> values = this.data.get(key);
+            List<?> values = data.get(key);
             if (values.isEmpty()) {
                 DataQuery query = DataQuery.of(key);
                 container.remove(query);
@@ -108,7 +109,7 @@ public class Data extends AbstractData<Data, ImmutableData> {
         return container;
     }
 
-    private Optional<Data> fromContainer(DataView container) {
+    static Data fromContainer(DataView container, Data data) {
         for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
             String key = entry.getKey();
             DataQuery query = DataQuery.of(key);
@@ -116,37 +117,15 @@ public class Data extends AbstractData<Data, ImmutableData> {
                 Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
                 if (MarkerValue.class == clazz) {
                     List<?> values = Collections.nCopies(container.getInt(query).orElse(0), MarkerValue.of());
-                    this.data.replaceValues(key, values);
+                    data.data.replaceValues(key, values);
                 } else {
                     List<?> values = container.getSerializableList(query, clazz).orElse(ImmutableList.of());
-                    this.data.replaceValues(key, values);
+                    data.data.replaceValues(key, values);
                 }
             } else {
-                this.data.removeAll(key);
+                data.data.removeAll(key);
             }
         }
-        return Optional.of(this);
-    }
-
-    @NonnullByDefault
-    public static class Builder extends AbstractDataBuilder<Data> implements DataManipulatorBuilder<Data, ImmutableData> {
-        public Builder() {
-            super(Data.class, 0);
-        }
-
-        @Override
-        public Data create() {
-            return new Data(ImmutableListMultimap.of());
-        }
-
-        @Override
-        public Optional<Data> createFrom(DataHolder dataHolder) {
-            return this.create().fill(dataHolder);
-        }
-
-        @Override
-        protected Optional<Data> buildContent(DataView container) {
-            return this.create().fromContainer(container);
-        }
+        return data;
     }
 }

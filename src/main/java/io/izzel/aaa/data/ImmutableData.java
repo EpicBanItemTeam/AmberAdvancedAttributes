@@ -34,6 +34,6 @@ public class ImmutableData extends AbstractImmutableData<ImmutableData, Data> {
 
     @Override
     protected DataContainer fillContainer(DataContainer dataContainer) {
-        return super.fillContainer(dataContainer);
+        return Data.fillContainer(super.fillContainer(dataContainer), this.data);
     }
 }
