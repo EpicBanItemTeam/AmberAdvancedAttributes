@@ -1,5 +1,6 @@
 package io.izzel.aaa.service;
 
+import com.google.inject.ImplementedBy;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -11,6 +12,7 @@ import java.util.Optional;
  * @author ustc_zzzz
  */
 @NonnullByDefault
+@ImplementedBy(AttributeServiceImpl.class)
 public interface AttributeService {
 
     static AttributeService instance() {

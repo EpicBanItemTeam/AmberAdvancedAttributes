@@ -1,16 +1,13 @@
 package io.izzel.aaa.data;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.data.*;
-import org.spongepowered.api.data.manipulator.DataManipulatorBuilder;
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractData;
 import org.spongepowered.api.data.merge.MergeFunction;
-import org.spongepowered.api.data.persistence.AbstractDataBuilder;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -28,10 +25,58 @@ public class Data extends AbstractData<Data, ImmutableData> {
         this.data.putAll(data);
     }
 
-    public <T extends DataSerializable> List<? extends T> get(Attribute<T> attribute) {
-        @SuppressWarnings("unchecked")
-        List<T> result = (List) this.data.get(attribute.getId());
-        return result;
+    public static void register(DataManager dataManager) {
+        Objects.requireNonNull(dataManager);
+        DataRegistration.builder()
+                .dataClass(Data.class)
+                .builder(new DataBuilder())
+                .immutableClass(ImmutableData.class)
+                .id("data").name("AmberAdvancedAttributes").build();
+    }
+
+    static DataContainer fillContainer(DataContainer container, ListMultimap<String, ?> data) {
+        for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
+            String key = entry.getKey();
+            List<?> values = data.get(key);
+            if (values.isEmpty()) {
+                DataQuery query = DataQuery.of(key);
+                container.remove(query);
+            } else {
+                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
+                DataQuery query = DataQuery.of(key);
+                if (MarkerValue.class == clazz) {
+                    container.set(query, values.size());
+                } else {
+                    container.set(query, values);
+                }
+            }
+        }
+        return container;
+    }
+
+    static Data fromContainer(DataView container, Data data) {
+        for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
+            String key = entry.getKey();
+            DataQuery query = DataQuery.of(key);
+            if (container.contains(query)) {
+                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
+                if (MarkerValue.class == clazz) {
+                    List<?> values = Collections.nCopies(container.getInt(query).orElse(0), MarkerValue.of());
+                    data.data.replaceValues(key, values);
+                } else {
+                    List<?> values = container.getSerializableList(query, clazz).orElse(ImmutableList.of());
+                    data.data.replaceValues(key, values);
+                }
+            } else {
+                data.data.removeAll(key);
+            }
+        }
+        return data;
+    }
+
+    public <T extends DataSerializable> ImmutableList<T> get(Attribute<T> attribute) {
+        List<?> values = this.data.get(attribute.getId());
+        return values.stream().map(attribute.getDataClass()::cast).collect(ImmutableList.toImmutableList());
     }
 
     public <T extends DataSerializable> Data set(Attribute<T> attribute, List<? extends T> value) {
@@ -57,7 +102,7 @@ public class Data extends AbstractData<Data, ImmutableData> {
     @Override
     public Optional<Data> from(DataContainer container) {
         try {
-            return this.fromContainer(container);
+            return Optional.of(fromContainer(container, this));
         } catch (InvalidDataException e) {
             return Optional.empty();
         }
@@ -80,61 +125,6 @@ public class Data extends AbstractData<Data, ImmutableData> {
 
     @Override
     protected DataContainer fillContainer(DataContainer dataContainer) {
-        DataContainer container = super.fillContainer(dataContainer);
-        for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
-            String key = entry.getKey();
-            List<?> values = this.data.get(key);
-            if (!values.isEmpty()) {
-                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
-                if (MarkerValue.class == clazz) {
-                    DataQuery query = DataQuery.of(key);
-                    container.set(query, values.size());
-                } else {
-                    DataQuery query = DataQuery.of(key);
-                    container.set(query, values);
-                }
-            }
-        }
-        return container;
-    }
-
-    private Optional<Data> fromContainer(DataView container) {
-        for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
-            String key = entry.getKey();
-            DataQuery query = DataQuery.of(key);
-            if (container.contains(query)) {
-                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
-                if (MarkerValue.class == clazz) {
-                    List<?> values = Collections.nCopies(container.getInt(query).orElse(0), MarkerValue.of());
-                    this.data.replaceValues(key, values);
-                } else {
-                    List<?> values = container.getSerializableList(query, clazz).orElse(ImmutableList.of());
-                    this.data.replaceValues(key, values);
-                }
-            }
-        }
-        return Optional.of(this);
-    }
-
-    @NonnullByDefault
-    public static class Builder extends AbstractDataBuilder<Data> implements DataManipulatorBuilder<Data, ImmutableData> {
-        public Builder() {
-            super(Data.class, 0);
-        }
-
-        @Override
-        public Data create() {
-            return new Data(ImmutableListMultimap.of());
-        }
-
-        @Override
-        public Optional<Data> createFrom(DataHolder dataHolder) {
-            return this.create().fill(dataHolder);
-        }
-
-        @Override
-        protected Optional<Data> buildContent(DataView container) {
-            return this.create().fromContainer(container);
-        }
+        return fillContainer(super.fillContainer(dataContainer), this.data);
     }
 }

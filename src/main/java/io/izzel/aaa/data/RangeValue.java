@@ -35,7 +35,7 @@ public class RangeValue implements DataSerializable {
     }
 
     public static RangeValue absolute(double lowerBound, double upperBound) {
-        return new RangeValue(lowerBound, upperBound, false);
+        return lowerBound == upperBound ? absolute(lowerBound) : new RangeValue(lowerBound, upperBound, false);
     }
 
     public static RangeValue relative(double value) {
@@ -43,11 +43,12 @@ public class RangeValue implements DataSerializable {
     }
 
     public static RangeValue relative(double lowerBound, double upperBound) {
-        return new RangeValue(lowerBound, upperBound, true);
+        return lowerBound == upperBound ? relative(lowerBound) : new RangeValue(lowerBound, upperBound, true);
     }
 
-    public static DataBuilder<RangeValue> builder() {
-        return new RangeValue.Builder();
+    public static void register(DataManager dataManager) {
+        dataManager.registerBuilder(RangeValue.class, new Builder());
+        dataManager.registerBuilder(Fixed.class, new FixedBuilder());
     }
 
     public DoubleUnaryOperator getFunction(Random random) {
@@ -154,6 +155,32 @@ public class RangeValue implements DataSerializable {
         @Override
         public DoubleUnaryOperator getFunction(Random random) {
             return isRelative() ? d -> d * getLowerBound() : d -> getLowerBound();
+        }
+    }
+
+    private static class FixedBuilder extends AbstractDataBuilder<Fixed> {
+        private static final DataQuery RELATIVE = DataQuery.of("Relative");
+        private static final DataQuery LOWER_BOUND = DataQuery.of("LowerBound");
+        private static final DataQuery UPPER_BOUND = DataQuery.of("UpperBound");
+
+        private FixedBuilder() {
+            super(Fixed.class, 0);
+        }
+
+        @Override
+        protected Optional<Fixed> buildContent(DataView container) throws InvalidDataException {
+            try {
+                boolean isRelative = container.getBoolean(RELATIVE).orElse(Boolean.FALSE);
+                double lowerBound = container.getDouble(LOWER_BOUND).orElseThrow(IllegalArgumentException::new);
+                double upperBound = container.getDouble(UPPER_BOUND).orElseThrow(IllegalArgumentException::new);
+                if (lowerBound == upperBound) {
+                    return Optional.of(new RangeValue.Fixed(lowerBound, isRelative));
+                } else {
+                    return Optional.empty();
+                }
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
         }
     }
 }
