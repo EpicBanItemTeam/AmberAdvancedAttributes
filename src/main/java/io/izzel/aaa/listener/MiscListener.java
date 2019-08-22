@@ -6,7 +6,7 @@ import com.google.inject.Singleton;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.EquipmentUtil;
-import org.spongepowered.api.Sponge;
+import org.spongepowered.api.Game;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.immutable.item.ImmutableDurabilityData;
@@ -15,6 +15,7 @@ import org.spongepowered.api.data.manipulator.mutable.item.DurabilityData;
 import org.spongepowered.api.data.value.mutable.MutableBoundedValue;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Equipable;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.AttackEntityEvent;
@@ -23,6 +24,7 @@ import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.filter.data.Supports;
+import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -38,10 +40,10 @@ public class MiscListener {
     private final Random random = new Random();
 
     @Inject
-    public MiscListener(PluginContainer container) {
-        Object plugin = container.getInstance().orElseThrow(RuntimeException::new);
-        Task.builder().delayTicks(20).intervalTicks(20).execute(() ->
-                Sponge.getServer().getOnlinePlayers().forEach(player -> {
+    public MiscListener(PluginContainer container, Game game) {
+        game.getEventManager().registerListener(container, GameStartingServerEvent.class, event -> {
+            Runnable executor = () -> {
+                for (Player player : game.getServer().getOnlinePlayers()) {
                     double saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
                     double starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
                     int food = player.get(Keys.FOOD_LEVEL).orElse(0);
@@ -50,7 +52,10 @@ public class MiscListener {
                     double max = player.get(Keys.MAX_HEALTH).orElse(0D);
                     double health = player.get(Keys.HEALTH).orElse(0D);
                     player.offer(Keys.HEALTH, Math.min(max, health + regen));
-                })).submit(plugin);
+                }
+            };
+            Task.builder().delayTicks(20).intervalTicks(20).execute(executor).submit(container);
+        });
     }
 
     @Listener
