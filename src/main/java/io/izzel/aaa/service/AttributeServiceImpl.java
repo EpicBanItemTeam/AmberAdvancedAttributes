@@ -2,12 +2,11 @@ package io.izzel.aaa.service;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
+import io.izzel.aaa.data.StringValue;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataManager;
 import org.spongepowered.api.data.DataSerializable;
@@ -15,6 +14,7 @@ import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -28,28 +28,18 @@ import java.util.Map;
 @Singleton
 @NonnullByDefault
 public class AttributeServiceImpl implements AttributeService {
-    private final Provider<AmberAdvancedAttributes> pluginProvider;
-    private final ServiceManager serviceManager;
-    private final EventManager eventManager;
-    private final DataManager dataManager;
 
     private final Map<String, Attribute<?>> attributeMap = new LinkedHashMap<>();
     private final Map<String, Attribute<?>> attributeMapUnmodifiable = Collections.unmodifiableMap(this.attributeMap);
 
     @Inject
-    public AttributeServiceImpl(Provider<AmberAdvancedAttributes> pluginProvider, ServiceManager s, EventManager e, DataManager d) {
-        this.pluginProvider = pluginProvider;
-        this.serviceManager = s;
-        this.eventManager = e;
-        this.dataManager = d;
-    }
-
-    public void init() {
-        Data.register(this.dataManager);
-        RangeValue.register(this.dataManager);
-        MarkerValue.register(this.dataManager);
-        this.serviceManager.setProvider(this.pluginProvider.get(), AttributeService.class, this);
-        this.eventManager.registerListener(this.pluginProvider.get(), GameAboutToStartServerEvent.class, event -> {
+    public AttributeServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager, DataManager dataManager) {
+        Data.register(dataManager);
+        RangeValue.register(dataManager);
+        MarkerValue.register(dataManager);
+        StringValue.register(dataManager);
+        serviceManager.setProvider(container, AttributeService.class, this);
+        eventManager.registerListener(container, GameAboutToStartServerEvent.class, event -> {
             try (CauseStackManager.StackFrame stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {
                 Sponge.getEventManager().post(new RegistryEvent(stackFrame.getCurrentCause()));
             }

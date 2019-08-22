@@ -7,7 +7,7 @@ import io.izzel.aaa.listener.ArrowListener;
 import io.izzel.aaa.listener.AttackListener;
 import io.izzel.aaa.listener.MiscListener;
 import io.izzel.aaa.listener.PossessionListener;
-import io.izzel.aaa.service.AttributeServiceImpl;
+import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -16,16 +16,14 @@ import org.spongepowered.api.plugin.Plugin;
 
 @Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")
 public class AmberAdvancedAttributes {
-    private final AttributeServiceImpl service;
+
     private final AttributeCommands commands;
     private final EventManager eventManager;
     private final Injector injector;
 
-
     @Inject
-    public AmberAdvancedAttributes(AttributeServiceImpl service, AttributeCommands commands, EventManager e, Injector i) {
+    public AmberAdvancedAttributes(AttributeService service, AttributeCommands commands, EventManager e, Injector i) {
         this.commands = commands;
-        this.service = service;
         this.eventManager = e;
         this.injector = i;
     }
@@ -33,7 +31,6 @@ public class AmberAdvancedAttributes {
     @Listener
     public void on(GameInitializationEvent event) {
         this.commands.init();
-        this.service.init();
     }
 
     @Listener
