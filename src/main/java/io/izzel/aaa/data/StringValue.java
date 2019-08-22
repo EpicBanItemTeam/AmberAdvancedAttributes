@@ -20,6 +20,14 @@ public final class StringValue implements DataSerializable {
         this.string = string;
     }
 
+    public static StringValue of(String str) {
+        return new StringValue(str);
+    }
+
+    public static void register(DataManager dataManager) {
+        dataManager.registerBuilder(StringValue.class, new Builder());
+    }
+
     @Override
     public int getContentVersion() {
         return 0;
@@ -28,8 +36,8 @@ public final class StringValue implements DataSerializable {
     @Override
     public DataContainer toContainer() {
         return DataContainer.createNew()
-            .set(Builder.STRING, string)
-            .set(Queries.CONTENT_VERSION, this.getContentVersion());
+                .set(Builder.STRING, string)
+                .set(Queries.CONTENT_VERSION, this.getContentVersion());
     }
 
     public String getString() {
@@ -52,16 +60,8 @@ public final class StringValue implements DataSerializable {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-            .add("string", string)
-            .toString();
-    }
-
-    public static StringValue of(String str) {
-        return new StringValue(str);
-    }
-
-    public static void register(DataManager dataManager) {
-        dataManager.registerBuilder(StringValue.class, new Builder());
+                .add("string", string)
+                .toString();
     }
 
     private static class Builder extends AbstractDataBuilder<StringValue> {
