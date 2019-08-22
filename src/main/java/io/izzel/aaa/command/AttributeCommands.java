@@ -3,6 +3,7 @@ package io.izzel.aaa.command;
 import com.google.common.collect.*;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -188,7 +189,7 @@ public class AttributeCommands {
 
     private CommandSpec getItemsCommand() {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-items")
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-items")
             .arguments(GenericArguments.firstParsing(
                 GenericArguments.literal(Text.of("give"), "give"),
                 GenericArguments.literal(Text.of("save"), "save")),
@@ -239,7 +240,7 @@ public class AttributeCommands {
 
     private CommandSpec getDropCommand(Attribute<Text> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-drop")
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-drop")
             .executor((src, args) -> {
                 if (src instanceof Player) {
                     AtomicBoolean isCallbackExecuted = new AtomicBoolean(false);
@@ -271,7 +272,7 @@ public class AttributeCommands {
 
     private CommandSpec getInitCommand(Attribute<Text> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-init")
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-init")
             .executor((src, args) -> {
                 if (src instanceof Player) {
                     Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
@@ -295,7 +296,7 @@ public class AttributeCommands {
 
     private <T extends RangeValue> CommandSpec getRangeCommand(String id, boolean fixed, Attribute<T> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-" + id)
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
             .child(this.getRangeClearCommand(id, attribute), "clear")
             .child(this.getRangeAppendCommand(id, fixed, attribute), "append")
             .child(this.getRangePrependCommand(id, fixed, attribute), "prepend")
@@ -371,7 +372,7 @@ public class AttributeCommands {
 
     private CommandSpec getMarkerCommand(String id, Attribute<MarkerValue> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-" + id)
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
             .arguments(GenericArguments.choices(Text.of("marked"),
                 ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
             .executor((src, args) -> {
@@ -402,7 +403,7 @@ public class AttributeCommands {
 
     private CommandSpec getPublicizeCommand(Attribute<GameProfile> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-publicize")
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-publicize")
             .executor((src, args) -> {
                 if (src instanceof Player) {
                     Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
@@ -423,7 +424,7 @@ public class AttributeCommands {
 
     private CommandSpec getPossessCommand(Attribute<GameProfile> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-possess")
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-possess")
             .arguments(GenericArguments.optional(GenericArguments.player(Text.of("player"))))
             .executor((src, args) -> {
                 if (src instanceof Player) {
@@ -446,7 +447,7 @@ public class AttributeCommands {
 
     private CommandSpec getEquipmentCommand(Attribute<StringValue> attribute) {
         return CommandSpec.builder()
-            .permission("amberadvancedattributes.command.aaa-equipment")
+            .permission(AmberAdvancedAttributes.ID + ".command.aaa-equipment")
             .arguments(
                 GenericArguments.choices(Text.of("marked"),
                     ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)),

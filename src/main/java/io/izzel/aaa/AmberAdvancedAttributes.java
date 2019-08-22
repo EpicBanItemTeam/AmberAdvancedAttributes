@@ -2,34 +2,31 @@ package io.izzel.aaa;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import de.randombyte.byteitems.api.ByteItemsService;
 import io.izzel.aaa.command.AttributeCommands;
-import io.izzel.aaa.listener.ArrowListener;
-import io.izzel.aaa.listener.AttackListener;
-import io.izzel.aaa.listener.MiscListener;
-import io.izzel.aaa.listener.PossessionListener;
+import io.izzel.aaa.listener.*;
 import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 
-@Plugin(id = "amberadvancedattributes", description = "An AmberAdvancedAttributes item attribute plugin.")
-public class AmberAdvancedAttributes {
+import java.util.Objects;
 
-    private final EventManager eventManager;
-    private final Injector injector;
+@Plugin(id = AmberAdvancedAttributes.ID,
+        name = AmberAdvancedAttributes.NAME,
+        description = AmberAdvancedAttributes.DESC,
+        dependencies = @Dependency(id = "byte-items", optional = true))
+public class AmberAdvancedAttributes {
+    public static final String ID = "amberadvancedattributes";
+    public static final String NAME = "AmberAdvancedAttributes";
+    public static final String DESC = "An advanced attribute plugin for items.";
 
     @Inject
-    public AmberAdvancedAttributes(AttributeService service, AttributeCommands commands, EventManager e, Injector i) {
-        this.eventManager = e;
-        this.injector = i;
-    }
-
-    @Listener
-    public void on(GameStartingServerEvent event) {
-        this.eventManager.registerListeners(this, this.injector.getInstance(AttackListener.class));
-        this.eventManager.registerListeners(this, this.injector.getInstance(ArrowListener.class));
-        this.eventManager.registerListeners(this, this.injector.getInstance(PossessionListener.class));
-        this.eventManager.registerListeners(this, this.injector.getInstance(MiscListener.class));
+    public AmberAdvancedAttributes(AttributeListeners listeners, AttributeCommands commands, AttributeService service) {
+        Objects.requireNonNull(listeners);
+        Objects.requireNonNull(commands);
+        Objects.requireNonNull(service);
     }
 }

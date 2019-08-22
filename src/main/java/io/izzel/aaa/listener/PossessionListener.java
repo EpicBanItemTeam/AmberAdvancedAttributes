@@ -2,6 +2,7 @@ package io.izzel.aaa.listener;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.service.Attributes;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.entity.living.player.Player;
@@ -30,7 +31,7 @@ public class PossessionListener {
                 .map(Attributes.POSSESSION::getValues)
                 .flatMap(Collection::stream)
                 .anyMatch(it -> !it.getUniqueId().equals(player.getUniqueId()))
-                && !player.hasPermission("amberadvancedattributes.possession-bypass")) {
+                && !player.hasPermission(AmberAdvancedAttributes.ID + ".possession-bypass")) {
             event.setCancelled(true);
             locale.to(player, "attributes.possession.no-permission");
         }

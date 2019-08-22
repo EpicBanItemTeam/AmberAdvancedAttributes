@@ -3,6 +3,7 @@ package io.izzel.aaa.data;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.data.*;
@@ -31,7 +32,7 @@ public class Data extends AbstractData<Data, ImmutableData> {
                 .dataClass(Data.class)
                 .builder(new DataBuilder())
                 .immutableClass(ImmutableData.class)
-                .id("data").name("AmberAdvancedAttributes").build();
+                .id("data").name(AmberAdvancedAttributes.NAME).build();
     }
 
     public <T extends DataSerializable> ImmutableList<T> get(Attribute<T> attribute) {
