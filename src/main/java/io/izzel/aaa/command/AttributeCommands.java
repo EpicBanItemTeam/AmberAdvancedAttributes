@@ -16,8 +16,10 @@ import io.izzel.amber.commons.i18n.args.Arg;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
@@ -34,6 +36,7 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -124,8 +127,6 @@ public class AttributeCommands {
         this.registerMarkerValue(this.container, event, "instant-death-immune");
         this.registerPossessValue(this.container, event, "possession");
         this.registerTextValue(this.container, event, "original-lore");
-        //todo:custom lore value need
-//        this.registerCustomTextValue(this.container, event, "custom-lore");
         this.registerEquipment(this.container, event);
         this.registerCustomTextValue(this.container, event, "custom-lore");
         this.registerItemsCommand(this.container);
@@ -139,6 +140,8 @@ public class AttributeCommands {
         AttributeToLoreFunction<Text> function = values -> ImmutableList.of();
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
         //what to do next? edit command?
+        this.commandManager.register(container, this.getAppendCommand(id, attribute, GenericArguments.text(Text.of("lore"),
+                TextSerializers.FORMATTING_CODE, true)));
         CommandSpec init = CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-init")
                 .executor((src, args) -> {
@@ -320,8 +323,8 @@ public class AttributeCommands {
         return CommandSpec.builder()
                 .permission("amberadvancedattributes.command.aaa-" + id)
                 .child(this.getRangeClearCommand(id, attribute), "clear")
-                .child(this.getRangeAppendCommand(id, fixed, attribute), "append")
-                .child(this.getRangeInsertCommand(id, fixed, attribute), "insert")
+                .child(this.getAppendCommand(id, attribute, new RangeValueElement(this.locale, fixed, Text.of("value"))), "append")
+                .child(this.getInsertCommand(id, attribute, new RangeValueElement(this.locale, fixed, Text.of("value"))), "insert")
                 .child(this.getRangePrependCommand(id, fixed, attribute), "prepend")
                 .build();
     }
@@ -349,13 +352,22 @@ public class AttributeCommands {
                 .build();
     }
 
-    private <T extends RangeValue> CommandSpec getRangeAppendCommand(String id, boolean fixed, Attribute<T> attribute) {
+    /**
+     * get the append command for a attribute value to sth.
+     *
+     * @param id           the id of the attribute
+     * @param attribute    the attribute value
+     * @param valueElement the command value element
+     * @param <T>          the type of the value
+     * @return the command to append the value to the item stack.
+     */
+    private <T extends DataSerializable> CommandSpec getAppendCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
         return CommandSpec.builder()
-                .arguments(new RangeValueElement(this.locale, fixed, Text.of("value")))
+                .arguments(valueElement)
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(Text.of("value"));
+                        Optional<T> rangeValueOptional = args.getOne(Text.of(valueElement.getKey()));
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
@@ -372,14 +384,23 @@ public class AttributeCommands {
                 .build();
     }
 
-    private <T extends RangeValue> CommandSpec getRangeInsertCommand(String id, boolean fixed, Attribute<T> attribute) {
+    /**
+     * get the insert command for a attribute value to sth.
+     *
+     * @param id           the id of the attribute
+     * @param attribute    the attribute
+     * @param valueElement the command value element
+     * @param <T>          the type of the value
+     * @return the command to insert the value
+     */
+    private <T extends DataSerializable> CommandSpec getInsertCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
         return CommandSpec.builder()
-                .arguments(new RangeValueElement(this.locale, fixed, Text.of("value")), new IndexValueElement(this.locale, Text.of("index")))
+                .arguments(valueElement, new IndexValueElement(this.locale, Text.of("index")))
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         int index = args.<Integer>getOne(Text.of("index")).orElseThrow(NoSuchElementException::new);
                         Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(Text.of("value"));
+                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
