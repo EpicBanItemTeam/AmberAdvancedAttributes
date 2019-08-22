@@ -23,11 +23,12 @@ import java.util.Optional;
  */
 @NonnullByDefault
 public class RangeValueElement extends CommandElement {
+    private static final ImmutableList<String> TO_LIST = ImmutableList.of("to", "~", "-");
     private final TypeToken<Text> token;
     private final boolean fixedValue;
     private final AmberLocale locale;
 
-    public RangeValueElement(AmberLocale locale, boolean fixed, Text key) {
+    RangeValueElement(AmberLocale locale, boolean fixed, Text key) {
         super(key);
         this.locale = locale;
         this.fixedValue = fixed;
@@ -36,12 +37,12 @@ public class RangeValueElement extends CommandElement {
 
     @Nullable
     @Override
-    protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+    protected RangeValue parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String string = args.next();
         try {
             if (string.endsWith("%")) {
                 double lowerBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
-                if (!this.fixedValue && args.hasNext() && args.peek().equals("to")) {
+                if (!this.fixedValue && args.hasNext() && TO_LIST.contains(args.peek().toLowerCase())) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
@@ -56,7 +57,7 @@ public class RangeValueElement extends CommandElement {
                 }
             } else {
                 double lowerBound = Double.parseDouble(string);
-                if (!this.fixedValue && args.hasNext() && args.peek().equals("to")) {
+                if (!this.fixedValue && args.hasNext() && TO_LIST.contains(args.peek().toLowerCase())) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
@@ -83,7 +84,7 @@ public class RangeValueElement extends CommandElement {
             Optional<String> literal = args.nextIfPresent();
             if (literal.isPresent() && !args.hasNext()) {
                 args.applySnapshot(snapshot);
-                return ImmutableList.of("to");
+                return TO_LIST;
             }
         }
         args.applySnapshot(snapshot);

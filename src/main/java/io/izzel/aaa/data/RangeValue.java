@@ -30,7 +30,7 @@ public class RangeValue implements DataSerializable {
         this.diff = diff;
     }
 
-    public static RangeValue.Fixed absolute(double value) {
+    public static RangeValue absolute(double value) {
         return new RangeValue.Fixed(value, false);
     }
 
@@ -38,7 +38,7 @@ public class RangeValue implements DataSerializable {
         return new RangeValue(lowerBound, upperBound, false);
     }
 
-    public static RangeValue.Fixed relative(double value) {
+    public static RangeValue relative(double value) {
         return new RangeValue.Fixed(value, true);
     }
 

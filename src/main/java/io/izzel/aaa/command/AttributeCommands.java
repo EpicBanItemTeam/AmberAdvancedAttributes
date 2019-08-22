@@ -347,6 +347,30 @@ public class AttributeCommands {
                 .build();
     }
 
+    private <T extends RangeValue> CommandSpec getRangeInsertCommand(String id, boolean fixed, Attribute<T> attribute) {
+        return CommandSpec.builder()
+                .arguments(new RangeValueElement(this.locale, fixed, Text.of("value")), new IndexValueElement(this.locale, Text.of("index")))
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        int index = args.<Integer>getOne(Text.of("index")).orElseThrow(NoSuchElementException::new);
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        Optional<T> rangeValueOptional = args.getOne(Text.of("value"));
+                        if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                attribute.insertValue(stack, index, rangeValueOptional.get());
+                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                this.locale.to(src, "commands.range.append-attribute", stack, id);
+                                return CommandResult.success();
+                            }
+                        }
+                    }
+                    this.locale.to(src, "commands.drop.nonexist");
+                    return CommandResult.success();
+                })
+                .build();
+    }
+
     private <T extends RangeValue> CommandSpec getRangeClearCommand(String id, Attribute<T> attribute) {
         return CommandSpec.builder()
                 .executor((src, args) -> {
