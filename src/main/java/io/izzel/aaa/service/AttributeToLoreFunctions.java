@@ -28,23 +28,23 @@ public class AttributeToLoreFunctions {
             String higher = it.isRelative() ? FORMAT.format(it.getUpperBound() * 100D) + "%" : FORMAT.format(it.getUpperBound());
             if (it.getSize() < GenericMath.DBL_EPSILON) {
                 return locale.getAs(String.format("attributes.%s.fixed", id), TypeToken.of(Text.class), lower)
-                    .orElseThrow(RuntimeException::new);
+                        .orElseThrow(RuntimeException::new);
             } else {
                 return locale.getAs(String.format("attributes.%s.range", id), TypeToken.of(Text.class), lower, higher)
-                    .orElseThrow(RuntimeException::new);
+                        .orElseThrow(RuntimeException::new);
             }
         }).map(it -> Maps.immutableEntry((byte) 0, it)).collect(Collectors.toList());
     }
 
     public static AttributeToLoreFunction<MarkerValue> markerValue(AmberLocale locale, String id) {
         return values -> values.isEmpty() ? ImmutableList.of() : ImmutableList.of(Maps.immutableEntry((byte) 0,
-            locale.getAs(String.format("attributes.%s.value", id), TypeToken.of(Text.class)).orElseThrow(RuntimeException::new)));
+                locale.getAs(String.format("attributes.%s.value", id), TypeToken.of(Text.class)).orElseThrow(RuntimeException::new)));
     }
 
     public static AttributeToLoreFunction<RangeValue> durability(AmberLocale locale) {
         return values -> values.stream().map(it -> Maps.immutableEntry((byte) 64,
-            locale.getAs("attributes.durability.value", TypeToken.of(Text.class),
-                (int) it.getLowerBound(), (int) it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
+                locale.getAs("attributes.durability.value", TypeToken.of(Text.class),
+                        (int) it.getLowerBound(), (int) it.getUpperBound()).orElseThrow(RuntimeException::new))).collect(Collectors.toList());
     }
 
     public static AttributeToLoreFunction<GameProfile> profile(AmberLocale locale) {
@@ -58,7 +58,7 @@ public class AttributeToLoreFunctions {
     public static AttributeToLoreFunction<StringValue> equipment(AmberLocale locale) {
         return values -> {
             Stream<Text> stream = values.stream().map(StringValue::getString)
-                .map(it -> locale.getAs("attributes.equipment.slots." + it, TypeToken.of(Text.class)).orElse(Text.of(it)));
+                    .map(it -> locale.getAs("attributes.equipment.slots." + it, TypeToken.of(Text.class)).orElse(Text.of(it)));
             Text joined = Text.joinWith(Text.of(' '), stream.iterator());
             Text ret = locale.getAs("attributes.equipment.item-name", TypeToken.of(Text.class), joined).orElseThrow(RuntimeException::new);
             return ImmutableList.of(Maps.immutableEntry((byte) 0, ret));

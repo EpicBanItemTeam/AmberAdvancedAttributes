@@ -5,6 +5,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import de.randombyte.byteitems.api.ByteItemsService;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.CommandException;
@@ -91,7 +92,7 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
 
         private Present() {
             playerReference = ThreadLocal.withInitial(() -> new WeakReference<>(null));
-            context = new Context("amberadvancedattributes", BYTE_ITEMS_PERMISSION);
+            context = new Context(AmberAdvancedAttributes.ID, BYTE_ITEMS_PERMISSION);
             eventManager.registerListeners(container, this);
         }
 

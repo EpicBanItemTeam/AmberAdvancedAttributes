@@ -27,13 +27,13 @@ public class EquipmentTypeElement extends CommandElement {
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         return Sponge.getRegistry().getType(EquipmentType.class, args.next())
-            .orElseThrow(() -> args.createError(Text.of("Not a equipment type")));
+                .orElseThrow(() -> args.createError(Text.of("Not a equipment type")));
     }
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
         List<String> all = args.getAll();
         return EquipmentUtil.EQUIPMENT_TYPES.stream().map(CatalogType::getId).filter(it -> !all.contains(it))
-            .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 }
