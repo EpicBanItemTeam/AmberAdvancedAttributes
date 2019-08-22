@@ -1,14 +1,9 @@
 package io.izzel.aaa;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
-import de.randombyte.byteitems.api.ByteItemsService;
 import io.izzel.aaa.command.AttributeCommands;
-import io.izzel.aaa.listener.*;
+import io.izzel.aaa.listener.AttributeListeners;
 import io.izzel.aaa.service.AttributeService;
-import org.spongepowered.api.event.EventManager;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 
