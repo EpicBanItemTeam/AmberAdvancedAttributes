@@ -138,39 +138,19 @@ public class AttributeCommands {
     }
 
     private void registerCustomTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<Text> function = values -> ImmutableList.of();
-        Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
-        //what to do next? edit command?
-        this.commandManager.register(container, this.getAppendCommand(id, attribute, GenericArguments.text(Text.of("lore"),
-                TextSerializers.FORMATTING_CODE, true)));
-        CommandSpec init = CommandSpec.builder()
-                .permission("amberadvancedattributes.command.aaa-init")
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                this.locale.to(src, "commands.init.already-exist");
-                            } else {
-                                attribute.setValues(stack, stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of()));
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                this.locale.to(src, "commands.init.succeed");
-                            }
-                            return CommandResult.success();
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-
-    }
-
-    private void registerTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<Text> function = values -> values.stream()
                 .map(text -> Maps.immutableEntry((byte) 0, (Text) text))
                 .collect(Collectors.toList());
+        Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
+        this.commandManager.register(container, CommandSpec.builder().permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
+                .child(getAppendCommand(id, attribute, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true)), "append")
+                .child(getInsertCommand(id, attribute, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true)), "insert")
+                .child(getPrependCommand(id, attribute, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true)), "prepend")
+                .build(), "aaa-" + id);
+    }
+
+    private void registerTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<Text> function = values -> ImmutableList.of();
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
         this.commandManager.register(container, this.getInitCommand(attribute), "aaa-init");
         this.commandManager.register(container, this.getDropCommand(attribute), "aaa-drop");
@@ -321,22 +301,23 @@ public class AttributeCommands {
     }
 
     private <T extends RangeValue> CommandSpec getRangeCommand(String id, boolean fixed, Attribute<T> attribute) {
+        CommandElement rangeElement = new RangeValueElement(this.locale, fixed, Text.of("rangeValue"));
         return CommandSpec.builder()
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
                 .child(this.getRangeClearCommand(id, attribute), "clear")
-                .child(this.getAppendCommand(id, attribute, new RangeValueElement(this.locale, fixed, Text.of("value"))), "append")
-                .child(this.getInsertCommand(id, attribute, new RangeValueElement(this.locale, fixed, Text.of("value"))), "insert")
-                .child(this.getRangePrependCommand(id, fixed, attribute), "prepend")
+                .child(this.getAppendCommand(id, attribute, rangeElement), "append")
+                .child(this.getInsertCommand(id, attribute, rangeElement), "insert")
+                .child(this.getPrependCommand(id, attribute, rangeElement), "prepend")
                 .build();
     }
 
-    private <T extends RangeValue> CommandSpec getRangePrependCommand(String id, boolean fixed, Attribute<T> attribute) {
+    private <T extends DataSerializable> CommandSpec getPrependCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
         return CommandSpec.builder()
-                .arguments(new RangeValueElement(this.locale, fixed, Text.of("value")))
+                .arguments(valueElement)
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(Text.of("value"));
+                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
@@ -368,7 +349,7 @@ public class AttributeCommands {
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(Text.of(valueElement.getKey()));
+                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
                             ItemStack stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {

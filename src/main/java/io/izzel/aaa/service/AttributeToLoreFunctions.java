@@ -57,7 +57,9 @@ public class AttributeToLoreFunctions {
 
     public static AttributeToLoreFunction<StringValue> equipment(AmberLocale locale) {
         return values -> {
-            if (values.isEmpty()) return ImmutableList.of();
+            if (values.isEmpty()) {
+                return ImmutableList.of();
+            }
             Stream<Text> stream = values.stream().map(StringValue::getString)
                     .map(it -> locale.getAs("attributes.equipment.slots." + it, TypeToken.of(Text.class)).orElse(Text.of(it)));
             Text joined = Text.joinWith(Text.of(' '), stream.iterator());

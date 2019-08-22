@@ -24,7 +24,7 @@ import java.util.Optional;
 @NonnullByDefault
 public class RangeValueElement extends CommandElement {
     private static final ImmutableList<String> TO_LIST = ImmutableList.of("to", "~", "-");
-    private final TypeToken<Text> token;
+    private static final TypeToken<Text> TOKEN = TypeToken.of(Text.class);
     private final boolean fixedValue;
     private final AmberLocale locale;
 
@@ -32,7 +32,6 @@ public class RangeValueElement extends CommandElement {
         super(key);
         this.locale = locale;
         this.fixedValue = fixed;
-        this.token = TypeToken.of(Text.class);
     }
 
     @Nullable
@@ -49,7 +48,7 @@ public class RangeValueElement extends CommandElement {
                         double upperBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
                         return RangeValue.relative(lowerBound, upperBound);
                     } else {
-                        Optional<Text> text = this.locale.getAs("commands.args.range-consistency", this.token);
+                        Optional<Text> text = this.locale.getAs("commands.args.range-consistency", TOKEN);
                         throw args.createError(text.orElseThrow(IllegalStateException::new));
                     }
                 } else {
@@ -61,7 +60,7 @@ public class RangeValueElement extends CommandElement {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
-                        Optional<Text> text = this.locale.getAs("commands.args.range-consistency", this.token);
+                        Optional<Text> text = this.locale.getAs("commands.args.range-consistency", TOKEN);
                         throw args.createError(text.orElseThrow(IllegalStateException::new));
                     } else {
                         double upperBound = Double.parseDouble(string);
@@ -72,7 +71,7 @@ public class RangeValueElement extends CommandElement {
                 }
             }
         } catch (NumberFormatException e) {
-            Optional<Text> text = this.locale.getAs("commands.args.not-a-number", this.token, string);
+            Optional<Text> text = this.locale.getAs("commands.args.not-a-number", TOKEN, string);
             throw args.createError(text.orElseThrow(IllegalStateException::new));
         }
     }
