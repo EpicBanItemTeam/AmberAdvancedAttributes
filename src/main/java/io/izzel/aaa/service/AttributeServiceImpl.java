@@ -14,6 +14,7 @@ import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -34,11 +35,13 @@ public class AttributeServiceImpl implements AttributeService {
 
     @Inject
     public AttributeServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager, DataManager dataManager) {
-        Data.register(dataManager);
-        RangeValue.register(dataManager);
-        MarkerValue.register(dataManager);
-        StringValue.register(dataManager);
         serviceManager.setProvider(container, AttributeService.class, this);
+        eventManager.registerListener(container, GameInitializationEvent.class, event -> {
+            Data.register(dataManager);
+            RangeValue.register(dataManager);
+            MarkerValue.register(dataManager);
+            StringValue.register(dataManager);
+        });
         eventManager.registerListener(container, GameAboutToStartServerEvent.class, event -> {
             try (CauseStackManager.StackFrame stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {
                 Sponge.getEventManager().post(new RegistryEvent(stackFrame.getCurrentCause()));

@@ -6,12 +6,14 @@ import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
+import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeToLoreFunction;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
@@ -27,6 +29,7 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
@@ -121,6 +124,9 @@ public class AttributeCommands {
         this.registerMarkerValue(this.container, event, "instant-death-immune");
         this.registerPossessValue(this.container, event, "possession");
         this.registerTextValue(this.container, event, "original-lore");
+        //todo:custom lore value need
+//        this.registerCustomTextValue(this.container, event, "custom-lore");
+        this.registerEquipment(this.container, event);
         this.registerCustomTextValue(this.container, event, "custom-lore");
         this.registerItemsCommand(this.container);
     }
@@ -195,6 +201,12 @@ public class AttributeCommands {
         Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, function);
         this.commandManager.register(container, this.getPossessCommand(attribute), "aaa-possess");
         this.commandManager.register(container, this.getPublicizeCommand(attribute), "aaa-publicize");
+    }
+
+    private void registerEquipment(PluginContainer container, Attribute.RegistryEvent event) {
+        AttributeToLoreFunction<StringValue> function = equipment(this.locale);
+        Attribute<StringValue> attribute = event.register("aaa-equipment", StringValue.class, function);
+        this.commandManager.register(container, this.getEquipmentCommand(attribute), "aaa-equipment");
     }
 
     private CommandSpec getItemsCommand() {
@@ -473,6 +485,40 @@ public class AttributeCommands {
                                 return CommandResult.success();
                             }
                         }
+                    }
+                    this.locale.to(src, "commands.drop.nonexist");
+                    return CommandResult.success();
+                })
+                .build();
+    }
+
+    private CommandSpec getEquipmentCommand(Attribute<StringValue> attribute) {
+        return CommandSpec.builder()
+                .permission("amberadvancedattributes.command.aaa-equipment")
+                .arguments(
+                        GenericArguments.choices(Text.of("marked"),
+                                ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)),
+                        GenericArguments.allOf(new EquipmentTypeElement("slots"))
+                )
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        Player player = (Player) src;
+                        Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
+                        if (optional.isPresent()) {
+                            ItemStack stack = optional.get();
+                            ImmutableList<StringValue> old = attribute.getValues(stack);
+                            boolean mark = args.<Boolean>getOne("marked").orElse(Boolean.FALSE);
+                            Collection<StringValue> slots = args.<EquipmentType>getAll("slots").stream()
+                                    .map(CatalogType::getId)
+                                    .map(StringValue::of)
+                                    .collect(Collectors.toList());
+                            ImmutableList<StringValue> list = mark
+                                    ? ImmutableList.<StringValue>builder().addAll(old).addAll(slots).build()
+                                    : ImmutableList.copyOf(old.stream().filter(it -> !slots.contains(it)).iterator());
+                            attribute.setValues(stack, list);
+                            this.locale.to(src, "commands.marker.mark-attribute", stack, "equipment");
+                        }
+                        return CommandResult.success();
                     }
                     this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();

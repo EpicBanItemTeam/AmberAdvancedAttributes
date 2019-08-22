@@ -2,6 +2,7 @@ package io.izzel.aaa.service;
 
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
+import io.izzel.aaa.data.StringValue;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
@@ -48,6 +49,9 @@ public final class Attributes {
 
     public static final Attribute<Text> ORIGINAL_LORE;
 
+    // Alpha.2
+    public static final Attribute<StringValue> EQUIPMENT;
+
     static {
         AttributeService service = AttributeService.instance();
 
@@ -91,6 +95,8 @@ public final class Attributes {
         POSSESSION = getAttributeById(service, "aaa-possession");
 
         ORIGINAL_LORE = getAttributeById(service, "aaa-original-lore");
+
+        EQUIPMENT = getAttributeById(service, "aaa-equipment");
     }
 
     private Attributes() {
