@@ -97,7 +97,8 @@ public class AttributeToLoreFunctions {
                     Attributes.EQUIPMENT.getValues(stack).stream()
                             .flatMap(eq -> Streams.stream(Sponge.getRegistry().getType(EquipmentType.class, eq.getString())))
                             .forEach(eq -> {
-                                String node = actualSlots.containsKey(eq) ? "attributes.suit.present" : "attributes.suit.absent";
+                                String node = actualSlots.containsKey(eq) && Attributes.SUIT.getValues(actualSlots.get(eq)).contains(it)
+                                        ? "attributes.suit.present" : "attributes.suit.absent";
                                 builder.add(Maps.immutableEntry(
                                         (byte) 16,
                                         locale.getAs(node, TEXT, Arg.ref("attributes.equipment.slots." + eq.getId())).get()
