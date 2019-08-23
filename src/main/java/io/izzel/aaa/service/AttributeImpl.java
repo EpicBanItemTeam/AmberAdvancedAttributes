@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import io.izzel.aaa.util.DataUtil;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -38,8 +39,8 @@ public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
     }
 
     @Override
-    public ImmutableListMultimap<Byte, Text> getLoreTexts(List<? extends T> values) {
-        Stream<Map.Entry<Byte, Text>> stream = this.toLoreFunction.toLoreTexts(values).stream();
+    public ImmutableListMultimap<Byte, Text> getLoreTexts(List<? extends T> values, Equipable equipable) {
+        Stream<Map.Entry<Byte, Text>> stream = this.toLoreFunction.toLoreTexts(values, equipable).stream();
         return stream.collect(ImmutableListMultimap.toImmutableListMultimap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

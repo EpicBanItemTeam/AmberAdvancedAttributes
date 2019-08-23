@@ -3,7 +3,10 @@ package io.izzel.aaa.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
+import io.izzel.aaa.byteitems.ByteItemsHandler;
+import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
@@ -22,9 +25,13 @@ public interface Attribute<T extends DataSerializable> {
 
     Class<T> getDataClass();
 
-    ImmutableListMultimap<Byte, Text> getLoreTexts(List<? extends T> values);
+    ImmutableListMultimap<Byte, Text> getLoreTexts(List<? extends T> values, Equipable equipable);
 
     ImmutableList<T> getValues(ItemStack item);
+
+    default ImmutableList<T> getWithSuits(ItemStack item, Equipable owner, ByteItemsHandler biHandler) {
+        return EquipmentUtil.getWithSuit(owner, this, item, biHandler);
+    }
 
     void setValues(ItemStack item, List<? extends T> values);
 
@@ -86,7 +93,7 @@ public interface Attribute<T extends DataSerializable> {
         <T extends DataSerializable> Attribute<T> register(String id, Class<T> dataClass, AttributeToLoreFunction<T> toLoreFunction) throws IllegalArgumentException;
 
         default <T extends DataSerializable> Attribute<T> register(String id, Class<T> dataClass, byte priority, Function<? super T, ? extends Text> function) throws IllegalArgumentException {
-            return this.register(id, dataClass, values -> values.stream().<Text>map(function).map(text -> Maps.immutableEntry(priority, text)).collect(ImmutableList.toImmutableList()));
+            return this.register(id, dataClass, (values, equipable) -> values.stream().<Text>map(function).map(text -> Maps.immutableEntry(priority, text)).collect(ImmutableList.toImmutableList()));
         }
     }
 }

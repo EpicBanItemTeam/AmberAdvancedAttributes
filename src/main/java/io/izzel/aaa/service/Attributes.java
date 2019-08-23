@@ -51,6 +51,7 @@ public final class Attributes {
 
     // Alpha.2
     public static final Attribute<StringValue> EQUIPMENT;
+    public static final Attribute<StringValue> SUIT;
 
     static {
         AttributeService service = AttributeService.instance();
@@ -97,6 +98,7 @@ public final class Attributes {
         ORIGINAL_LORE = getAttributeById(service, "aaa-original-lore");
 
         EQUIPMENT = getAttributeById(service, "aaa-equipment");
+        SUIT = getAttributeById(service, "aaa-suit");
     }
 
     private Attributes() {

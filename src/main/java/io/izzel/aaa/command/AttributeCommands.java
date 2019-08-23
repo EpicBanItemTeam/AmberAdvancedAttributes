@@ -26,6 +26,7 @@ import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.data.value.mutable.ListValue;
+import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
@@ -52,7 +53,7 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 @Singleton
 public class AttributeCommands {
     private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
-    private static final Text LORE_SEPARATOR = Text.of();
+    public static final Text LORE_SEPARATOR = Text.of();
 
     private final ByteItemsHandler biHandler;
     private final PluginContainer container;
@@ -71,14 +72,14 @@ public class AttributeCommands {
 
     public void on(ChangeEntityEquipmentEvent event) {
         Transaction<ItemStackSnapshot> transaction = event.getTransaction();
-        if (transaction.isValid()) {
+        if (transaction.isValid() && event.getTargetEntity() instanceof Equipable) {
             ListMultimap<Byte, Text> texts;
             Key<ListValue<Text>> key = Keys.ITEM_LORE;
             ItemStack item = transaction.getFinal().createStack();
             if (DataUtil.hasData(item)) {
                 texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
                 Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
-                attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute));
+                attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute, (Equipable) event.getTargetEntity()));
                 item.offer(key, Multimaps.asMap(texts).values().stream().reduce(ImmutableList.of(), (a, b) -> {
                     if (a.isEmpty()) {
                         return b;
@@ -129,6 +130,7 @@ public class AttributeCommands {
         this.registerPossessValue(this.container, event, "possession");
         this.registerTextValue(this.container, event, "original-lore");
         this.registerEquipment(this.container, event);
+        this.registerStringValue(this.container, event, "suit");
         this.registerCustomTextValue(this.container, event, "custom-lore");
         this.registerItemsCommand(this.container);
     }
@@ -138,7 +140,7 @@ public class AttributeCommands {
     }
 
     private void registerCustomTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<Text> function = values -> values.stream()
+        AttributeToLoreFunction<Text> function = (values, equipable) -> values.stream()
                 .map(text -> Maps.immutableEntry((byte) 0, (Text) text))
                 .collect(Collectors.toList());
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
@@ -149,8 +151,14 @@ public class AttributeCommands {
                 .build(), "aaa-" + id);
     }
 
+    private void registerStringValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
+        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        this.commandManager.register(container, getStringCommand(attribute, id), "aaa-" + id);
+    }
+
     private void registerTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<Text> function = values -> ImmutableList.of();
+        AttributeToLoreFunction<Text> function = (values, equipable) -> ImmutableList.of();
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
         this.commandManager.register(container, this.getInitCommand(attribute), "aaa-init");
         this.commandManager.register(container, this.getDropCommand(attribute), "aaa-drop");
@@ -531,6 +539,15 @@ public class AttributeCommands {
                     this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();
                 })
+                .build();
+    }
+
+    private <T extends StringValue> CommandSpec getStringCommand(Attribute<T> attribute, String id) {
+        return CommandSpec.builder()
+                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
+                .child(getAppendCommand(id, attribute, GenericArguments.string(Text.of("string"))), "append")
+                .child(getPrependCommand(id, attribute, GenericArguments.string(Text.of("string"))), "prepend")
+                .child(getClearCommand(id, attribute))
                 .build();
     }
 }

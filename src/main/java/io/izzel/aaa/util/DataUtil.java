@@ -5,6 +5,7 @@ import io.izzel.aaa.data.Data;
 import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.persistence.InvalidDataException;
+import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 
@@ -39,7 +40,7 @@ public final class DataUtil {
         return item.getOrCreate(Data.class).orElseThrow(InvalidDataException::new);
     }
 
-    public static <T extends DataSerializable> void collectLore(ListMultimap<Byte, Text> t, ItemStack i, Attribute<T> a) {
-        t.putAll(a.getLoreTexts(a.getValues(i)));
+    public static <T extends DataSerializable> void collectLore(ListMultimap<Byte, Text> t, ItemStack i, Attribute<T> a, Equipable e) {
+        t.putAll(a.getLoreTexts(a.getValues(i), e));
     }
 }

@@ -2,9 +2,12 @@ package io.izzel.aaa.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
+import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
+import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class EquipmentUtil {
@@ -68,6 +72,36 @@ public class EquipmentUtil {
     public static <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
         return items(equipable).map(attribute::getValues).flatMap(Collection::stream)
                 .findAny().isPresent();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends DataSerializable> ImmutableList<T> getWithSuit(Equipable equipable, Attribute<T> attribute, ItemStack stack, ByteItemsHandler biHandler) {
+        ImmutableList.Builder<T> builder = ImmutableList.builder();
+        builder.addAll(attribute.getValues(stack));
+        ImmutableList<StringValue> suits = Attributes.SUIT.getValues(stack);
+        if (!suits.isEmpty()) {
+            suits.stream().map(StringValue::getString)
+                    .map(it -> Maps.immutableEntry(it, biHandler.read(it).createStack()))
+                    .map(it -> getSuitAttributesIfAvailable(equipable, it.getValue(), it.getKey(), biHandler))
+                    .flatMap(Streams::stream)
+                    .forEach(it -> builder.addAll((List<T>) it));
+        }
+        return builder.build();
+    }
+
+    public static Optional<List<?>> getSuitAttributesIfAvailable(Equipable equipable, ItemStack suitItem, String suitId, ByteItemsHandler biHandler) {
+        boolean available = Attributes.EQUIPMENT.getValues(suitItem).stream()
+                .flatMap(eq -> Streams.stream(Sponge.getRegistry().getType(EquipmentType.class, eq.getString())))
+                .map(equipable::getEquipped)
+                .allMatch(it -> it.isPresent() && Attributes.SUIT.getValues(it.get()).stream().anyMatch(s -> s.getString().equals(suitId)));
+        if (available)
+            return Optional.of(AttributeService.instance().getAttributes()
+                    .values()
+                    .stream()
+                    .map(it -> getWithSuit(equipable, it, suitItem, biHandler))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
+        else return Optional.empty();
     }
 
 }
