@@ -543,10 +543,11 @@ public class AttributeCommands {
     }
 
     private <T extends StringValue> CommandSpec getStringCommand(Attribute<T> attribute, String id) {
+        StringValueElement element = new StringValueElement(Text.of("string"));
         return CommandSpec.builder()
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(getAppendCommand(id, attribute, GenericArguments.string(Text.of("string"))), "append")
-                .child(getPrependCommand(id, attribute, GenericArguments.string(Text.of("string"))), "prepend")
+                .child(getAppendCommand(id, attribute, element), "append")
+                .child(getPrependCommand(id, attribute, element), "prepend")
                 .child(getClearCommand(id, attribute))
                 .build();
     }
