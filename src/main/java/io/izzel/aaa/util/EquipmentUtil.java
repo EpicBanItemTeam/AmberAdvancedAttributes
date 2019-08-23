@@ -3,11 +3,12 @@ package io.izzel.aaa.util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
-import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.Attributes;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
@@ -22,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Singleton
 public class EquipmentUtil {
 
     public static final List<EquipmentType> EQUIPMENT_TYPES = ImmutableList.of(
@@ -36,7 +37,21 @@ public class EquipmentUtil {
             EquipmentTypes.MAIN_HAND
     );
 
-    public static Stream<Map.Entry<EquipmentType, ItemStack>> itemsWithSlot(Equipable equipable) {
+    private static EquipmentUtil instance;
+
+    public static EquipmentUtil instance() {
+        return instance;
+    }
+
+    private final ByteItemsHandler biHandler;
+
+    @Inject
+    public EquipmentUtil(ByteItemsHandler biHandler) {
+        instance = this;
+        this.biHandler = biHandler;
+    }
+
+    public Stream<Map.Entry<EquipmentType, ItemStack>> itemsWithSlot(Equipable equipable) {
         return EQUIPMENT_TYPES.stream()
                 .map(it -> Tuple.of(it, equipable.getEquipped(it)))
                 .filter(tuple -> {
@@ -51,56 +66,50 @@ public class EquipmentUtil {
                 .map(it -> Maps.immutableEntry(it.getFirst(), it.getSecond().get()));
     }
 
-    public static Stream<ItemStack> items(Equipable equipable) {
+    public Stream<ItemStack> items(Equipable equipable) {
         return itemsWithSlot(equipable).map(Map.Entry::getValue);
     }
 
-    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
+    public <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
         double[] ret = {value};
         items(equipable)
-                .map(attribute::getValues)
+                .map(it -> getAll(equipable, attribute, it))
                 .flatMap(Collection::stream)
                 .map(it -> it.getFunction(ThreadLocalRandom.current()))
                 .forEach(it -> ret[0] += it.applyAsDouble(ret[0]));
         return ret[0];
     }
 
-    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
+    public <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
         return allOf(equipable, attribute, 0D);
     }
 
-    public static <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
-        return items(equipable).map(attribute::getValues).flatMap(Collection::stream)
+    public <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
+        return items(equipable).map(it -> getAll(equipable, attribute, it)).flatMap(Collection::stream)
                 .findAny().isPresent();
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T extends DataSerializable> ImmutableList<T> getWithSuit(Equipable equipable, Attribute<T> attribute, ItemStack stack, ByteItemsHandler biHandler) {
+    public <T extends DataSerializable> ImmutableList<T> getAll(Equipable equipable, Attribute<T> attribute, ItemStack stack) {
         ImmutableList.Builder<T> builder = ImmutableList.builder();
         builder.addAll(attribute.getValues(stack));
         ImmutableList<StringValue> suits = Attributes.SUIT.getValues(stack);
         if (!suits.isEmpty()) {
             suits.stream().map(StringValue::getString)
                     .map(it -> Maps.immutableEntry(it, biHandler.read(it).createStack()))
-                    .map(it -> getSuitAttributesIfAvailable(equipable, it.getValue(), it.getKey(), biHandler))
+                    .map(it -> getSuitAttributesIfAvailable(equipable, attribute, it.getValue(), it.getKey()))
                     .flatMap(Streams::stream)
-                    .forEach(it -> builder.addAll((List<T>) it));
+                    .forEach(builder::addAll);
         }
         return builder.build();
     }
 
-    public static Optional<List<?>> getSuitAttributesIfAvailable(Equipable equipable, ItemStack suitItem, String suitId, ByteItemsHandler biHandler) {
+    public <T extends DataSerializable> Optional<List<T>> getSuitAttributesIfAvailable(Equipable equipable, Attribute<T> attribute, ItemStack suitItem, String suitId) {
         boolean available = Attributes.EQUIPMENT.getValues(suitItem).stream()
                 .flatMap(eq -> Streams.stream(Sponge.getRegistry().getType(EquipmentType.class, eq.getString())))
                 .map(equipable::getEquipped)
                 .allMatch(it -> it.isPresent() && Attributes.SUIT.getValues(it.get()).stream().anyMatch(s -> s.getString().equals(suitId)));
         if (available)
-            return Optional.of(AttributeService.instance().getAttributes()
-                    .values()
-                    .stream()
-                    .map(it -> getWithSuit(equipable, it, suitItem, biHandler))
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
+            return Optional.of(getAll(equipable, attribute, suitItem));
         else return Optional.empty();
     }
 

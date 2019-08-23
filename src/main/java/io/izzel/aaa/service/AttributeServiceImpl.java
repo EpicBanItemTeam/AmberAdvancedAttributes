@@ -14,7 +14,7 @@ import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -36,7 +36,7 @@ public class AttributeServiceImpl implements AttributeService {
     @Inject
     public AttributeServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager, DataManager dataManager) {
         serviceManager.setProvider(container, AttributeService.class, this);
-        eventManager.registerListener(container, GameInitializationEvent.class, event -> {
+        eventManager.registerListener(container, GamePreInitializationEvent.class, event -> {
             Data.register(dataManager);
             RangeValue.register(dataManager);
             MarkerValue.register(dataManager);

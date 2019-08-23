@@ -3,6 +3,7 @@ package io.izzel.aaa.service;
 import com.flowpowered.math.GenericMath;
 import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 import static io.izzel.aaa.command.AttributeCommands.LORE_SEPARATOR;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
+@Singleton
 public class AttributeToLoreFunctions {
 
     private static final DecimalFormat FORMAT = new DecimalFormat("+0.#;-0.#");
@@ -90,7 +92,7 @@ public class AttributeToLoreFunctions {
                 } else {
                     builder.add(Maps.immutableEntry(((byte) 16), locale.getAs("attributes.suit.name", TEXT, suitItem.get(Keys.DISPLAY_NAME)).get()));
                     ItemStack stack = suitItem.createStack();
-                    Map<EquipmentType, ItemStack> actualSlots = EquipmentUtil.itemsWithSlot(equipable)
+                    Map<EquipmentType, ItemStack> actualSlots = EquipmentUtil.instance().itemsWithSlot(equipable)
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                     Attributes.EQUIPMENT.getValues(stack).stream()
                             .flatMap(eq -> Streams.stream(Sponge.getRegistry().getType(EquipmentType.class, eq.getString())))

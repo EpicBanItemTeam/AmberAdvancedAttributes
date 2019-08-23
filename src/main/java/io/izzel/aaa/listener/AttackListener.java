@@ -54,18 +54,18 @@ public class AttackListener {
     public void onAttack(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
-            EquipmentUtil.items(from).forEach(itemStack -> {
-                Attributes.ATTACK.getValues(itemStack).forEach(v ->
+            EquipmentUtil.instance().items(from).forEach(itemStack -> {
+                Attributes.ATTACK.getAll(itemStack, from).forEach(v ->
                         event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK).with(v))
                                         .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                                 v.getFunction(this.random), ImmutableSet.of()));
                 if (from instanceof Player && to instanceof Player) {
-                    Attributes.PVP_ATTACK.getValues(itemStack).forEach(v ->
+                    Attributes.PVP_ATTACK.getAll(itemStack, from).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
                                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                                     v.getFunction(this.random), ImmutableSet.of()));
                 } else if (from instanceof Player) {
-                    Attributes.PVE_ATTACK.getValues(itemStack).forEach(v ->
+                    Attributes.PVE_ATTACK.getAll(itemStack, from).forEach(v ->
                             event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
                                             .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
                                     v.getFunction(this.random), ImmutableSet.of()));
@@ -87,8 +87,8 @@ public class AttackListener {
     @Listener(order = Order.EARLY)
     public void onDefense(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
-            EquipmentUtil.items(((Equipable) to)).forEach(itemStack -> {
-                Attributes.DEFENSE.getValues(itemStack).forEach(v -> {
+            EquipmentUtil.instance().items(((Equipable) to)).forEach(itemStack -> {
+                Attributes.DEFENSE.getAll(itemStack, ((Equipable) to)).forEach(v -> {
                     System.out.println(itemStack + " " + v);
                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.DEFENSE).with(v))
                                     .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
@@ -97,12 +97,12 @@ public class AttackListener {
                 if (source instanceof EntityDamageSource) {
                     getBySource(((EntityDamageSource) source)).ifPresent(from -> {
                         if (from instanceof Player && to instanceof Player) {
-                            Attributes.PVP_DEFENSE.getValues(itemStack).forEach(v ->
+                            Attributes.PVP_DEFENSE.getAll(itemStack, ((Player) to)).forEach(v ->
                                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_DEFENSE).with(v))
                                                     .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                             defense(v), ImmutableSet.of()));
                         } else if (from instanceof Player) {
-                            Attributes.PVE_DEFENSE.getValues(itemStack).forEach(v ->
+                            Attributes.PVE_DEFENSE.getAll(itemStack, ((Equipable) to)).forEach(v ->
                                     event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_DEFENSE).with(v))
                                                     .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(itemStack).build(),
                                             defense(v), ImmutableSet.of()));
@@ -116,8 +116,8 @@ public class AttackListener {
     @Listener(order = Order.FIRST)
     public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
-            double dodge = EquipmentUtil.allOf(((Equipable) to), Attributes.DODGE);
-            double accuracy = getBySource(source).map(it -> EquipmentUtil.allOf(it, Attributes.ACCURACY)).orElse(0D);
+            double dodge = EquipmentUtil.instance().allOf(((Equipable) to), Attributes.DODGE);
+            double accuracy = getBySource(source).map(it -> EquipmentUtil.instance().allOf(it, Attributes.ACCURACY)).orElse(0D);
             if (random.nextDouble() < dodge - accuracy) {
                 event.setCancelled(true);
             }
@@ -127,8 +127,8 @@ public class AttackListener {
     @Listener(order = Order.DEFAULT)
     public void onCrit(DamageEntityEvent event, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
-            double crit = EquipmentUtil.allOf(from, Attributes.CRIT);
-            double critRate = EquipmentUtil.allOf(from, Attributes.CRIT_RATE);
+            double crit = EquipmentUtil.instance().allOf(from, Attributes.CRIT);
+            double critRate = EquipmentUtil.instance().allOf(from, Attributes.CRIT_RATE);
             if (random.nextDouble() < critRate) {
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
                                 .type(DamageModifierTypes.CRITICAL_HIT).build(),
@@ -140,10 +140,10 @@ public class AttackListener {
     @Listener(order = Order.LATE)
     public void onInstantDeath(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
-            double instantDeath = EquipmentUtil.allOf(from, Attributes.INSTANT_DEATH);
+            double instantDeath = EquipmentUtil.instance().allOf(from, Attributes.INSTANT_DEATH);
             boolean instantImmune = false;
             if (to instanceof Equipable) {
-                instantImmune = EquipmentUtil.hasAny(((Equipable) to), Attributes.INSTANT_DEATH_IMMUNE);
+                instantImmune = EquipmentUtil.instance().hasAny(((Equipable) to), Attributes.INSTANT_DEATH_IMMUNE);
             }
             if (!instantImmune && random.nextDouble() < instantDeath) {
                 double damage = event.getFinalDamage();
@@ -158,14 +158,14 @@ public class AttackListener {
     public void onReflect(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
             getBySource(source).ifPresent(from -> {
-                double reflectRate = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT_RATE);
+                double reflectRate = EquipmentUtil.instance().allOf(((Equipable) to), Attributes.REFLECT_RATE);
                 if (random.nextDouble() < reflectRate) {
-                    double reflect = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT);
+                    double reflect = EquipmentUtil.instance().allOf(((Equipable) to), Attributes.REFLECT);
                     double pvpReflect = 0D, pveReflect = 0D;
                     if (to instanceof Player && from instanceof Player) {
-                        pvpReflect = EquipmentUtil.allOf(((Player) to), Attributes.PVP_REFLECT);
+                        pvpReflect = EquipmentUtil.instance().allOf(((Player) to), Attributes.PVP_REFLECT);
                     } else if (to instanceof Player) {
-                        pveReflect = EquipmentUtil.allOf(((Player) to), Attributes.PVE_REFLECT);
+                        pveReflect = EquipmentUtil.instance().allOf(((Player) to), Attributes.PVE_REFLECT);
                     }
                     double total = reflect + pvpReflect + pveReflect;
                     ((Entity) from).damage(event.getFinalDamage() * total,
@@ -178,16 +178,16 @@ public class AttackListener {
     @SuppressWarnings("unchecked")
     @Listener
     public <T extends Equipable & Entity> void onLoot(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        if (source.getSource() instanceof Equipable && to instanceof Carrier) {
+        if (source.getSource() instanceof Equipable && to instanceof Equipable) {
             T from = (T) source.getSource();
-            double loot = EquipmentUtil.allOf(from, Attributes.LOOT_RATE);
+            double loot = EquipmentUtil.instance().allOf(from, Attributes.LOOT_RATE);
             if (random.nextDouble() < loot) {
                 try {
                     CarriedInventory<? extends Carrier> inventory = ((Carrier) to).getInventory();
                     List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
                     Inventory slot = slots.get(random.nextInt(slots.size()));
                     slot.poll(1).ifPresent(item -> {
-                        if (!Attributes.LOOT_IMMUNE.getValues(item).isEmpty()) {
+                        if (!Attributes.LOOT_IMMUNE.getAll(item, ((Equipable) to)).isEmpty()) {
                             slot.offer(item);
                         } else {
                             Item entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));

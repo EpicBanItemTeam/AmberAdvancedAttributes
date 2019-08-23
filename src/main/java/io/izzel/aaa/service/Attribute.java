@@ -3,7 +3,6 @@ package io.izzel.aaa.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
-import io.izzel.aaa.byteitems.ByteItemsHandler;
 import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
@@ -29,8 +28,8 @@ public interface Attribute<T extends DataSerializable> {
 
     ImmutableList<T> getValues(ItemStack item);
 
-    default ImmutableList<T> getWithSuits(ItemStack item, Equipable owner, ByteItemsHandler biHandler) {
-        return EquipmentUtil.getWithSuit(owner, this, item, biHandler);
+    default ImmutableList<T> getAll(ItemStack item, Equipable owner) {
+        return EquipmentUtil.instance().getAll(owner, this, item);
     }
 
     void setValues(ItemStack item, List<? extends T> values);

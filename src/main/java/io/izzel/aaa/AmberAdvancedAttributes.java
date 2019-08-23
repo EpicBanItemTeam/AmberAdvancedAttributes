@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import io.izzel.aaa.command.AttributeCommands;
 import io.izzel.aaa.listener.AttributeListeners;
 import io.izzel.aaa.service.AttributeService;
+import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 
@@ -19,9 +20,10 @@ public class AmberAdvancedAttributes {
     public static final String DESC = "An advanced attribute plugin for items.";
 
     @Inject
-    public AmberAdvancedAttributes(AttributeListeners listeners, AttributeCommands commands, AttributeService service) {
+    public AmberAdvancedAttributes(AttributeListeners listeners, AttributeCommands commands, AttributeService service, EquipmentUtil util) {
         Objects.requireNonNull(listeners);
         Objects.requireNonNull(commands);
         Objects.requireNonNull(service);
+        Objects.requireNonNull(util);
     }
 }
