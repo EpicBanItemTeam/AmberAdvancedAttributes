@@ -28,7 +28,6 @@ import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -144,9 +143,7 @@ public class AttackListener {
             double instantDeath = EquipmentUtil.allOf(from, Attributes.INSTANT_DEATH);
             boolean instantImmune = false;
             if (to instanceof Equipable) {
-                instantImmune = EquipmentUtil.items(((Equipable) to)).map(Attributes.INSTANT_DEATH_IMMUNE::getValues)
-                        .flatMap(Collection::stream)
-                        .findAny().isPresent();
+                instantImmune = EquipmentUtil.hasAny(((Equipable) to), Attributes.INSTANT_DEATH_IMMUNE);
             }
             if (!instantImmune && random.nextDouble() < instantDeath) {
                 double damage = event.getFinalDamage();
