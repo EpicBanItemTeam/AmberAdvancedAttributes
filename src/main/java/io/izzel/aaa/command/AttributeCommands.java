@@ -14,6 +14,7 @@ import io.izzel.aaa.service.AttributeToLoreFunction;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
+import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
@@ -249,6 +250,26 @@ public class AttributeCommands {
                     }
                     return CommandResult.success();
                 })
+                .child(CommandSpec.builder()
+                        .arguments(GenericArguments.optionalWeak(GenericArguments.remainingJoinedStrings(Text.of("display"))))
+                        .executor((src, args) -> {
+                            if (src instanceof Player) {
+                                Optional<ItemStack> optional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                                if (optional.isPresent()) {
+                                    ItemStack stack = optional.get();
+                                    String text = args.<String>getOne("display").orElse(null);
+                                    if (StringUtils.isNotEmpty(text)) {
+                                        stack.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(text));
+                                    } else {
+                                        stack.remove(Keys.DISPLAY_NAME);
+                                    }
+                                    return CommandResult.success();
+                                }
+                            }
+                            this.locale.to(src, "commands.drop.nonexist");
+                            return CommandResult.success();
+                        })
+                        .build(), "name")
                 .build();
     }
 
