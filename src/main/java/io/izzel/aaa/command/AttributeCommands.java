@@ -304,7 +304,7 @@ public class AttributeCommands {
         CommandElement rangeElement = new RangeValueElement(this.locale, fixed, Text.of("rangeValue"));
         return CommandSpec.builder()
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(this.getRangeClearCommand(id, attribute), "clear")
+                .child(this.getClearCommand(id, attribute), "clear")
                 .child(this.getAppendCommand(id, attribute, rangeElement), "append")
                 .child(this.getInsertCommand(id, attribute, rangeElement), "insert")
                 .child(this.getPrependCommand(id, attribute, rangeElement), "prepend")
@@ -399,7 +399,7 @@ public class AttributeCommands {
                 .build();
     }
 
-    private <T extends RangeValue> CommandSpec getRangeClearCommand(String id, Attribute<T> attribute) {
+    private <T extends DataSerializable> CommandSpec getClearCommand(String id, Attribute<T> attribute) {
         return CommandSpec.builder()
                 .executor((src, args) -> {
                     if (src instanceof Player) {
@@ -503,6 +503,7 @@ public class AttributeCommands {
                                 ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)),
                         GenericArguments.allOf(new EquipmentTypeElement("slots"))
                 )
+                .child(getClearCommand("equipment", attribute), "clear")
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         Player player = (Player) src;
@@ -518,7 +519,11 @@ public class AttributeCommands {
                             ImmutableList<StringValue> list = mark
                                     ? ImmutableList.<StringValue>builder().addAll(old).addAll(slots).build()
                                     : ImmutableList.copyOf(old.stream().filter(it -> !slots.contains(it)).iterator());
-                            attribute.setValues(stack, list);
+                            if (!list.isEmpty()) {
+                                attribute.setValues(stack, list);
+                            } else {
+                                attribute.clearValues(stack);
+                            }
                             this.locale.to(src, "commands.marker.mark-attribute", stack, "equipment");
                         }
                         return CommandResult.success();
