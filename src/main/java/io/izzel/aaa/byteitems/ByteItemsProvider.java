@@ -3,9 +3,11 @@ package io.izzel.aaa.byteitems;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Provider;
 import de.randombyte.byteitems.api.ByteItemsService;
 import io.izzel.aaa.AmberAdvancedAttributes;
+import io.izzel.aaa.itemdb.ItemDbService;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.CommandException;
@@ -49,20 +51,39 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
     private final EventManager eventManager;
     private final PluginContainer container;
     private final AmberLocale locale;
+    private final Injector injector;
 
     @Inject
-    public ByteItemsProvider(AmberLocale locale, PluginContainer container, Game game) {
+    public ByteItemsProvider(AmberLocale locale, PluginContainer container, Game game, Injector injector) {
         this.commandManager = game.getCommandManager();
         this.serviceManager = game.getServiceManager();
         this.pluginManager = game.getPluginManager();
         this.eventManager = game.getEventManager();
         this.container = container;
         this.locale = locale;
+        this.injector = injector;
     }
 
     @Override
     public ByteItemsHandler get() {
-        return this.pluginManager.isLoaded("byte-items") ? new Present() : new Absent();
+        ItemDbService service = injector.getInstance(ItemDbService.class);
+        return new ByteItemsHandler() {
+            @Override
+            public ItemStackSnapshot read(String id) {
+                return Optional.ofNullable(service.read(id)).map(ItemStack::createSnapshot).orElse(ItemStackSnapshot.NONE);
+            }
+
+            @Override
+            public ItemStackSnapshot save(String id, Player player) {
+                Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
+                if (optional.isPresent()) {
+                    service.save(optional.get(), id);
+                    return optional.get().createSnapshot();
+                }
+                return ItemStackSnapshot.NONE;
+            }
+        };
+        // return this.pluginManager.isLoaded("byte-items") ? new Present() : new Absent();
     }
 
     private CommandException error(String key, Object... args) {
