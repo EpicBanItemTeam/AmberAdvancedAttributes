@@ -52,6 +52,7 @@ public final class Attributes {
     // Alpha.2
     public static final Attribute<StringValue> EQUIPMENT;
     public static final Attribute<StringValue> SUIT;
+    public static final Attribute<StringValue> TEMPLATE;
 
     static {
         AttributeService service = AttributeService.instance();
@@ -99,6 +100,7 @@ public final class Attributes {
 
         EQUIPMENT = getAttributeById(service, "aaa-equipment");
         SUIT = getAttributeById(service, "aaa-suit");
+        TEMPLATE = getAttributeById(service, "aaa-template");
     }
 
     private Attributes() {

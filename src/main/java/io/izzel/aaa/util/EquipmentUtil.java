@@ -14,6 +14,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.util.Tuple;
@@ -100,6 +101,11 @@ public class EquipmentUtil {
                     .flatMap(Streams::stream)
                     .forEach(builder::addAll);
         }
+        ImmutableList<StringValue> templates = Attributes.TEMPLATE.getValues(stack);
+        templates.stream().map(StringValue::getString).map(it -> it.replaceFirst(";", ""))
+                .map(biHandler::read).filter(it -> it != ItemStackSnapshot.NONE)
+                .map(ItemStackSnapshot::createStack)
+                .forEach(it -> builder.addAll(getAll(equipable, attribute, it)));
         return builder.build();
     }
 

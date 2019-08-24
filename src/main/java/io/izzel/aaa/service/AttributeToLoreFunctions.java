@@ -125,4 +125,24 @@ public class AttributeToLoreFunctions {
             return builder.build();
         };
     }
+
+    public static AttributeToLoreFunction<StringValue> template(AmberLocale locale, ByteItemsHandler biHandler) {
+        return (values, equipable) -> {
+            ImmutableList.Builder<Map.Entry<Byte, Text>> builder = ImmutableList.builder();
+            values.stream().map(StringValue::getString).filter(it -> !it.startsWith(";")).forEach(it -> {
+                ItemStackSnapshot snapshot = biHandler.read(it);
+                if (snapshot == ItemStackSnapshot.NONE) {
+                    builder.add(Maps.immutableEntry((byte) 0, locale.getAs("attributes.template.unknown", TEXT, it).get()));
+                } else {
+                    ItemStack stack = snapshot.createStack();
+                    ListMultimap<Byte, Text> texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
+                    Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
+                    attributes.values().forEach(attribute -> DataUtil.collectLore(texts, stack, attribute, equipable));
+                    builder.addAll(texts.entries());
+                }
+            });
+            return builder.build();
+        };
+    }
+
 }

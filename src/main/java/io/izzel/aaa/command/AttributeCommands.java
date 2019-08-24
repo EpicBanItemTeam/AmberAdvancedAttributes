@@ -131,7 +131,8 @@ public class AttributeCommands {
         this.registerPossessValue(this.container, event, "possession");
         this.registerTextValue(this.container, event, "original-lore");
         this.registerEquipment(this.container, event);
-        this.registerStringValue(this.container, event, "suit");
+        this.registerSuit(this.container, event, "suit");
+        this.registerTemplate(this.container, event, "template");
         this.registerCustomTextValue(this.container, event, "custom-lore");
         this.registerItemsCommand(this.container);
     }
@@ -152,7 +153,13 @@ public class AttributeCommands {
                 .build(), "aaa-" + id);
     }
 
-    private void registerStringValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerTemplate(PluginContainer container, Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<StringValue> function = template(this.locale, this.biHandler);
+        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        this.commandManager.register(container, getTemplateCommand(attribute, id), "aaa-" + id);
+    }
+
+    private void registerSuit(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container, getStringCommand(attribute, id), "aaa-" + id);
@@ -569,7 +576,19 @@ public class AttributeCommands {
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
                 .child(getAppendCommand(id, attribute, element), "append")
                 .child(getPrependCommand(id, attribute, element), "prepend")
-                .child(getClearCommand(id, attribute))
+                .child(getClearCommand(id, attribute), "clear")
+                .child(getInsertCommand(id, attribute, element), "insert")
+                .build();
+    }
+
+    private <T extends StringValue> CommandSpec getTemplateCommand(Attribute<T> attribute, String id) {
+        TemplateStringElement element = new TemplateStringElement(Text.of("template"));
+        return CommandSpec.builder()
+                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
+                .child(getAppendCommand(id, attribute, element), "append")
+                .child(getPrependCommand(id, attribute, element), "prepend")
+                .child(getClearCommand(id, attribute), "clear")
+                .child(getInsertCommand(id, attribute, element), "insert")
                 .build();
     }
 }
