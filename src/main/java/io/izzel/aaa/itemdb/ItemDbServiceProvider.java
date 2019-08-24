@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 @Singleton
@@ -71,10 +72,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
             try {
                 if (Files.exists(cur)) {
                     Path old = path.resolve("items.conf.old");
-                    if (Files.exists(old)) {
-                        Files.delete(old);
-                    }
-                    Files.move(cur, old);
+                    Files.move(cur, old, StandardCopyOption.REPLACE_EXISTING);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
