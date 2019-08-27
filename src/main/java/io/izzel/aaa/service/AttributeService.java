@@ -1,8 +1,11 @@
 package io.izzel.aaa.service;
 
 import com.google.inject.ImplementedBy;
+import io.izzel.aaa.collector.AttributeCollector;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Map;
@@ -25,4 +28,11 @@ public interface AttributeService {
     default <T extends DataSerializable> Optional<Attribute<T>> getAttributeById(String s) {
         return Optional.ofNullable((Attribute<T>) this.getAttributes().get(s));
     }
+
+    /**
+     * @return if the collector has collected some attributed
+     */
+    boolean submitCollector(AttributeCollector collector);
+
+    AttributeCollector createCollector(EquipmentType equipment, ItemStackSnapshot stackSnapshot);
 }

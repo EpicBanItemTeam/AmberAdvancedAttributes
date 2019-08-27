@@ -3,6 +3,7 @@ package io.izzel.aaa.service;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -15,6 +16,8 @@ import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -52,6 +55,16 @@ public class AttributeServiceImpl implements AttributeService {
     @Override
     public Map<String, Attribute<?>> getAttributes() {
         return this.attributeMapUnmodifiable;
+    }
+
+    @Override
+    public boolean submitCollector(AttributeCollector collector) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AttributeCollector createCollector(EquipmentType equipment, ItemStackSnapshot stackSnapshot) {
+        throw new UnsupportedOperationException();
     }
 
     @NonnullByDefault
