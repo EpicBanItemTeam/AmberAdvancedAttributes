@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
 import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.util.EquipmentUtil;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.entity.living.Living;
@@ -35,6 +36,7 @@ public interface Attribute<T extends DataSerializable> {
     default ImmutableList<T> getAll(ItemStack item, Equipable owner) {
         if (owner instanceof Living) {
             List<T> collection = new ArrayList<>();
+            Sponge.getCauseStackManager().pushCause(owner);
             AttributeCollector.of(item).collect(this, collection).submit();
             return ImmutableList.copyOf(collection);
         }
