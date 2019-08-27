@@ -17,11 +17,11 @@ public interface AttributeCollector {
 
     boolean submit();
 
-    static AttributeCollector of(EquipmentType equipment, ItemStackSnapshot stackSnapshot) {
-        return AttributeService.instance().createCollector(equipment, stackSnapshot);
+    static AttributeCollector of(ItemStackSnapshot stackSnapshot) {
+        return AttributeService.instance().createCollector(stackSnapshot);
     }
 
-    static AttributeCollector of(EquipmentType equipment, ItemStack stack) {
-        return AttributeService.instance().createCollector(equipment, stack.createSnapshot());
+    static AttributeCollector of(ItemStack stack) {
+        return AttributeService.instance().createCollector(stack.createSnapshot());
     }
 }

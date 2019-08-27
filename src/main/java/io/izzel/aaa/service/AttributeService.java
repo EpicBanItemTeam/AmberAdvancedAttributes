@@ -5,7 +5,6 @@ import io.izzel.aaa.collector.AttributeCollector;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Map;
@@ -29,5 +28,5 @@ public interface AttributeService {
         return Optional.ofNullable((Attribute<T>) this.getAttributes().get(s));
     }
 
-    AttributeCollector createCollector(EquipmentType equipment, ItemStackSnapshot stackSnapshot);
+    AttributeCollector createCollector(ItemStackSnapshot stackSnapshot);
 }

@@ -19,11 +19,9 @@ import java.util.*;
 public class AttributeCollectorImpl implements AttributeCollector {
     private final Map<Attribute<?>, List<?>> collections = new LinkedHashMap<>();
     private final ItemStackSnapshot snapshot;
-    private final EquipmentType equipment;
 
-    public AttributeCollectorImpl(ItemStackSnapshot snapshot, EquipmentType equipment) {
+    public AttributeCollectorImpl(ItemStackSnapshot snapshot) {
         this.snapshot = snapshot;
-        this.equipment = equipment;
     }
 
     @Override
@@ -35,35 +33,37 @@ public class AttributeCollectorImpl implements AttributeCollector {
     @Override
     public boolean submit() {
         try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-            Sponge.getEventManager().post(new Event(frame.getCurrentCause(), this.collections));
+            Sponge.getEventManager().post(new Event(frame.getCurrentCause(), this.snapshot, this.collections));
             return this.collections.values().stream().mapToInt(List::size).sum() > 0;
         }
     }
 
-    private class Event implements AttributeCollectionEvent {
+    private static class Event implements AttributeCollectionEvent {
         private final Map<Attribute<?>, List<?>> collections;
         private final Set<Attribute<?>> attributes;
+        private final ItemStackSnapshot snapshot;
         private final Living living;
         private final Cause cause;
 
         @SuppressWarnings("unchecked")
-        private Event(Cause cause, Map<Attribute<?>, List<?>> collections) {
+        private Event(Cause cause, ItemStackSnapshot snapshot, Map<Attribute<?>, List<?>> collections) {
             this.attributes = Collections.unmodifiableSet(collections.keySet());
             for (Attribute<?> key : this.attributes) {
                 List value = collections.get(key);
                 if (!value.isEmpty()) {
                     throw new IllegalStateException("Collection for " + key.getId() + " should be empty first");
                 }
-                value.addAll(key.getValues(AttributeCollectorImpl.this.snapshot));
+                value.addAll(key.getValues(snapshot));
             }
             this.living = cause.first(Living.class).orElseThrow(() -> new IllegalArgumentException("No living entity present"));
             this.collections = collections;
+            this.snapshot = snapshot;
             this.cause = cause;
         }
 
         @Override
-        public EquipmentType getTargetEquipment() {
-            return AttributeCollectorImpl.this.equipment;
+        public ItemStackSnapshot getTargetItem() {
+            return this.snapshot;
         }
 
         @Override

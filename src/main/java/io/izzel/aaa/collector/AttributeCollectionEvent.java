@@ -3,6 +3,7 @@ package io.izzel.aaa.collector;
 import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.event.entity.living.TargetLivingEvent;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 
 import java.util.List;
@@ -13,9 +14,9 @@ import java.util.Set;
  */
 public interface AttributeCollectionEvent extends TargetLivingEvent {
     /**
-     * @return target equipment
+     * @return target item
      */
-    EquipmentType getTargetEquipment();
+    ItemStackSnapshot getTargetItem();
 
     /**
      * @return an unmodifiable set which contains attributes to be collected
