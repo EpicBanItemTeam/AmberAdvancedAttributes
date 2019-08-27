@@ -1,6 +1,7 @@
 package io.izzel.aaa;
 
 import com.google.inject.Inject;
+import io.izzel.aaa.collector.AttributeCollectionEventHandler;
 import io.izzel.aaa.command.AttributeCommands;
 import io.izzel.aaa.listener.AttributeListeners;
 import io.izzel.aaa.service.AttributeService;
@@ -20,10 +21,15 @@ public class AmberAdvancedAttributes {
     public static final String DESC = "An advanced attribute plugin for items.";
 
     @Inject
-    public AmberAdvancedAttributes(AttributeListeners listeners, AttributeCommands commands, AttributeService service, EquipmentUtil util) {
+    public AmberAdvancedAttributes(AttributeListeners listeners,
+                                   AttributeCommands commands,
+                                   AttributeService service,
+                                   AttributeCollectionEventHandler handler,
+                                   EquipmentUtil util) {
         Objects.requireNonNull(listeners);
         Objects.requireNonNull(commands);
         Objects.requireNonNull(service);
+        Objects.requireNonNull(handler);
         Objects.requireNonNull(util);
     }
 }
