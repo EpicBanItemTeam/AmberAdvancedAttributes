@@ -60,7 +60,7 @@ public class AttributeServiceImpl implements AttributeService {
 
     @Override
     public AttributeCollector createCollector(EquipmentType equipment, ItemStackSnapshot stackSnapshot) {
-        return new AttributeCollectorImpl(this, stackSnapshot, equipment);
+        return new AttributeCollectorImpl(stackSnapshot, equipment);
     }
 
     @NonnullByDefault

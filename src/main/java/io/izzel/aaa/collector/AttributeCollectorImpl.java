@@ -1,7 +1,6 @@
 package io.izzel.aaa.collector;
 
 import io.izzel.aaa.service.Attribute;
-import io.izzel.aaa.service.AttributeServiceImpl;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.living.Living;
@@ -19,12 +18,10 @@ import java.util.*;
 @NonnullByDefault
 public class AttributeCollectorImpl implements AttributeCollector {
     private final Map<Attribute<?>, List<?>> collections = new LinkedHashMap<>();
-    private final AttributeServiceImpl service;
     private final ItemStackSnapshot snapshot;
     private final EquipmentType equipment;
 
-    public AttributeCollectorImpl(AttributeServiceImpl service, ItemStackSnapshot snapshot, EquipmentType equipment) {
-        this.service = service;
+    public AttributeCollectorImpl(ItemStackSnapshot snapshot, EquipmentType equipment) {
         this.snapshot = snapshot;
         this.equipment = equipment;
     }
