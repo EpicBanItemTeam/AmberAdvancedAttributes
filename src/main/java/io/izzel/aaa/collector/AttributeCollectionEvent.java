@@ -4,7 +4,6 @@ import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.event.entity.living.TargetLivingEvent;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 
 import java.util.List;
 import java.util.Set;

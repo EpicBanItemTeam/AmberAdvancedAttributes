@@ -42,7 +42,7 @@ public class AttributeCollectionEventHandler {
                 ItemStackSnapshot item = event.getTargetItem();
                 Equipable equipable = (Equipable) event.getTargetEntity();
                 for (StringValue value : Attributes.SUIT.getValues(item)) {
-                    if (EquipmentUtil.instance()
+                    if (EquipmentUtil
                             .items(equipable).filter(i -> !i.isEmpty())
                             .map(Attributes.SUIT::getValues).allMatch(values -> values.contains(value))) {
                         Sponge.getCauseStackManager().pushCause(this.handler);

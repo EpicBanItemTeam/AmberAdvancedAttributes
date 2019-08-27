@@ -92,7 +92,7 @@ public class AttributeToLoreFunctions {
                 } else {
                     builder.add(Maps.immutableEntry(((byte) 16), locale.getAs("attributes.suit.name", TEXT, suitItem.get(Keys.DISPLAY_NAME)).get()));
                     ItemStack stack = suitItem.createStack();
-                    Map<EquipmentType, ItemStack> actualSlots = EquipmentUtil.instance().itemsWithSlot(equipable)
+                    Map<EquipmentType, ItemStack> actualSlots = EquipmentUtil.itemsWithSlot(equipable)
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                     Attributes.EQUIPMENT.getValues(stack).stream()
                             .flatMap(eq -> Streams.stream(Sponge.getRegistry().getType(EquipmentType.class, eq.getString())))

@@ -5,7 +5,6 @@ import io.izzel.aaa.collector.AttributeCollectionEventHandler;
 import io.izzel.aaa.command.AttributeCommands;
 import io.izzel.aaa.listener.AttributeListeners;
 import io.izzel.aaa.service.AttributeService;
-import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 

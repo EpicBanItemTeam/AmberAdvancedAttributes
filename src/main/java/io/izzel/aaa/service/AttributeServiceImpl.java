@@ -18,7 +18,6 @@ import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.util.annotation.NonnullByDefault;

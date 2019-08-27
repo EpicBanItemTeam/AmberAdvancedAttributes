@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
 import io.izzel.aaa.collector.AttributeCollector;
-import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;

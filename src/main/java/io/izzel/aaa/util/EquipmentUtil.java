@@ -21,8 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
-public enum EquipmentUtil {
-    INSTANCE;
+public class EquipmentUtil {
 
     public static final List<EquipmentType> EQUIPMENT_TYPES = ImmutableList.of(
             EquipmentTypes.HEADWEAR,
@@ -33,11 +32,7 @@ public enum EquipmentUtil {
             EquipmentTypes.MAIN_HAND
     );
 
-    public static EquipmentUtil instance() {
-        return INSTANCE;
-    }
-
-    public Stream<Map.Entry<EquipmentType, ItemStack>> itemsWithSlot(Equipable equipable) {
+    public static Stream<Map.Entry<EquipmentType, ItemStack>> itemsWithSlot(Equipable equipable) {
         return EQUIPMENT_TYPES.stream()
                 .map(it -> Tuple.of(it, equipable.getEquipped(it)))
                 .filter(tuple -> {
@@ -52,11 +47,11 @@ public enum EquipmentUtil {
                 .map(it -> Maps.immutableEntry(it.getFirst(), it.getSecond().get()));
     }
 
-    public Stream<ItemStack> items(Equipable equipable) {
+    public static Stream<ItemStack> items(Equipable equipable) {
         return itemsWithSlot(equipable).map(Map.Entry::getValue);
     }
 
-    public <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
+    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
         double[] ret = {value};
         items(equipable)
                 .map(it -> attribute.getAll(it, equipable))
@@ -66,11 +61,11 @@ public enum EquipmentUtil {
         return ret[0];
     }
 
-    public <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
+    public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
         return allOf(equipable, attribute, 0D);
     }
 
-    public <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
+    public static <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
         return items(equipable).map(it -> attribute.getAll(it, equipable)).flatMap(Collection::stream)
                 .findAny().isPresent();
     }

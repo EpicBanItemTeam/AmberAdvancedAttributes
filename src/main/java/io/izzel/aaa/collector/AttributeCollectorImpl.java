@@ -7,7 +7,6 @@ import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.*;

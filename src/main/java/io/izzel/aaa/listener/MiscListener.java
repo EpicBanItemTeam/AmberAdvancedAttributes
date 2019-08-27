@@ -44,11 +44,11 @@ public class MiscListener {
         game.getEventManager().registerListener(container, GameStartingServerEvent.class, event -> {
             Runnable executor = () -> {
                 for (Player player : game.getServer().getOnlinePlayers()) {
-                    double saturation = EquipmentUtil.instance().allOf(player, Attributes.SATURATION);
-                    double starvation = EquipmentUtil.instance().allOf(player, Attributes.STARVATION);
+                    double saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
+                    double starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
                     int food = player.get(Keys.FOOD_LEVEL).orElse(0);
                     player.offer(Keys.FOOD_LEVEL, food + (int) (saturation - starvation));
-                    double regen = EquipmentUtil.instance().allOf(player, Attributes.REGENERATION);
+                    double regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
                     double max = player.get(Keys.MAX_HEALTH).orElse(0D);
                     double health = player.get(Keys.HEALTH).orElse(0D);
                     player.offer(Keys.HEALTH, Math.min(max, health + regen));
@@ -62,9 +62,9 @@ public class MiscListener {
     public void onBurn(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         Entity from = source.getSource();
         if (from instanceof Equipable) {
-            double burnRate = EquipmentUtil.instance().allOf(((Equipable) from), Attributes.BURN_RATE);
+            double burnRate = EquipmentUtil.allOf(((Equipable) from), Attributes.BURN_RATE);
             if (random.nextDouble() < burnRate) {
-                double burn = EquipmentUtil.instance().allOf(((Equipable) from), Attributes.BURN);
+                double burn = EquipmentUtil.allOf(((Equipable) from), Attributes.BURN);
                 to.offer(Keys.FIRE_TICKS, to.get(Keys.FIRE_TICKS).orElse(0) + (int) burn);
             }
         }
@@ -74,9 +74,9 @@ public class MiscListener {
     public void onLifeSteal(DamageEntityEvent event, @Supports(HealthData.class) @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         Entity from = source.getSource();
         if (from instanceof Equipable) {
-            double lifeStealRate = EquipmentUtil.instance().allOf(((Equipable) from), Attributes.LIFE_STEAL_RATE);
+            double lifeStealRate = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL_RATE);
             if (random.nextDouble() < lifeStealRate) {
-                double lifeSteal = EquipmentUtil.instance().allOf(((Equipable) from), Attributes.LIFE_STEAL);
+                double lifeSteal = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL);
                 to.offer(Keys.HEALTH, Math.min(to.get(Keys.MAX_HEALTH).orElse(0D), to.get(Keys.HEALTH).orElse(0D) + lifeSteal));
             }
         }
@@ -86,7 +86,7 @@ public class MiscListener {
     public void onKnockback(AttackEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         Entity from = source.getSource();
         if (from instanceof Equipable) {
-            double knockback = EquipmentUtil.instance().allOf(((Equipable) from), Attributes.KNOCKBACK);
+            double knockback = EquipmentUtil.allOf(((Equipable) from), Attributes.KNOCKBACK);
             event.setKnockbackModifier(event.getKnockbackModifier() + (int) knockback);
         }
     }
@@ -96,13 +96,13 @@ public class MiscListener {
         Entity entity = event.getTargetEntity();
         if (entity instanceof Equipable) {
             if (entity.supports(Keys.WALKING_SPEED)) {
-                double speed = EquipmentUtil.instance().allOf(((Equipable) entity), Attributes.MOVE_SPEED, DEFAULT_MOVE_SPEED);
+                double speed = EquipmentUtil.allOf(((Equipable) entity), Attributes.MOVE_SPEED, DEFAULT_MOVE_SPEED);
                 entity.offer(Keys.WALKING_SPEED, speed);
             }
             // TODO double attackSpeed = EquipmentEquipmentUtil.allOf(((Equipable) entity), Attributes.ATTACK_SPEED, 0D);
             //  Keys.ATTACK_SPEED
             if (entity.supports(Keys.MAX_HEALTH)) {
-                double max = EquipmentUtil.instance().allOf(((Equipable) entity), Attributes.MAX_HEALTH, DEFAULT_MAX_HEALTH);
+                double max = EquipmentUtil.allOf(((Equipable) entity), Attributes.MAX_HEALTH, DEFAULT_MAX_HEALTH);
                 entity.offer(Keys.MAX_HEALTH, max);
             }
             // TODO ((Player) entity).getCooldownTracker()..getCooldown()

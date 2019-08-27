@@ -53,7 +53,7 @@ public class ArrowListener {
                 .filter(it -> it.getShooter() instanceof Equipable && it.getShooter() instanceof Living)
                 .forEach(projectile -> {
                     T shooter = (T) projectile.getShooter();
-                    double tracing = EquipmentUtil.instance().allOf(shooter, Attributes.TRACING);
+                    double tracing = EquipmentUtil.allOf(shooter, Attributes.TRACING);
                     if (Math.abs(tracing) > GenericMath.DBL_EPSILON) {
                         Vector3d rot = shooter.getHeadRotation();
                         double pitch = rot.getX();
@@ -69,7 +69,7 @@ public class ArrowListener {
                                 .ifPresent(living -> Task.builder().delayTicks(1).intervalTicks(1)
                                         .execute(new RedirectProjectileTask(tracing, projectile, living)).submit(this.provider.get()));
                     }
-                    double accelerate = EquipmentUtil.instance().allOf(shooter, Attributes.ACCELERATE);
+                    double accelerate = EquipmentUtil.allOf(shooter, Attributes.ACCELERATE);
                     if (Math.abs(accelerate) > GenericMath.DBL_EPSILON) {
                         Task.builder().delayTicks(1).intervalTicks(1).execute(new AccelerateProjectileTask(accelerate, projectile));
                     }

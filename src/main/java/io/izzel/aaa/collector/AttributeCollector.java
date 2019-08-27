@@ -5,7 +5,6 @@ import io.izzel.aaa.service.AttributeService;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 
 import java.util.List;
 
