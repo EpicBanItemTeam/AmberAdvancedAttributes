@@ -6,6 +6,7 @@ import io.izzel.aaa.util.DataUtil;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -46,6 +47,11 @@ public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
 
     @Override
     public ImmutableList<T> getValues(ItemStack item) {
+        return DataUtil.getData(item).map(data -> data.get(this)).orElse(ImmutableList.of());
+    }
+
+    @Override
+    public ImmutableList<T> getValues(ItemStackSnapshot item) {
         return DataUtil.getData(item).map(data -> data.get(this)).orElse(ImmutableList.of());
     }
 

@@ -8,6 +8,7 @@ import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -31,6 +32,8 @@ public interface Attribute<T extends DataSerializable> {
     default ImmutableList<T> getAll(ItemStack item, Equipable owner) {
         return EquipmentUtil.instance().getAll(owner, this, item);
     }
+
+    ImmutableList<T> getValues(ItemStackSnapshot item);
 
     void setValues(ItemStack item, List<? extends T> values);
 

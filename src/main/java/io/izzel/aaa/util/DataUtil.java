@@ -2,11 +2,13 @@ package io.izzel.aaa.util;
 
 import com.google.common.collect.ListMultimap;
 import io.izzel.aaa.data.Data;
+import io.izzel.aaa.data.ImmutableData;
 import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 
 import java.util.Optional;
@@ -26,6 +28,10 @@ public final class DataUtil {
 
     public static Optional<Data> getData(ItemStack item) {
         return item.get(Data.class);
+    }
+
+    public static Optional<ImmutableData> getData(ItemStackSnapshot item) {
+        return item.get(ImmutableData.class);
     }
 
     public static boolean setData(ItemStack item, Data data) {
