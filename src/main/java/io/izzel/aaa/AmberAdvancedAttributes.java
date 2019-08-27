@@ -24,12 +24,10 @@ public class AmberAdvancedAttributes {
     public AmberAdvancedAttributes(AttributeListeners listeners,
                                    AttributeCommands commands,
                                    AttributeService service,
-                                   AttributeCollectionEventHandler handler,
-                                   EquipmentUtil util) {
+                                   AttributeCollectionEventHandler handler) {
         Objects.requireNonNull(listeners);
         Objects.requireNonNull(commands);
         Objects.requireNonNull(service);
         Objects.requireNonNull(handler);
-        Objects.requireNonNull(util);
     }
 }

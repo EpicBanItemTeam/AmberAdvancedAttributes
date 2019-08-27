@@ -3,15 +3,18 @@ package io.izzel.aaa.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
+import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
+import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -30,7 +33,12 @@ public interface Attribute<T extends DataSerializable> {
     ImmutableList<T> getValues(ItemStack item);
 
     default ImmutableList<T> getAll(ItemStack item, Equipable owner) {
-        return EquipmentUtil.instance().getAll(owner, this, item);
+        if (owner instanceof Living) {
+            List<T> collection = new ArrayList<>();
+            AttributeCollector.of(item).collect(this, collection).submit();
+            return ImmutableList.copyOf(collection);
+        }
+        return ImmutableList.of();
     }
 
     ImmutableList<T> getValues(ItemStackSnapshot item);
