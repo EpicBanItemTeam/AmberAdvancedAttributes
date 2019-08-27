@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.izzel.aaa.collector.AttributeCollector;
+import io.izzel.aaa.collector.AttributeCollectorImpl;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -58,13 +59,8 @@ public class AttributeServiceImpl implements AttributeService {
     }
 
     @Override
-    public boolean submitCollector(AttributeCollector collector) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public AttributeCollector createCollector(EquipmentType equipment, ItemStackSnapshot stackSnapshot) {
-        throw new UnsupportedOperationException();
+        return new AttributeCollectorImpl(this, stackSnapshot, equipment);
     }
 
     @NonnullByDefault

@@ -29,10 +29,5 @@ public interface AttributeService {
         return Optional.ofNullable((Attribute<T>) this.getAttributes().get(s));
     }
 
-    /**
-     * @return if the collector has collected some attributed
-     */
-    boolean submitCollector(AttributeCollector collector);
-
     AttributeCollector createCollector(EquipmentType equipment, ItemStackSnapshot stackSnapshot);
 }

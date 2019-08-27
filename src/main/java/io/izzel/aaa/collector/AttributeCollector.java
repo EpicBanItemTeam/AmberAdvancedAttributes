@@ -15,9 +15,7 @@ import java.util.List;
 public interface AttributeCollector {
     <T extends DataSerializable> AttributeCollector collect(Attribute<T> attribute, List<? super T> collection);
 
-    default boolean submit() {
-        return AttributeService.instance().submitCollector(this);
-    }
+    boolean submit();
 
     static AttributeCollector of(EquipmentType equipment, ItemStackSnapshot stackSnapshot) {
         return AttributeService.instance().createCollector(equipment, stackSnapshot);
