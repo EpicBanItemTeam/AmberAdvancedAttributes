@@ -18,6 +18,8 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author ustc_zzzz
@@ -58,7 +60,8 @@ public class AttributeCollectionEventHandler {
     }
 
     private void onTemplate(AttributeCollectionEvent event) {
-        Deque<StringValue> deque = new ArrayDeque<>(Attributes.TEMPLATE.getValues(event.getTargetItem()).reverse());
+        Set<StringValue> set = new LinkedHashSet<>(Attributes.TEMPLATE.getValues(event.getTargetItem()).reverse());
+        Deque<StringValue> deque = new ArrayDeque<>(set);
         while (!deque.isEmpty()) {
             String template = deque.removeLast().getString().replace(";", "");
             ItemStackSnapshot templateItem = this.handler.read(template);
@@ -67,8 +70,9 @@ public class AttributeCollectionEventHandler {
                     this.merge(attribute, event, templateItem);
                 }
                 for (StringValue value : Attributes.TEMPLATE.getValues(templateItem).reverse()) {
-                    if (!deque.contains(value)) {
+                    if (!set.contains(value)) {
                         deque.addLast(value);
+                        set.add(value);
                         continue;
                     }
                     this.logger.warn("Duplicate template: {} (removed to prevent infinite loops)", value.getString());

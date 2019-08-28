@@ -5,6 +5,7 @@ import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
+import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
@@ -129,15 +130,17 @@ public class AttributeToLoreFunctions {
     public static AttributeToLoreFunction<StringValue> template(AmberLocale locale, ByteItemsHandler biHandler) {
         return (values, equipable) -> {
             ImmutableList.Builder<Map.Entry<Byte, Text>> builder = ImmutableList.builder();
-            values.stream().map(StringValue::getString).filter(it -> !it.startsWith(";")).forEach(it -> {
+            values.stream().map(StringValue::getString).filter(it -> !it.startsWith(";")).distinct().forEach(it -> {
                 ItemStackSnapshot snapshot = biHandler.read(it);
-                if (snapshot == ItemStackSnapshot.NONE) {
+                if (snapshot.isEmpty()) {
                     builder.add(Maps.immutableEntry((byte) 0, locale.getAs("attributes.template.unknown", TEXT, it).get()));
                 } else {
-                    ItemStack stack = snapshot.createStack();
                     ListMultimap<Byte, Text> texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
-                    Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
-                    attributes.values().forEach(attribute -> DataUtil.collectLore(texts, stack, attribute, equipable));
+                    for (Attribute<?> attribute : AttributeService.instance().getAttributes().values()) {
+                        if (!Attributes.TEMPLATE.equals(attribute)) {
+                            DataUtil.collectAllLore(texts, snapshot, attribute, equipable);
+                        }
+                    }
                     builder.addAll(texts.entries());
                 }
             });

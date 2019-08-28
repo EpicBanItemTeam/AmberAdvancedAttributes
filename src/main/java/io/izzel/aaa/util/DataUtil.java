@@ -49,4 +49,8 @@ public final class DataUtil {
     public static <T extends DataSerializable> void collectLore(ListMultimap<Byte, Text> t, ItemStack i, Attribute<T> a, Equipable e) {
         t.putAll(a.getLoreTexts(a.getValues(i), e));
     }
+
+    public static <T extends DataSerializable> void collectAllLore(ListMultimap<Byte, Text> t, ItemStackSnapshot i, Attribute<T> a, Equipable e) {
+        t.putAll(a.getLoreTexts(a.getAll(i, e), e));
+    }
 }
