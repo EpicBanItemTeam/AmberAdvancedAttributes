@@ -77,10 +77,13 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
             public ItemStackSnapshot save(String id, Player player) {
                 Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
                 if (optional.isPresent()) {
-                    service.save(optional.get(), id);
-                    return optional.get().createSnapshot();
+                    ItemStack stack = optional.get();
+                    service.save(stack, id);
+                    return stack.createSnapshot();
+                } else {
+                    service.delete(id);
+                    return ItemStackSnapshot.NONE;
                 }
-                return ItemStackSnapshot.NONE;
             }
         };
         // return this.pluginManager.isLoaded("byte-items") ? new Present() : new Absent();
