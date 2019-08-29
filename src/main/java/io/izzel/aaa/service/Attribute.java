@@ -32,17 +32,6 @@ public interface Attribute<T extends DataSerializable> {
 
     ImmutableList<T> getValues(ItemStack item);
 
-    default ImmutableList<T> getAll(ItemStack item, Equipable owner) {
-        return this.getAll(item.createSnapshot(), owner);
-    }
-
-    default ImmutableList<T> getAll(ItemStackSnapshot item, Equipable owner) {
-        List<T> collection = new ArrayList<>();
-        Sponge.getCauseStackManager().pushCause(owner);
-        AttributeCollector.of(item).collect(this, collection).submit();
-        return ImmutableList.copyOf(collection);
-    }
-
     ImmutableList<T> getValues(ItemStackSnapshot item);
 
     void setValues(ItemStack item, List<? extends T> values);
