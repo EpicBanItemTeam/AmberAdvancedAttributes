@@ -3,9 +3,11 @@ package io.izzel.aaa.listener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.inject.Singleton;
+import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.EquipmentUtil;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
@@ -28,6 +30,7 @@ import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -54,21 +57,47 @@ public class AttackListener {
     public void onAttack(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
             // 这个硬编码真是蠢极了，但是提出来又没什么必要
-            EquipmentUtil.items(from).forEach(itemStack -> {
-                Attributes.ATTACK.getAll(itemStack, from).forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.ATTACK).with(v))
-                                        .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                                v.getFunction(this.random), ImmutableSet.of()));
-                if (from instanceof Player && to instanceof Player) {
-                    Attributes.PVP_ATTACK.getAll(itemStack, from).forEach(v ->
-                            event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
-                                            .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                                    v.getFunction(this.random), ImmutableSet.of()));
-                } else if (from instanceof Player) {
-                    Attributes.PVE_ATTACK.getAll(itemStack, from).forEach(v ->
-                            event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
-                                            .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(itemStack).build(),
-                                    v.getFunction(this.random), ImmutableSet.of()));
+            EquipmentUtil.items(from).forEach(item -> {
+                Sponge.getCauseStackManager().pushCause(from);
+
+                List<RangeValue> attack = new ArrayList<>();
+                List<RangeValue> pvpAttack = new ArrayList<>();
+                List<RangeValue> pveAttack = new ArrayList<>();
+
+                boolean attackFlag = AttributeCollector.of(item)
+                        .collect(Attributes.PVE_ATTACK, pveAttack)
+                        .collect(Attributes.PVP_ATTACK, pvpAttack)
+                        .collect(Attributes.ATTACK, attack).submit();
+
+                if (attackFlag) {
+                    for (RangeValue v : attack) {
+                        DamageModifier m = DamageModifier.builder()
+                                .cause(event.getCause().with(Attributes.ATTACK).with(v))
+                                .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
+                        event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
+                    }
+                }
+
+                boolean pvpFlag = attackFlag && from instanceof Player && to instanceof Player;
+
+                if (pvpFlag) {
+                    for (RangeValue v : pvpAttack) {
+                        DamageModifier m = DamageModifier.builder()
+                                .cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
+                                .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
+                        event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
+                    }
+                }
+
+                boolean pveFlag = attackFlag && from instanceof Player && !(to instanceof Player);
+
+                if (pveFlag) {
+                    for (RangeValue v : pveAttack) {
+                        DamageModifier m = DamageModifier.builder()
+                                .cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
+                                .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
+                        event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
+                    }
                 }
             });
         });
