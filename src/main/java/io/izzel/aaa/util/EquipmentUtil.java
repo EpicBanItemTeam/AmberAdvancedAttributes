@@ -2,6 +2,7 @@ package io.izzel.aaa.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
@@ -14,10 +15,7 @@ import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.util.Tuple;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
@@ -52,13 +50,18 @@ public class EquipmentUtil {
     }
 
     public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
-        double[] ret = {value};
-        items(equipable)
-                .map(it -> attribute.getAll(it, equipable))
-                .flatMap(Collection::stream)
-                .map(it -> it.getFunction(ThreadLocalRandom.current()))
-                .forEach(it -> ret[0] += it.applyAsDouble(ret[0]));
-        return ret[0];
+        double result = value;
+        List<T> collection = new ArrayList<>();
+        Sponge.getCauseStackManager().pushCause(equipable);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (Iterator<ItemStack> iterator = items(equipable).iterator(); iterator.hasNext(); collection.clear()) {
+            if (AttributeCollector.of(iterator.next()).collect(attribute, collection).submit()) {
+                for (T range : collection) {
+                    result += range.getFunction(random).applyAsDouble(result);
+                }
+            }
+        }
+        return result;
     }
 
     public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute) {
@@ -66,8 +69,13 @@ public class EquipmentUtil {
     }
 
     public static <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
-        return items(equipable).map(it -> attribute.getAll(it, equipable)).flatMap(Collection::stream)
-                .findAny().isPresent();
+        List<T> collection = new ArrayList<>();
+        Sponge.getCauseStackManager().pushCause(equipable);
+        for (Iterator<ItemStack> iterator = items(equipable).iterator(); iterator.hasNext(); collection.clear()) {
+            if (AttributeCollector.of(iterator.next()).collect(attribute, collection).submit()) {
+                return true;
+            }
+        }
+        return false;
     }
-
 }

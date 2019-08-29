@@ -1,9 +1,11 @@
 package io.izzel.aaa.util;
 
 import com.google.common.collect.ListMultimap;
+import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.Data;
 import io.izzel.aaa.data.ImmutableData;
 import io.izzel.aaa.service.Attribute;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.persistence.InvalidDataException;
 import org.spongepowered.api.entity.Equipable;
@@ -11,6 +13,8 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,6 +55,10 @@ public final class DataUtil {
     }
 
     public static <T extends DataSerializable> void collectAllLore(ListMultimap<Byte, Text> t, ItemStackSnapshot i, Attribute<T> a, Equipable e) {
-        t.putAll(a.getLoreTexts(a.getAll(i, e), e));
+        List<T> collection = new ArrayList<>();
+        Sponge.getCauseStackManager().pushCause(e);
+        if (AttributeCollector.of(i).collect(a, collection).submit()) {
+            t.putAll(a.getLoreTexts(collection, e));
+        }
     }
 }
