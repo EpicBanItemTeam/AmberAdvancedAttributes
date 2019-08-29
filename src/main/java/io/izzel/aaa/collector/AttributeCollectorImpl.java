@@ -3,6 +3,7 @@ package io.izzel.aaa.collector;
 import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.cause.Cause;
@@ -41,7 +42,7 @@ public class AttributeCollectorImpl implements AttributeCollector {
         private final Map<Attribute<?>, List<?>> collections;
         private final Set<Attribute<?>> attributes;
         private final ItemStackSnapshot snapshot;
-        private final Living living;
+        private final Entity entity;
         private final Cause cause;
 
         @SuppressWarnings("unchecked")
@@ -54,7 +55,7 @@ public class AttributeCollectorImpl implements AttributeCollector {
                 }
                 value.addAll(key.getValues(snapshot));
             }
-            this.living = cause.first(Living.class).orElseThrow(() -> new IllegalArgumentException("No living entity present"));
+            this.entity = cause.first(Entity.class).orElseThrow(() -> new IllegalArgumentException("No entity present"));
             this.collections = collections;
             this.snapshot = snapshot;
             this.cause = cause;
@@ -80,8 +81,8 @@ public class AttributeCollectorImpl implements AttributeCollector {
         }
 
         @Override
-        public Living getTargetEntity() {
-            return this.living;
+        public Entity getTargetEntity() {
+            return this.entity;
         }
 
         @Override

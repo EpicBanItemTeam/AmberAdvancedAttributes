@@ -2,6 +2,7 @@ package io.izzel.aaa.collector;
 
 import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.event.entity.TargetEntityEvent;
 import org.spongepowered.api.event.entity.living.TargetLivingEvent;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
@@ -11,7 +12,7 @@ import java.util.Set;
 /**
  * @author ustc_zzzz
  */
-public interface AttributeCollectionEvent extends TargetLivingEvent {
+public interface AttributeCollectionEvent extends TargetEntityEvent {
     /**
      * @return target item
      */

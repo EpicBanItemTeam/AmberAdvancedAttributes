@@ -37,13 +37,10 @@ public interface Attribute<T extends DataSerializable> {
     }
 
     default ImmutableList<T> getAll(ItemStackSnapshot item, Equipable owner) {
-        if (owner instanceof Living) {
-            List<T> collection = new ArrayList<>();
-            Sponge.getCauseStackManager().pushCause(owner);
-            AttributeCollector.of(item).collect(this, collection).submit();
-            return ImmutableList.copyOf(collection);
-        }
-        return ImmutableList.of();
+        List<T> collection = new ArrayList<>();
+        Sponge.getCauseStackManager().pushCause(owner);
+        AttributeCollector.of(item).collect(this, collection).submit();
+        return ImmutableList.copyOf(collection);
     }
 
     ImmutableList<T> getValues(ItemStackSnapshot item);
