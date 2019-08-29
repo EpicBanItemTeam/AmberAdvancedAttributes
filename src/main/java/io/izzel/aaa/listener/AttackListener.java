@@ -240,7 +240,8 @@ public class AttackListener {
                     List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
                     Inventory slot = slots.get(random.nextInt(slots.size()));
                     slot.poll(1).ifPresent(item -> {
-                        if (!Attributes.LOOT_IMMUNE.getAll(item, ((Equipable) to)).isEmpty()) {
+                        Sponge.getCauseStackManager().pushCause(to);
+                        if (AttributeCollector.of(item).collect(Attributes.LOOT_IMMUNE, new ArrayList<>()).submit()) {
                             slot.offer(item);
                         } else {
                             Item entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));
