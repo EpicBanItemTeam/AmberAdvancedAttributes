@@ -5,12 +5,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
+import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeToLoreFunction;
+import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
@@ -51,6 +53,7 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 /**
  * @author ustc_zzzz
  */
+@SuppressWarnings("SameParameterValue")
 @Singleton
 public class AttributeCommands {
     private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
@@ -71,7 +74,7 @@ public class AttributeCommands {
         eventManager.registerListener(container, ChangeEntityEquipmentEvent.class, Order.LATE, this::on);
     }
 
-    public void on(ChangeEntityEquipmentEvent event) {
+    private void on(ChangeEntityEquipmentEvent event) {
         Transaction<ItemStackSnapshot> transaction = event.getTransaction();
         if (transaction.isValid() && event.getTargetEntity() instanceof Equipable) {
             ListMultimap<Byte, Text> texts;
@@ -134,11 +137,29 @@ public class AttributeCommands {
         this.registerSuit(this.container, event, "suit");
         this.registerTemplate(this.container, event, "template");
         this.registerCustomTextValue(this.container, event, "custom-lore");
+        this.registerInlay(this.container, event, "inlay");
+        this.registerMarkerValue(this.container, event, "inlay-gem");
+        this.registerRangeValueFixed(this.container, event, "inlay-success");
         this.registerItemsCommand(this.container);
+
+        event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
     }
 
     private void registerItemsCommand(PluginContainer container) {
         this.commandManager.register(container, this.getItemsCommand(), "aaa-items");
+    }
+
+    private void registerInlay(PluginContainer container, Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<InlayData> function = inlay(this.locale, this.biHandler);
+        Attribute<InlayData> attribute = event.register("aaa-" + id, InlayData.class, function);
+        InlayDataElement element = new InlayDataElement(id);
+        this.commandManager.register(container, CommandSpec.builder()
+                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
+                .child(getAppendCommand(id, attribute, element), "append")
+                .child(getPrependCommand(id, attribute, element), "prepend")
+                .child(getClearCommand(id, attribute), "clear")
+                .child(getInsertCommand(id, attribute, element), "insert")
+                .build(), "aaa-" + id);
     }
 
     private void registerCustomTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -230,6 +251,7 @@ public class AttributeCommands {
                                 ItemStack stack = stackOptional.get();
                                 if (DataUtil.hasData(stack)) {
                                     stack.remove(Keys.ITEM_LORE); // lore texts are generated
+                                    Attributes.ID.setValues(stack, ImmutableList.of(StringValue.of(name)));
                                     player.setItemInHand(HandTypes.MAIN_HAND, stack);
                                     this.biHandler.save(name, player);
                                     this.locale.to(src, "commands.byte-items.save-succeed", name, "aaa-" + name);

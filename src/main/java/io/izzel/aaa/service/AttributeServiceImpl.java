@@ -5,10 +5,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.collector.AttributeCollectorImpl;
-import io.izzel.aaa.data.Data;
-import io.izzel.aaa.data.MarkerValue;
-import io.izzel.aaa.data.RangeValue;
-import io.izzel.aaa.data.StringValue;
+import io.izzel.aaa.data.*;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataManager;
 import org.spongepowered.api.data.DataSerializable;
@@ -44,6 +41,7 @@ public class AttributeServiceImpl implements AttributeService {
             RangeValue.register(dataManager);
             MarkerValue.register(dataManager);
             StringValue.register(dataManager);
+            InlayData.register(dataManager);
         });
         eventManager.registerListener(container, GameAboutToStartServerEvent.class, event -> {
             try (CauseStackManager.StackFrame stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {

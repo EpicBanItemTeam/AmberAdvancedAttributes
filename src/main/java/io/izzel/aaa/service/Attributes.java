@@ -1,5 +1,6 @@
 package io.izzel.aaa.service;
 
+import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
@@ -54,6 +55,12 @@ public final class Attributes {
     public static final Attribute<StringValue> SUIT;
     public static final Attribute<StringValue> TEMPLATE;
 
+    // Alpha.3
+    public static final Attribute<InlayData> INLAY;
+    public static final Attribute<MarkerValue> INLAY_GEM;
+    public static final Attribute<RangeValue.Fixed> INLAY_SUCCESS;
+    public static final Attribute<StringValue> ID;
+
     static {
         AttributeService service = AttributeService.instance();
 
@@ -101,6 +108,11 @@ public final class Attributes {
         EQUIPMENT = getAttributeById(service, "aaa-equipment");
         SUIT = getAttributeById(service, "aaa-suit");
         TEMPLATE = getAttributeById(service, "aaa-template");
+
+        INLAY = getAttributeById(service, "aaa-inlay");
+        INLAY_GEM = getAttributeById(service, "aaa-inlay-gem");
+        INLAY_SUCCESS = getAttributeById(service, "aaa-inlay-success");
+        ID = getAttributeById(service, "aaa-id");
     }
 
     private Attributes() {

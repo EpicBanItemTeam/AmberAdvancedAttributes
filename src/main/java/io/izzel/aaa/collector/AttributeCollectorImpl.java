@@ -4,7 +4,6 @@ import io.izzel.aaa.service.Attribute;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Entity;
-import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -50,10 +49,9 @@ public class AttributeCollectorImpl implements AttributeCollector {
             this.attributes = Collections.unmodifiableSet(collections.keySet());
             for (Attribute<?> key : this.attributes) {
                 List value = collections.get(key);
-                if (!value.isEmpty()) {
-                    throw new IllegalStateException("Collection for " + key.getId() + " should be empty first");
+                if (value.isEmpty()) {
+                    value.addAll(key.getValues(snapshot));
                 }
-                value.addAll(key.getValues(snapshot));
             }
             this.entity = cause.first(Entity.class).orElseThrow(() -> new IllegalArgumentException("No entity present"));
             this.collections = collections;

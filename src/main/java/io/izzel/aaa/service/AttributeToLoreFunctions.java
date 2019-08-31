@@ -5,7 +5,7 @@ import com.google.common.collect.*;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
-import io.izzel.aaa.collector.AttributeCollector;
+import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
@@ -20,6 +20,7 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.TranslatableText;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -145,6 +146,29 @@ public class AttributeToLoreFunctions {
                 }
             });
             return builder.build();
+        };
+    }
+
+    public static AttributeToLoreFunction<InlayData> inlay(AmberLocale locale, ByteItemsHandler biHandler) {
+        return (values, equipable) -> {
+            if (values.isEmpty()) return ImmutableList.of();
+            else {
+                ImmutableList.Builder<Map.Entry<Byte, Text>> builder = ImmutableList.builder();
+                builder.add(Maps.immutableEntry((byte) 0, locale.getAs("attributes.inlay.header", TEXT, values.size()).get()));
+                values.forEach(data -> {
+                    String slot = data.getSlot();
+                    Text t = locale.getAs("attributes.inlay.slot", TEXT,
+                            Arg.ref("attributes.inlay.slot-names." + slot),
+                            data.getGem().map(biHandler::read).map(item -> {
+                                if (item.isEmpty())
+                                    return locale.getAs("attributes.inlay.unknown", TEXT, data.getGem());
+                                else return item.get(Keys.DISPLAY_NAME).orElse(TranslatableText.of(item.getTranslation()));
+                            }).orElseGet(() -> Arg.ref("attributes.inlay.none"))
+                    ).get();
+                    builder.add(Maps.immutableEntry(((byte) 0), t));
+                });
+                return builder.build();
+            }
         };
     }
 

@@ -17,5 +17,6 @@ public class AttributeListeners {
         eventManager.registerListeners(container, injector.getInstance(ArrowListener.class));
         eventManager.registerListeners(container, injector.getInstance(PossessionListener.class));
         eventManager.registerListeners(container, injector.getInstance(MiscListener.class));
+        eventManager.registerListeners(container, injector.getInstance(InlayListener.class));
     }
 }

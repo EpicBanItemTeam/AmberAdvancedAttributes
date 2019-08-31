@@ -3,6 +3,7 @@ package io.izzel.aaa.collector;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
+import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.Attributes;
@@ -16,10 +17,7 @@ import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author ustc_zzzz
@@ -36,6 +34,23 @@ public class AttributeCollectionEventHandler {
         this.handler = handler;
         manager.registerListener(container, AttributeCollectionEvent.class, this::onSuit);
         manager.registerListener(container, AttributeCollectionEvent.class, this::onTemplate);
+        manager.registerListener(container, AttributeCollectionEvent.class, this::onInlay);
+    }
+
+    private void onInlay(AttributeCollectionEvent event) {
+        ItemStackSnapshot snapshot = event.getTargetItem();
+        List<InlayData> inlay = Attributes.INLAY.getValues(snapshot);
+        inlay.stream().filter(it -> it.getGem().isPresent())
+                .map(it -> it.getGem().get())
+                .map(handler::read)
+                .map(AttributeCollector::of)
+                .forEach(collector -> {
+                    for (Attribute<?> attribute : event.getCollectedAttributes()) {
+                        if (!attribute.equals(Attributes.INLAY_GEM))
+                            collector = this.collect(attribute, event, collector);
+                    }
+                    collector.submit();
+                });
     }
 
     private void onSuit(AttributeCollectionEvent event) {

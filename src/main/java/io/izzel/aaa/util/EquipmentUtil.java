@@ -3,6 +3,7 @@ package io.izzel.aaa.util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.izzel.aaa.collector.AttributeCollector;
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
@@ -35,6 +36,9 @@ public class EquipmentUtil {
                 .map(it -> Tuple.of(it, equipable.getEquipped(it)))
                 .filter(tuple -> {
                     if (!tuple.getSecond().isPresent()) return false;
+                    List<MarkerValue> gem = new ArrayList<>();
+                    AttributeCollector.of(tuple.getSecond().get()).collect(Attributes.INLAY_GEM, gem).submit();
+                    if (!gem.isEmpty()) return false;
                     ImmutableList<StringValue> values = Attributes.EQUIPMENT.getValues(tuple.getSecond().get());
                     return values.isEmpty() || values.stream()
                             .map(it -> Sponge.getRegistry().getType(EquipmentType.class, it.getString()))
