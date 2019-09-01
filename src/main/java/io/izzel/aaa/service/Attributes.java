@@ -61,6 +61,7 @@ public final class Attributes {
     public static final Attribute<RangeValue.Fixed> INLAY_SUCCESS;
     public static final Attribute<StringValue> ID;
     public static final Attribute<StringValue> PERMISSION_CAP;
+    public static final Attribute<RangeValue> LEVEL_CAP;
 
     static {
         AttributeService service = AttributeService.instance();
@@ -115,6 +116,7 @@ public final class Attributes {
         INLAY_SUCCESS = getAttributeById(service, "aaa-inlay-success");
         ID = getAttributeById(service, "aaa-id");
         PERMISSION_CAP = getAttributeById(service, "aaa-permission-cap");
+        LEVEL_CAP = getAttributeById(service, "aaa-level-cap");
     }
 
     private Attributes() {

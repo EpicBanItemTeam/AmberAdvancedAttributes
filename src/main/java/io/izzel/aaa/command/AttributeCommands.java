@@ -141,6 +141,7 @@ public class AttributeCommands {
         this.registerMarkerValue(this.container, event, "inlay-gem");
         this.registerRangeValueFixed(this.container, event, "inlay-success");
         this.registerPermissionCap(this.container, event, "permission-cap");
+        this.registerRangeValue(this.container, event, "level-cap");
         this.registerItemsCommand(this.container);
 
         event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
