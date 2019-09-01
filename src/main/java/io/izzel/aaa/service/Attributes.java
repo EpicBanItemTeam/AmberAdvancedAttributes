@@ -62,6 +62,7 @@ public final class Attributes {
     public static final Attribute<StringValue> ID;
     public static final Attribute<StringValue> PERMISSION_CAP;
     public static final Attribute<RangeValue> LEVEL_CAP;
+    public static final Attribute<Text> CUSTOM_LORE;
 
     static {
         AttributeService service = AttributeService.instance();
@@ -117,6 +118,7 @@ public final class Attributes {
         ID = getAttributeById(service, "aaa-id");
         PERMISSION_CAP = getAttributeById(service, "aaa-permission-cap");
         LEVEL_CAP = getAttributeById(service, "aaa-level-cap");
+        CUSTOM_LORE = getAttributeById(service, "aaa-custom-lore");
     }
 
     private Attributes() {
