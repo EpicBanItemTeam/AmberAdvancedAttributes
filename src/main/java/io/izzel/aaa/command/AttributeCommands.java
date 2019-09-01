@@ -140,6 +140,7 @@ public class AttributeCommands {
         this.registerInlay(this.container, event, "inlay");
         this.registerMarkerValue(this.container, event, "inlay-gem");
         this.registerRangeValueFixed(this.container, event, "inlay-success");
+        this.registerPermissionCap(this.container, event, "permission-cap");
         this.registerItemsCommand(this.container);
 
         event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
@@ -147,6 +148,12 @@ public class AttributeCommands {
 
     private void registerItemsCommand(PluginContainer container) {
         this.commandManager.register(container, this.getItemsCommand(), "aaa-items");
+    }
+
+    private void registerPermissionCap(PluginContainer container, Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<StringValue> function = permissionCap(this.locale);
+        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        this.commandManager.register(container, getStringCommand(attribute, id), "aaa-" + id);
     }
 
     private void registerInlay(PluginContainer container, Attribute.RegistryEvent event, String id) {

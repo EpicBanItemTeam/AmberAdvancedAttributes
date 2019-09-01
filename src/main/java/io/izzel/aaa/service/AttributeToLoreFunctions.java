@@ -172,4 +172,14 @@ public class AttributeToLoreFunctions {
         };
     }
 
+    public static AttributeToLoreFunction<StringValue> permissionCap(AmberLocale locale) {
+        return (values, equipable) -> values.stream()
+                .map(StringValue::getString)
+                .map(it -> locale.getAs("attributes.permission-cap.mappings." + it, TEXT).orElse(Text.of(it)))
+                .map(it -> locale.getAs("attributes.permission-cap.value", TEXT, it))
+                .flatMap(Streams::stream)
+                .map(it -> Maps.immutableEntry((byte) 0, it))
+                .collect(Collectors.toList());
+    }
+
 }

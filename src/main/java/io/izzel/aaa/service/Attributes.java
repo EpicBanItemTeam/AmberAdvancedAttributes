@@ -60,6 +60,7 @@ public final class Attributes {
     public static final Attribute<MarkerValue> INLAY_GEM;
     public static final Attribute<RangeValue.Fixed> INLAY_SUCCESS;
     public static final Attribute<StringValue> ID;
+    public static final Attribute<StringValue> PERMISSION_CAP;
 
     static {
         AttributeService service = AttributeService.instance();
@@ -113,6 +114,7 @@ public final class Attributes {
         INLAY_GEM = getAttributeById(service, "aaa-inlay-gem");
         INLAY_SUCCESS = getAttributeById(service, "aaa-inlay-success");
         ID = getAttributeById(service, "aaa-id");
+        PERMISSION_CAP = getAttributeById(service, "aaa-permission-cap");
     }
 
     private Attributes() {
