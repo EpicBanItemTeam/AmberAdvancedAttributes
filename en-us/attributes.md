@@ -103,42 +103,43 @@ Entity with `amberadvancedattributes.possession-bypass` permission do not affect
 
 Set the attributes of the item affect only in specific slots (`main_hand`, `off_hand`, `boots`, `chestplate`, `head`, `leggings`)
 
-当对应物品被用作套装时，该属性变为须集齐某些套装才可使套装生效
+When `equipment` is used on suit items, it controls the amount of the suits to collect.
 
-!> 理论上套装和模板可以无限嵌套，但是不要设置某个物品将自身作为模板
+!> You can have nested suits and templates, but do not directly or indirectly set one's template to itself.
 
-!> 套装和模板可以随时更改并实时生效到已发放的物品上
+!> You can edit the attributes on templates and suits, and it will take effect on all items using it.
 
 #### `suit`
 
-设置物品对应的套装（可以有多个）
+Set a suit for an item. One item can have multiple suits.
 
-设置套装的方法如下
-* 将任意物品添加需要的套装加成效果
-* 给套装效果物品添加 `equipment` 属性标记套装的数量，如 `/aaa-equipment mark main_hand off_hand` 指明套装效果需要主手副手同时持有才生效
-* 使用 [items](/en-us/commands.md#items) 系列指令 **设置套装显示名称** 并将其保存为某个 id
-* 使用 `/aaa-suit append <id>` 命令给对应物品标记为套装
+To create a suit, you need:
+* Add attributes to one item(the suit item that hold attributes, not the items you want to give to your player)
+* Add `equipment` attribute to the suit item, like that `/aaa-equipment mark main_hand off_hand` means you need to have item marked with this suit in both mainhand and offhand,
+    then the suit attributes will take effect.
+* Use [items](/en-us/commands.md#items) commands to **set the display name** and save the suit item with specific `id`.
+* Type `/aaa-suit append <id>` with items in hand to mark it belongs to this suit.
 
 #### `template`
 
-设置物品的模板（可以有多个），物品的属性继承自其模板
+Set the template of an item. One item can have multiple templates, and the item inherits attributes from template.
 
-使用 `/aaa-template append xxxx as hidden` 使模板的 lore 不显示在物品上，但模板物品的属性仍然生效
+Type `/aaa-template append xxxx as hidden` to set a hidden template that no lore displayed but attributes will take effect.
 
-设置物品模板的方式与套装类似
+To set a template is almost the same as to set a suit.
 
 #### `custom-lore`
 
-设置物品的自定义描述，单独显示一片文本
+Add custom descriptions to item.
 
 #### `permission-cap`
 
-设置物品的权限要求
+Add permission requirements to item.
 
-可自定义权限的显示：
+To customize permission display, you can:
 
-* 打开 `locale_xx_xx.conf` 语言文件
-* 找到 
+* Open `locale_xx_xx.conf` file
+* Find `attributes.permission-cap.mappings`
     ```hocon
     attributes {
       permission-cap {
@@ -147,31 +148,32 @@ Set the attributes of the item affect only in specific slots (`main_hand`, `off_
       }
     }
     ```
-* 在其中添加如
+* Add
     ```hocon
     mappings {
       plugin.vip = "VIP"
     }
     ```
-  的 `权限 = 自定义文本` 列表
+  with `Permission node = your text here` list.
 
 #### `level-cap`
 
-等级限制。
+Add level requirements to item.
 
-设置单个数值时玩家等级须大于等于设置的等级，设置两个数值时玩家等级须在两个值的闭区间内。
+When set a single number, player's exp level should larger than given number.
+When set a ranged number, player's exp level should be in the given closed interval.
 
 #### `inlay` `inlay-gem` `inlay-success` :id=inlay
 
-镶嵌相关的属性。
+Inlay-related attributes.
 
-设置镶嵌的方法如下：
+To set a inlay attribute,
 
-* 对于被镶嵌的物品
-    * 手持物品输入 `/aaa-inlay append id` 设置一个名为 `id` 的镶嵌槽
-* 对于用于镶嵌的物品（宝石）
-    * 手持物品输入 `/aaa-inlay-gem mark` 将其标记为宝石，此物品装备/手持时属性便不生效
-    * 输入 `/aaa-inlay append id` 设置其能被镶嵌在某个槽位
-    * 添加 `aaa-inlay-success` 属性设置镶嵌成功率，失败则物品（宝石）消失
-* 主手持物品，副手持宝石，按 `F` （交换主副手物品）键镶嵌
+* For the item that holds the gem
+    * Type `/aaa-inlay append id` to set a inlay slot named `id`
+* For the gem
+    * Type `/aaa-inlay-gem mark` to mark it as a gem, then attributes on it do not take effect.
+    * Type `/aaa-inlay append id` to set the slots that accepts this gem.
+    * Add `aaa-inlay-success` attributes to set the inlay success chance, when failed the gem disappeared.
+* Hold the item in mainhand with gem in offhand, then press `F` (swap hand) to perform inlay action.
 
