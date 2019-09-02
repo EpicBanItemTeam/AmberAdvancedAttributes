@@ -3,6 +3,7 @@ package io.izzel.aaa.listener;
 import com.flowpowered.math.GenericMath;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
@@ -38,11 +39,13 @@ public class PossessionListener {
                     .collect(Attributes.PERMISSION_CAP, permsCap)
                     .collect(Attributes.LEVEL_CAP, levelCap)
                     .submit();
-            if (possession.stream().anyMatch(it -> !it.getUniqueId().equals(player.getUniqueId()))) {
+            if (possession.stream().anyMatch(it -> !it.getUniqueId().equals(player.getUniqueId()))
+                    && !player.hasPermission(AmberAdvancedAttributes.ID + ".possession-bypass")) {
                 transaction.setValid(false);
                 locale.to(player, "attributes.possession.no-permission");
             }
-            if (!permsCap.stream().map(StringValue::getString).allMatch(player::hasPermission)) {
+            if (!permsCap.stream().map(StringValue::getString).allMatch(player::hasPermission)
+                    && !player.hasPermission(AmberAdvancedAttributes.ID + ".permission-bypass")) {
                 transaction.setValid(false);
                 locale.to(player, "attributes.permission-cap.no-perm");
             }
@@ -53,7 +56,7 @@ public class PossessionListener {
                 } else {
                     return level >= v.getLowerBound();
                 }
-            })) {
+            }) && !player.hasPermission(AmberAdvancedAttributes.ID + ".level-bypass")) {
                 transaction.setValid(false);
                 locale.to(player, "attributes.level-cap.no-perm");
             }
