@@ -51,8 +51,10 @@ public class InlayListener {
                 }
                 ItemStack original = mainhand.getOriginal().createStack();
                 List<InlayData> slots = new ArrayList<>();
-                AttributeCollector.of(original).collect(Attributes.INLAY, slots).submit();
-                if (slots.isEmpty()) return;
+                List<MarkerValue> mainGem = new ArrayList<>();
+                AttributeCollector.of(original).collect(Attributes.INLAY, slots)
+                        .collect(Attributes.INLAY_GEM, mainGem).submit();
+                if (slots.isEmpty() || !mainGem.isEmpty()) return;
                 List<String> targetNames = targets.stream().map(InlayData::getSlot).collect(Collectors.toList());
                 Optional<InlayData> first = slots.stream().filter(it -> !it.getGem().isPresent())
                         .filter(it -> targetNames.contains(it.getSlot()))
