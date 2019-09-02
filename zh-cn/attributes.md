@@ -97,6 +97,8 @@
 
 设置物品被玩家拥有，也就是所谓的灵魂绑定
 
+拥有 `amberadvancedattributes.possession-bypass` 的实体不受影响
+
 #### `equipment`
 
 设置物品仅能在某些槽位生效（`main_hand`, `off_hand`, `boots`, `chestplate`, `head`, `leggings`）
@@ -124,3 +126,52 @@
 使用 `/aaa-template append xxxx as hidden` 使模板的 lore 不显示在物品上，但模板物品的属性仍然生效
 
 设置物品模板的方式与套装类似
+
+#### `custom-lore`
+
+设置物品的自定义描述，单独显示一片文本
+
+#### `permission-cap`
+
+设置物品的权限要求
+
+可自定义权限的显示：
+
+* 打开 `locale_xx_xx.conf` 语言文件
+* 找到 
+    ```hocon
+    attributes {
+      permission-cap {
+        mappings {
+        }
+      }
+    }
+    ```
+* 在其中添加如
+    ```hocon
+    mappings {
+      plugin.vip = "VIP"
+    }
+    ```
+  的 `权限 = 自定义文本` 列表
+
+#### `level-cap`
+
+等级限制。
+
+设置单个数值时玩家等级须大于等于设置的等级，设置两个数值时玩家等级须在两个值的闭区间内。
+
+#### `inlay` `inlay-gem` `inlay-success`
+
+镶嵌相关的属性。
+
+设置镶嵌的方法如下：
+
+* 对于被镶嵌的物品
+    * 手持物品输入 `/aaa-inlay append id` 设置一个名为 `id` 的镶嵌槽
+* 对于用于镶嵌的物品（宝石）
+    * 手持物品输入 `/aaa-inlay-gem mark` 将其标记为宝石，此物品装备/手持时属性便不生效
+    * 输入 `/aaa-inlay append id` 设置其能被镶嵌在某个槽位
+    * 添加 `aaa-inlay-success` 属性设置镶嵌成功率，失败则物品（宝石）消失
+* 主手持物品，副手持宝石，按 `F` （交换主副手物品）键镶嵌
+
