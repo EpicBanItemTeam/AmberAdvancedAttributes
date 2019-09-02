@@ -34,5 +34,5 @@
 #### `aaa-items <give|save|name>` :id=items
 
 * `/aaa-items give <id>` 给玩家某 id 的物品
-* `/aaa-items save <id>` 将物品保存为某个 id，以用作[模板](/zh-cn/attributes.md#template)或[套装](/zh-cn/attributes.md#suit)
+* `/aaa-items save <id>` 将物品保存为某个 id，以用作[模板](/zh-cn/attributes.md#template)，[套装](/zh-cn/attributes.md#suit)或[镶嵌](/zh-cn/attributes.md#inlay)
 * `/aaa-items name <物品名称>` 设置物品显示的名称，该名称将作为套装名称显示的文本

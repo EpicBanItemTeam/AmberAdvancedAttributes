@@ -161,7 +161,7 @@
 
 设置单个数值时玩家等级须大于等于设置的等级，设置两个数值时玩家等级须在两个值的闭区间内。
 
-#### `inlay` `inlay-gem` `inlay-success`
+#### `inlay` `inlay-gem` `inlay-success` :id=inlay
 
 镶嵌相关的属性。
 
