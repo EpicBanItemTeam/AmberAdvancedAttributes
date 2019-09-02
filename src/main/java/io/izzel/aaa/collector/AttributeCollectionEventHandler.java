@@ -13,6 +13,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -35,6 +36,7 @@ public class AttributeCollectionEventHandler {
         manager.registerListener(container, AttributeCollectionEvent.class, this::onSuit);
         manager.registerListener(container, AttributeCollectionEvent.class, this::onTemplate);
         manager.registerListener(container, AttributeCollectionEvent.class, this::onInlay);
+        manager.registerListener(container, AttributeCollectionEvent.class, Order.LATE, this::onInlayDistinct);
     }
 
     private void onInlay(AttributeCollectionEvent event) {
@@ -51,6 +53,21 @@ public class AttributeCollectionEventHandler {
                     }
                     collector.submit();
                 });
+    }
+
+    private void onInlayDistinct(AttributeCollectionEvent event) {
+        if (event.getCollectedAttributes().contains(Attributes.INLAY)) {
+            Map<String, InlayData> map = new LinkedHashMap<>();
+            List<? super InlayData> list = event.getCollectionByAttribute(Attributes.INLAY);
+            list.stream()
+                    .map(InlayData.class::cast)
+                    .forEach(data -> map.compute(data.getSlot(), (s, oldData) -> {
+                        if (oldData == null || !oldData.getGem().isPresent()) return data;
+                        else return oldData;
+                    }));
+            list.clear();
+            list.addAll(map.values());
+        }
     }
 
     private void onSuit(AttributeCollectionEvent event) {
