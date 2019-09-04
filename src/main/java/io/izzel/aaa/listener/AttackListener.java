@@ -187,7 +187,7 @@ public class AttackListener {
             double rate = 0D;
             for (RangeValue value : critRate) {
                 if (value.isRelative()) {
-                    rate += random.nextDouble() * (value.getSize() / 100D) + (value.getLowerBound() / 100D);
+                    rate += random.nextDouble() * value.getSize() + value.getLowerBound();
                 } else {
                     rate += value.getFunction(random).applyAsDouble(rate);
                 }
