@@ -72,7 +72,7 @@ public class AttackListener {
                 if (attackFlag) {
                     for (RangeValue v : attack) {
                         DamageModifier m = DamageModifier.builder()
-                                .cause(event.getCause().with(Attributes.ATTACK).with(v))
+                                .cause(event.getCause().with(Attributes.ATTACK).with(new Object()))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
                     }
@@ -83,7 +83,7 @@ public class AttackListener {
                 if (pvpFlag) {
                     for (RangeValue v : pvpAttack) {
                         DamageModifier m = DamageModifier.builder()
-                                .cause(event.getCause().with(Attributes.PVP_ATTACK).with(v))
+                                .cause(event.getCause().with(Attributes.PVP_ATTACK).with(new Object()))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
                     }
@@ -94,7 +94,7 @@ public class AttackListener {
                 if (pveFlag) {
                     for (RangeValue v : pveAttack) {
                         DamageModifier m = DamageModifier.builder()
-                                .cause(event.getCause().with(Attributes.PVE_ATTACK).with(v))
+                                .cause(event.getCause().with(Attributes.PVE_ATTACK).with(new Object()))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
                     }
@@ -135,7 +135,7 @@ public class AttackListener {
                 if (defenseFlag) {
                     for (RangeValue v : defense) {
                         DamageModifier m = DamageModifier.builder()
-                                .cause(event.getCause().with(Attributes.DEFENSE).with(v))
+                                .cause(event.getCause().with(Attributes.DEFENSE).with(new Object()))
                                 .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, defense(v), ImmutableSet.of());
                     }
@@ -146,7 +146,7 @@ public class AttackListener {
                 if (pvpFlag) {
                     for (RangeValue v : pvpDefense) {
                         DamageModifier m = DamageModifier.builder()
-                                .cause(event.getCause().with(Attributes.PVP_DEFENSE).with(v))
+                                .cause(event.getCause().with(Attributes.PVP_DEFENSE).with(new Object()))
                                 .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, defense(v), ImmutableSet.of());
                     }
@@ -157,7 +157,7 @@ public class AttackListener {
                 if (pveFlag) {
                     for (RangeValue v : pveDefense) {
                         DamageModifier m = DamageModifier.builder()
-                                .cause(event.getCause().with(Attributes.PVE_DEFENSE).with(v))
+                                .cause(event.getCause().with(Attributes.PVE_DEFENSE).with(new Object()))
                                 .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, defense(v), ImmutableSet.of());
                     }
@@ -195,7 +195,7 @@ public class AttackListener {
             }
             if (random.nextDouble() < rate) {
                 crit.forEach(v ->
-                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(v))
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(new Object()))
                                         .type(DamageModifierTypes.CRITICAL_HIT).build(),
                                 v.getFunction(this.random), ImmutableSet.of()));
             }
@@ -212,7 +212,7 @@ public class AttackListener {
             }
             if (!instantImmune && random.nextDouble() < instantDeath) {
                 double damage = event.getFinalDamage();
-                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
+                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(new Object()))
                                 .type(DamageModifierTypes.CRITICAL_HIT).build(),
                         d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
             }
