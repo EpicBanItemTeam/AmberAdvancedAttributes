@@ -180,10 +180,11 @@ public class AttackListener {
     @Listener(order = Order.DEFAULT)
     public void onCrit(DamageEntityEvent event, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
-            double crit = EquipmentUtil.allOf(from, Attributes.CRIT);
+            List<RangeValue> crit = new ArrayList<>();
             List<RangeValue> critRate = new ArrayList<>();
             EquipmentUtil.items(from).map(AttributeCollector::of)
-                    .forEach(it -> it.collect(Attributes.CRIT_RATE, critRate).submit());
+                    .forEach(it -> it.collect(Attributes.CRIT_RATE, critRate)
+                            .collect(Attributes.CRIT, crit).submit());
             double rate = 0D;
             for (RangeValue value : critRate) {
                 if (value.isRelative()) {
@@ -193,9 +194,10 @@ public class AttackListener {
                 }
             }
             if (random.nextDouble() < rate) {
-                event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause())
-                                .type(DamageModifierTypes.CRITICAL_HIT).build(),
-                        d -> d * crit, ImmutableSet.of());
+                crit.forEach(v ->
+                        event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(v))
+                                        .type(DamageModifierTypes.CRITICAL_HIT).build(),
+                                v.getFunction(this.random), ImmutableSet.of()));
             }
         });
     }
