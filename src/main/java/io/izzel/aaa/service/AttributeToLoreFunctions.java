@@ -162,7 +162,8 @@ public class AttributeToLoreFunctions {
                             data.getGem().map(biHandler::read).map(item -> {
                                 if (item.isEmpty())
                                     return locale.getAs("attributes.inlay.unknown", TEXT, data.getGem());
-                                else return item.get(Keys.DISPLAY_NAME).orElse(TranslatableText.of(item.getTranslation()));
+                                else
+                                    return item.get(Keys.DISPLAY_NAME).orElse(TranslatableText.of(item.getTranslation()));
                             }).orElseGet(() -> Arg.ref("attributes.inlay.none"))
                     ).get();
                     builder.add(Maps.immutableEntry(((byte) 0), t));

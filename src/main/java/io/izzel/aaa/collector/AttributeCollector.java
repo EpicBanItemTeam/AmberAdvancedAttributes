@@ -12,10 +12,6 @@ import java.util.List;
  * @author ustc_zzzz
  */
 public interface AttributeCollector {
-    <T extends DataSerializable> AttributeCollector collect(Attribute<T> attribute, List<? super T> collection);
-
-    boolean submit();
-
     static AttributeCollector of(ItemStackSnapshot stackSnapshot) {
         return AttributeService.instance().createCollector(stackSnapshot);
     }
@@ -23,4 +19,8 @@ public interface AttributeCollector {
     static AttributeCollector of(ItemStack stack) {
         return AttributeService.instance().createCollector(stack.createSnapshot());
     }
+
+    <T extends DataSerializable> AttributeCollector collect(Attribute<T> attribute, List<? super T> collection);
+
+    boolean submit();
 }

@@ -56,9 +56,8 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 @SuppressWarnings("SameParameterValue")
 @Singleton
 public class AttributeCommands {
-    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
     public static final Text LORE_SEPARATOR = Text.of();
-
+    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+(?:[-_][a-z0-9]+)*");
     private final ByteItemsHandler biHandler;
     private final PluginContainer container;
     private final CommandManager commandManager;
@@ -585,10 +584,10 @@ public class AttributeCommands {
                             ImmutableList<StringValue> list = mark
                                     ? ImmutableList.<StringValue>builder().addAll(old).addAll(slots).build()
                                     : ImmutableList.copyOf(old.stream().filter(it -> !slots.contains(it)).iterator());
-                            if (!list.isEmpty()) {
-                                attribute.setValues(stack, list);
-                            } else {
+                            if (list.isEmpty()) {
                                 attribute.clearValues(stack);
+                            } else {
+                                attribute.setValues(stack, list);
                             }
                             this.locale.to(src, "commands.marker.mark-attribute", stack, "equipment");
                         }

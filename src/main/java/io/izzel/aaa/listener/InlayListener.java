@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
 public class InlayListener {
 
     private final Random random = new Random();
-    @Inject private AmberLocale locale;
+    @Inject
+    private AmberLocale locale;
 
     @Listener
     public void on(ChangeInventoryEvent.SwapHand event, @First Player player) {
