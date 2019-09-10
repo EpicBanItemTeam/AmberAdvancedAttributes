@@ -30,7 +30,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.izzel.aaa.command.AttributeCommands.LORE_SEPARATOR;
+import static io.izzel.aaa.listener.AttributeListeners.LORE_SEPARATOR;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @Singleton
