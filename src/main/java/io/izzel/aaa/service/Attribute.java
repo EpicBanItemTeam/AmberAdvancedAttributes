@@ -3,18 +3,14 @@ package io.izzel.aaa.service;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
-import io.izzel.aaa.collector.AttributeCollector;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
-import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 

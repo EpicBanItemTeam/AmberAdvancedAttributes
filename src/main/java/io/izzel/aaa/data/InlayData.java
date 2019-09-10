@@ -15,12 +15,21 @@ import java.util.Optional;
 public class InlayData implements DataSerializable {
 
     private final String slot;
-    @Nullable private String gem;
+    @Nullable
+    private String gem;
 
     private InlayData(String slot, @Nullable String gem) {
         Preconditions.checkNotNull(slot);
         this.slot = slot;
         this.gem = gem;
+    }
+
+    public static InlayData of(String slot, @Nullable String gem) {
+        return new InlayData(slot, gem);
+    }
+
+    public static void register(DataManager dataManager) {
+        dataManager.registerBuilder(InlayData.class, new Builder());
     }
 
     @Override
@@ -64,14 +73,6 @@ public class InlayData implements DataSerializable {
                 .add("slot", slot)
                 .add("gem", gem)
                 .toString();
-    }
-
-    public static InlayData of(String slot, @Nullable String gem) {
-        return new InlayData(slot, gem);
-    }
-
-    public static void register(DataManager dataManager) {
-        dataManager.registerBuilder(InlayData.class, new Builder());
     }
 
     private static class Builder extends AbstractDataBuilder<InlayData> {
