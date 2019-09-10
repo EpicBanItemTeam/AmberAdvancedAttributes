@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 class ItemCommand {
 
-    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
+    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+(?:[-_][a-z0-9]+)*");
 
     @Inject private AmberLocale locale;
     @Inject private ByteItemsHandler biHandler;

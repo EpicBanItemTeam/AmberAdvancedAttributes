@@ -42,7 +42,6 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
@@ -53,7 +52,6 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 @SuppressWarnings("SameParameterValue")
 @Singleton
 public class AttributeCommands {
-    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+([-_][a-z0-9]+)*");
     public static final Text LORE_SEPARATOR = Text.of();
 
     private final ByteItemsHandler biHandler;
