@@ -53,7 +53,6 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 @Singleton
 public class AttributeCommands {
     public static final Text LORE_SEPARATOR = Text.of();
-    private static final Pattern NAME_PATTERN = Pattern.compile("[a-z0-9]+(?:[-_][a-z0-9]+)*");
     private final ByteItemsHandler biHandler;
     private final PluginContainer container;
     private final CommandManager commandManager;
