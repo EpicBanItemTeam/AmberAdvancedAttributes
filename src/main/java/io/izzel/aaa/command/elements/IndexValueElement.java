@@ -3,6 +3,7 @@ package io.izzel.aaa.command.elements;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import io.izzel.amber.commons.i18n.AmberLocale;
+import org.apache.commons.lang3.Validate;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
@@ -37,8 +38,10 @@ public class IndexValueElement extends CommandElement {
     protected Integer parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
         String string = args.next();
         try {
-            return 0;
-        } catch (NumberFormatException e) {
+            Validate.isTrue(AT_LIST.contains(string));
+            Validate.isTrue(args.hasNext());
+            return Integer.parseInt(args.next());
+        } catch (Exception e) {
             Optional<Text> text = this.locale.getAs("commands.args.not-a-number", this.token, string);
             throw args.createError(text.orElseThrow(IllegalStateException::new));
         }
