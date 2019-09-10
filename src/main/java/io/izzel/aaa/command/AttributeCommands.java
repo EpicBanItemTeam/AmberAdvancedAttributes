@@ -56,152 +56,152 @@ public class AttributeCommands {
     }
 
     private void on(Attribute.RegistryEvent event) {
-        this.registerRangeValue(this.container, event, "attack");
-        this.registerRangeValue(this.container, event, "tracing");
-        this.registerRangeValue(this.container, event, "pvp-attack");
-        this.registerRangeValue(this.container, event, "pve-attack");
-        this.registerRangeValue(this.container, event, "defense");
-        this.registerRangeValue(this.container, event, "pvp-defense");
-        this.registerRangeValue(this.container, event, "pve-defense");
-        this.registerRangeValue(this.container, event, "reflect");
-        this.registerRangeValue(this.container, event, "pvp-reflect");
-        this.registerRangeValue(this.container, event, "pve-reflect");
-        this.registerRangeValue(this.container, event, "reflect-rate");
-        this.registerRangeValue(this.container, event, "critical");
-        this.registerRangeValue(this.container, event, "critical-rate");
-        this.registerRangeValue(this.container, event, "dodge");
-        this.registerRangeValue(this.container, event, "accuracy");
-        this.registerRangeValue(this.container, event, "accelerate");
-        this.registerRangeValueFixed(this.container, event, "attack-speed");
-        this.registerRangeValueFixed(this.container, event, "move-speed");
-        this.registerDurabilityValue(this.container, event, "durability");
-        this.registerMarkerValue(this.container, event, "unbreakable");
-        this.registerRangeValue(this.container, event, "loot-rate");
-        this.registerMarkerValue(this.container, event, "loot-immune");
-        this.registerRangeValue(this.container, event, "burn");
-        this.registerRangeValue(this.container, event, "burn-rate");
-        this.registerRangeValue(this.container, event, "life-steal");
-        this.registerRangeValue(this.container, event, "life-steal-rate");
-        this.registerRangeValueFixed(this.container, event, "max-health");
-        this.registerRangeValueFixed(this.container, event, "attack-range");
-        this.registerRangeValue(this.container, event, "starvation");
-        this.registerRangeValue(this.container, event, "saturation");
-        this.registerRangeValue(this.container, event, "regeneration");
-        this.registerRangeValue(this.container, event, "knockback");
-        this.registerRangeValue(this.container, event, "instant-death");
-        this.registerMarkerValue(this.container, event, "instant-death-immune");
-        this.registerPossessValue(this.container, event, "possession");
-        this.registerTextValue(this.container, event, "original-lore");
-        this.registerEquipment(this.container, event);
-        this.registerSuit(this.container, event, "suit");
-        this.registerTemplate(this.container, event, "template");
-        this.registerCustomTextValue(this.container, event, "custom-lore");
-        this.registerInlay(this.container, event, "inlay");
-        this.registerMarkerValue(this.container, event, "inlay-gem");
-        this.registerRangeValueFixed(this.container, event, "inlay-success");
-        this.registerPermissionCap(this.container, event, "permission-cap");
-        this.registerRangeValue(this.container, event, "level-cap");
-        this.registerItemsCommand(this.container);
+        this.registerRangeValue(event, "attack");
+        this.registerRangeValue(event, "tracing");
+        this.registerRangeValue(event, "pvp-attack");
+        this.registerRangeValue(event, "pve-attack");
+        this.registerRangeValue(event, "defense");
+        this.registerRangeValue(event, "pvp-defense");
+        this.registerRangeValue(event, "pve-defense");
+        this.registerRangeValue(event, "reflect");
+        this.registerRangeValue(event, "pvp-reflect");
+        this.registerRangeValue(event, "pve-reflect");
+        this.registerRangeValue(event, "reflect-rate");
+        this.registerRangeValue(event, "critical");
+        this.registerRangeValue(event, "critical-rate");
+        this.registerRangeValue(event, "dodge");
+        this.registerRangeValue(event, "accuracy");
+        this.registerRangeValue(event, "accelerate");
+        this.registerRangeValueFixed(event, "attack-speed");
+        this.registerRangeValueFixed(event, "move-speed");
+        this.registerDurabilityValue(event, "durability");
+        this.registerMarkerValue(event, "unbreakable");
+        this.registerRangeValue(event, "loot-rate");
+        this.registerMarkerValue(event, "loot-immune");
+        this.registerRangeValue(event, "burn");
+        this.registerRangeValue(event, "burn-rate");
+        this.registerRangeValue(event, "life-steal");
+        this.registerRangeValue(event, "life-steal-rate");
+        this.registerRangeValueFixed(event, "max-health");
+        this.registerRangeValueFixed(event, "attack-range");
+        this.registerRangeValue(event, "starvation");
+        this.registerRangeValue(event, "saturation");
+        this.registerRangeValue(event, "regeneration");
+        this.registerRangeValue(event, "knockback");
+        this.registerRangeValue(event, "instant-death");
+        this.registerMarkerValue(event, "instant-death-immune");
+        this.registerPossessValue(event, "possession");
+        this.registerTextValue(event, "original-lore");
+        this.registerEquipment(event);
+        this.registerSuit(event, "suit");
+        this.registerTemplate(event, "template");
+        this.registerCustomTextValue(event, "custom-lore");
+        this.registerInlay(event, "inlay");
+        this.registerMarkerValue(event, "inlay-gem");
+        this.registerRangeValueFixed(event, "inlay-success");
+        this.registerPermissionCap(event, "permission-cap");
+        this.registerRangeValue(event, "level-cap");
+        this.registerItemsCommand();
 
         event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
     }
 
-    private void registerItemsCommand(PluginContainer container) {
-        this.commandManager.register(container, this.injector.getInstance(ItemCommand.class).callable(), "aaa-items");
+    private void registerItemsCommand() {
+        this.commandManager.register(this.container, this.injector.getInstance(ItemCommand.class).callable(), "aaa-items");
     }
 
-    private void registerPermissionCap(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerPermissionCap(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = permissionCap(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
-    private void registerInlay(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerInlay(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<InlayData> function = inlay(this.locale, this.biHandler);
         Attribute<InlayData> attribute = event.register("aaa-" + id, InlayData.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new InlayDataElement(id)),
                 "aaa-" + id);
     }
 
-    private void registerCustomTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerCustomTextValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<Text> function = (values, equipable) -> values.stream()
                 .map(text -> Maps.immutableEntry((byte) 0, (Text) text))
                 .collect(Collectors.toList());
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
                 , "aaa-" + id);
     }
 
-    private void registerTemplate(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerTemplate(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = template(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new TemplateStringElement(Text.of("template"))),
                 "aaa-" + id);
     }
 
-    private void registerSuit(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerSuit(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
-    private void registerTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerTextValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<Text> function = (values, equipable) -> ImmutableList.of();
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
         InitDropCommand command = this.injector.getInstance(InitDropCommand.class);
-        this.commandManager.register(container, command.init(attribute), "aaa-init");
-        this.commandManager.register(container, command.drop(attribute), "aaa-drop");
+        this.commandManager.register(this.container, command.init(attribute), "aaa-init");
+        this.commandManager.register(this.container, command.drop(attribute), "aaa-drop");
     }
 
-    private void registerDurabilityValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerDurabilityValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue> function = durability(this.locale);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
-    private void registerRangeValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerRangeValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue> function = rangeValue(this.locale, id);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
-    private void registerRangeValueFixed(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerRangeValueFixed(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue.Fixed> function = rangeValue(this.locale, id);
         Attribute<RangeValue.Fixed> attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
-        this.commandManager.register(container,
+        this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
-    private void registerMarkerValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerMarkerValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<MarkerValue> function = markerValue(this.locale, id);
         Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, function);
-        this.commandManager.register(container, this.command.marker(id, attribute), "aaa-" + id);
+        this.commandManager.register(this.container, this.command.marker(id, attribute), "aaa-" + id);
     }
 
-    private void registerPossessValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
+    private void registerPossessValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<GameProfile> function = profile(this.locale);
         Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, function);
         PossessCommand command = this.injector.getInstance(PossessCommand.class);
-        this.commandManager.register(container, command.possess(attribute), "aaa-possess");
-        this.commandManager.register(container, command.publicize(attribute), "aaa-publicize");
+        this.commandManager.register(this.container, command.possess(attribute), "aaa-possess");
+        this.commandManager.register(this.container, command.publicize(attribute), "aaa-publicize");
     }
 
-    private void registerEquipment(PluginContainer container, Attribute.RegistryEvent event) {
+    private void registerEquipment(Attribute.RegistryEvent event) {
         AttributeToLoreFunction<StringValue> function = equipment(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-equipment", StringValue.class, function);
-        this.commandManager.register(container, this.injector.getInstance(EquipmentCommand.class).callable(attribute), "aaa-equipment");
+        this.commandManager.register(this.container, this.injector.getInstance(EquipmentCommand.class).callable(attribute), "aaa-equipment");
     }
 
 }
