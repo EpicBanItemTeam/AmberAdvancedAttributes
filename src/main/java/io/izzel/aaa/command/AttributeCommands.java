@@ -1,9 +1,7 @@
 package io.izzel.aaa.command;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -17,30 +15,17 @@ import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
-import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeToLoreFunction;
-import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.data.key.Key;
-import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.value.mutable.ListValue;
-import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
@@ -51,7 +36,6 @@ import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
 @SuppressWarnings("SameParameterValue")
 @Singleton
 public class AttributeCommands {
-    public static final Text LORE_SEPARATOR = Text.of();
     private final ByteItemsHandler biHandler;
     private final PluginContainer container;
     private final CommandManager commandManager;
@@ -69,29 +53,6 @@ public class AttributeCommands {
         this.injector = injector;
         this.command = v;
         eventManager.registerListener(container, Attribute.RegistryEvent.class, Order.EARLY, this::on);
-        eventManager.registerListener(container, ChangeEntityEquipmentEvent.class, Order.LATE, this::on);
-    }
-
-    private void on(ChangeEntityEquipmentEvent event) {
-        Transaction<ItemStackSnapshot> transaction = event.getTransaction();
-        if (transaction.isValid() && event.getTargetEntity() instanceof Equipable) {
-            ListMultimap<Byte, Text> texts;
-            Key<ListValue<Text>> key = Keys.ITEM_LORE;
-            ItemStack item = transaction.getFinal().createStack();
-            if (DataUtil.hasData(item)) {
-                texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
-                Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
-                attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute, (Equipable) event.getTargetEntity()));
-                item.offer(key, Multimaps.asMap(texts).values().stream().reduce(ImmutableList.of(), (a, b) -> {
-                    if (a.isEmpty()) {
-                        return b;
-                    } else {
-                        return ImmutableList.<Text>builder().addAll(a).add(LORE_SEPARATOR).addAll(b).build();
-                    }
-                }));
-                transaction.setCustom(item.createSnapshot());
-            }
-        }
     }
 
     private void on(Attribute.RegistryEvent event) {
