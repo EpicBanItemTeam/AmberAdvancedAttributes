@@ -154,20 +154,17 @@ public class AttributeCommands {
     private void registerPermissionCap(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = permissionCap(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
-        this.commandManager.register(container, getStringCommand(attribute, id), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new StringValueElement(Text.of("string"))),
+                "aaa-" + id);
     }
 
     private void registerInlay(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<InlayData> function = inlay(this.locale, this.biHandler);
         Attribute<InlayData> attribute = event.register("aaa-" + id, InlayData.class, function);
-        InlayDataElement element = new InlayDataElement(id);
-        this.commandManager.register(container, CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(getAppendCommand(id, attribute, element), "append")
-                .child(getPrependCommand(id, attribute, element), "prepend")
-                .child(getClearCommand(id, attribute), "clear")
-                .child(getInsertCommand(id, attribute, element), "insert")
-                .build(), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new InlayDataElement(id)),
+                "aaa-" + id);
     }
 
     private void registerCustomTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -175,23 +172,25 @@ public class AttributeCommands {
                 .map(text -> Maps.immutableEntry((byte) 0, (Text) text))
                 .collect(Collectors.toList());
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
-        this.commandManager.register(container, CommandSpec.builder().permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(getAppendCommand(id, attribute, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true)), "append")
-                .child(getInsertCommand(id, attribute, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true)), "insert")
-                .child(getPrependCommand(id, attribute, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true)), "prepend")
-                .build(), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
+                , "aaa-" + id);
     }
 
     private void registerTemplate(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = template(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
-        this.commandManager.register(container, getTemplateCommand(attribute, id), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new TemplateStringElement(Text.of("template"))),
+                "aaa-" + id);
     }
 
     private void registerSuit(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
-        this.commandManager.register(container, getStringCommand(attribute, id), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new StringValueElement(Text.of("string"))),
+                "aaa-" + id);
     }
 
     private void registerTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -204,19 +203,25 @@ public class AttributeCommands {
     private void registerDurabilityValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue> function = durability(this.locale);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
-        this.commandManager.register(container, this.getRangeCommand(id, false, attribute), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
+                "aaa-" + id);
     }
 
     private void registerRangeValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue> function = rangeValue(this.locale, id);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
-        this.commandManager.register(container, this.getRangeCommand(id, false, attribute), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
+                "aaa-" + id);
     }
 
     private void registerRangeValueFixed(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue.Fixed> function = rangeValue(this.locale, id);
         Attribute<RangeValue.Fixed> attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
-        this.commandManager.register(container, this.getRangeCommand(id, true, attribute), "aaa-" + id);
+        this.commandManager.register(container,
+                getElementCommand(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
+                "aaa-" + id);
     }
 
     private void registerMarkerValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -363,17 +368,6 @@ public class AttributeCommands {
                     this.locale.to(src, "commands.drop.nonexist");
                     return CommandResult.success();
                 })
-                .build();
-    }
-
-    private <T extends RangeValue> CommandSpec getRangeCommand(String id, boolean fixed, Attribute<T> attribute) {
-        CommandElement rangeElement = new RangeValueElement(this.locale, fixed, Text.of("rangeValue"));
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(this.getClearCommand(id, attribute), "clear")
-                .child(this.getAppendCommand(id, attribute, rangeElement), "append")
-                .child(this.getInsertCommand(id, attribute, rangeElement), "insert")
-                .child(this.getPrependCommand(id, attribute, rangeElement), "prepend")
                 .build();
     }
 
@@ -600,19 +594,7 @@ public class AttributeCommands {
                 .build();
     }
 
-    private <T extends StringValue> CommandSpec getStringCommand(Attribute<T> attribute, String id) {
-        StringValueElement element = new StringValueElement(Text.of("string"));
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(getAppendCommand(id, attribute, element), "append")
-                .child(getPrependCommand(id, attribute, element), "prepend")
-                .child(getClearCommand(id, attribute), "clear")
-                .child(getInsertCommand(id, attribute, element), "insert")
-                .build();
-    }
-
-    private <T extends StringValue> CommandSpec getTemplateCommand(Attribute<T> attribute, String id) {
-        TemplateStringElement element = new TemplateStringElement(Text.of("template"));
+    private <T extends DataSerializable> CommandSpec getElementCommand(Attribute<T> attribute, String id, CommandElement element) {
         return CommandSpec.builder()
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
                 .child(getAppendCommand(id, attribute, element), "append")
