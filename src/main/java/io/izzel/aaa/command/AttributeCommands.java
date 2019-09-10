@@ -19,10 +19,8 @@ import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
@@ -58,14 +56,17 @@ public class AttributeCommands {
     private final CommandManager commandManager;
     private final AmberLocale locale;
     private final Injector injector;
+    private final NonMarkerValueCommand nonMarkerCommand;
 
     @Inject
-    public AttributeCommands(PluginContainer container, ByteItemsHandler biHandler, CommandManager c, EventManager eventManager, AmberLocale locale, Injector injector) {
+    public AttributeCommands(PluginContainer container, ByteItemsHandler biHandler, CommandManager c,
+                             EventManager eventManager, AmberLocale locale, Injector injector, NonMarkerValueCommand n) {
         this.container = container;
         this.biHandler = biHandler;
         this.commandManager = c;
         this.locale = locale;
         this.injector = injector;
+        this.nonMarkerCommand = n;
         eventManager.registerListener(container, Attribute.RegistryEvent.class, Order.EARLY, this::on);
         eventManager.registerListener(container, ChangeEntityEquipmentEvent.class, Order.LATE, this::on);
     }
@@ -151,7 +152,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = permissionCap(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new StringValueElement(Text.of("string"))),
+                this.nonMarkerCommand.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
@@ -159,7 +160,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<InlayData> function = inlay(this.locale, this.biHandler);
         Attribute<InlayData> attribute = event.register("aaa-" + id, InlayData.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new InlayDataElement(id)),
+                this.nonMarkerCommand.callable(attribute, id, new InlayDataElement(id)),
                 "aaa-" + id);
     }
 
@@ -169,7 +170,7 @@ public class AttributeCommands {
                 .collect(Collectors.toList());
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
+                this.nonMarkerCommand.callable(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
                 , "aaa-" + id);
     }
 
@@ -177,7 +178,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = template(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new TemplateStringElement(Text.of("template"))),
+                this.nonMarkerCommand.callable(attribute, id, new TemplateStringElement(Text.of("template"))),
                 "aaa-" + id);
     }
 
@@ -185,7 +186,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new StringValueElement(Text.of("string"))),
+                this.nonMarkerCommand.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
@@ -201,7 +202,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<RangeValue> function = durability(this.locale);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
+                this.nonMarkerCommand.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
@@ -209,7 +210,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<RangeValue> function = rangeValue(this.locale, id);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
+                this.nonMarkerCommand.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
@@ -217,7 +218,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<RangeValue.Fixed> function = rangeValue(this.locale, id);
         Attribute<RangeValue.Fixed> attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
         this.commandManager.register(container,
-                getElementCommand(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
+                this.nonMarkerCommand.callable(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
@@ -239,115 +240,6 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = equipment(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-equipment", StringValue.class, function);
         this.commandManager.register(container, this.getEquipmentCommand(attribute), "aaa-equipment");
-    }
-
-    private <T extends DataSerializable> CommandSpec getPrependCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
-        return CommandSpec.builder()
-                .arguments(valueElement)
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
-                        if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                attribute.prependValue(stack, rangeValueOptional.get());
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                this.locale.to(src, "commands.range.prepend-attribute", stack, id);
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    /**
-     * get the append command for a attribute value to sth.
-     *
-     * @param id           the id of the attribute
-     * @param attribute    the attribute value
-     * @param valueElement the command value element
-     * @param <T>          the type of the value
-     * @return the command to append the value to the item stack.
-     */
-    private <T extends DataSerializable> CommandSpec getAppendCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
-        return CommandSpec.builder()
-                .arguments(valueElement)
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
-                        if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                attribute.appendValue(stack, rangeValueOptional.get());
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                this.locale.to(src, "commands.range.append-attribute", stack, id);
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    /**
-     * get the insert command for a attribute value to sth.
-     *
-     * @param id           the id of the attribute
-     * @param attribute    the attribute
-     * @param valueElement the command value element
-     * @param <T>          the type of the value
-     * @return the command to insert the value
-     */
-    private <T extends DataSerializable> CommandSpec getInsertCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
-        return CommandSpec.builder()
-                .arguments(valueElement, new IndexValueElement(this.locale, Text.of("index")))
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        int index = args.<Integer>getOne(Text.of("index")).orElseThrow(NoSuchElementException::new);
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
-                        if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                attribute.insertValue(stack, index, rangeValueOptional.get());
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                this.locale.to(src, "commands.range.append-attribute", stack, id);
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    private <T extends DataSerializable> CommandSpec getClearCommand(String id, Attribute<T> attribute) {
-        return CommandSpec.builder()
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                attribute.clearValues(stack);
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                this.locale.to(src, "commands.range.clear-attribute", stack, id);
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
     }
 
     private CommandSpec getMarkerCommand(String id, Attribute<MarkerValue> attribute) {
@@ -389,7 +281,7 @@ public class AttributeCommands {
                                 ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)),
                         GenericArguments.allOf(new EquipmentTypeElement("slots"))
                 )
-                .child(getClearCommand("equipment", attribute), "clear")
+                .child(nonMarkerCommand.clear("equipment", attribute), "clear")
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         Player player = (Player) src;
@@ -420,13 +312,4 @@ public class AttributeCommands {
                 .build();
     }
 
-    private <T extends DataSerializable> CommandSpec getElementCommand(Attribute<T> attribute, String id, CommandElement element) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .child(getAppendCommand(id, attribute, element), "append")
-                .child(getPrependCommand(id, attribute, element), "prepend")
-                .child(getClearCommand(id, attribute), "clear")
-                .child(getInsertCommand(id, attribute, element), "insert")
-                .build();
-    }
 }
