@@ -1,12 +1,17 @@
 package io.izzel.aaa.command;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
-import io.izzel.aaa.command.elements.*;
+import io.izzel.aaa.command.elements.InlayDataElement;
+import io.izzel.aaa.command.elements.RangeValueElement;
+import io.izzel.aaa.command.elements.StringValueElement;
+import io.izzel.aaa.command.elements.TemplateStringElement;
 import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -16,30 +21,26 @@ import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeToLoreFunction;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
-import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandManager;
-import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.data.value.mutable.ListValue;
 import org.spongepowered.api.entity.Equipable;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static io.izzel.aaa.service.AttributeToLoreFunctions.*;
@@ -56,17 +57,17 @@ public class AttributeCommands {
     private final CommandManager commandManager;
     private final AmberLocale locale;
     private final Injector injector;
-    private final NonMarkerValueCommand nonMarkerCommand;
+    private final ValueCommand command;
 
     @Inject
     public AttributeCommands(PluginContainer container, ByteItemsHandler biHandler, CommandManager c,
-                             EventManager eventManager, AmberLocale locale, Injector injector, NonMarkerValueCommand n) {
+                             EventManager eventManager, AmberLocale locale, Injector injector, ValueCommand v) {
         this.container = container;
         this.biHandler = biHandler;
         this.commandManager = c;
         this.locale = locale;
         this.injector = injector;
-        this.nonMarkerCommand = n;
+        this.command = v;
         eventManager.registerListener(container, Attribute.RegistryEvent.class, Order.EARLY, this::on);
         eventManager.registerListener(container, ChangeEntityEquipmentEvent.class, Order.LATE, this::on);
     }
@@ -152,7 +153,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = permissionCap(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new StringValueElement(Text.of("string"))),
+                this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
@@ -160,7 +161,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<InlayData> function = inlay(this.locale, this.biHandler);
         Attribute<InlayData> attribute = event.register("aaa-" + id, InlayData.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new InlayDataElement(id)),
+                this.command.callable(attribute, id, new InlayDataElement(id)),
                 "aaa-" + id);
     }
 
@@ -170,7 +171,7 @@ public class AttributeCommands {
                 .collect(Collectors.toList());
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
+                this.command.callable(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
                 , "aaa-" + id);
     }
 
@@ -178,7 +179,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = template(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new TemplateStringElement(Text.of("template"))),
+                this.command.callable(attribute, id, new TemplateStringElement(Text.of("template"))),
                 "aaa-" + id);
     }
 
@@ -186,7 +187,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
         Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new StringValueElement(Text.of("string"))),
+                this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
@@ -202,7 +203,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<RangeValue> function = durability(this.locale);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
+                this.command.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
@@ -210,7 +211,7 @@ public class AttributeCommands {
         AttributeToLoreFunction<RangeValue> function = rangeValue(this.locale, id);
         Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
+                this.command.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
@@ -218,14 +219,14 @@ public class AttributeCommands {
         AttributeToLoreFunction<RangeValue.Fixed> function = rangeValue(this.locale, id);
         Attribute<RangeValue.Fixed> attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
         this.commandManager.register(container,
-                this.nonMarkerCommand.callable(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
+                this.command.callable(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
     private void registerMarkerValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<MarkerValue> function = markerValue(this.locale, id);
         Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, function);
-        this.commandManager.register(container, this.getMarkerCommand(id, attribute), "aaa-" + id);
+        this.commandManager.register(container, this.command.marker(id, attribute), "aaa-" + id);
     }
 
     private void registerPossessValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -239,77 +240,7 @@ public class AttributeCommands {
     private void registerEquipment(PluginContainer container, Attribute.RegistryEvent event) {
         AttributeToLoreFunction<StringValue> function = equipment(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-equipment", StringValue.class, function);
-        this.commandManager.register(container, this.getEquipmentCommand(attribute), "aaa-equipment");
-    }
-
-    private CommandSpec getMarkerCommand(String id, Attribute<MarkerValue> attribute) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
-                .arguments(GenericArguments.choices(Text.of("marked"),
-                        ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Optional<Boolean> marked = args.getOne(Text.of("marked"));
-                        if (stackOptional.isPresent() && marked.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                if (marked.get()) {
-                                    attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
-                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.locale.to(src, "commands.marker.mark-attribute", stack, id);
-                                } else {
-                                    attribute.clearValues(stack);
-                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
-                                }
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    private CommandSpec getEquipmentCommand(Attribute<StringValue> attribute) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-equipment")
-                .arguments(
-                        GenericArguments.choices(Text.of("marked"),
-                                ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)),
-                        GenericArguments.allOf(new EquipmentTypeElement("slots"))
-                )
-                .child(nonMarkerCommand.clear("equipment", attribute), "clear")
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Player player = (Player) src;
-                        Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
-                        if (optional.isPresent()) {
-                            ItemStack stack = optional.get();
-                            ImmutableList<StringValue> old = attribute.getValues(stack);
-                            boolean mark = args.<Boolean>getOne("marked").orElse(Boolean.FALSE);
-                            Collection<StringValue> slots = args.<EquipmentType>getAll("slots").stream()
-                                    .map(CatalogType::getId)
-                                    .map(StringValue::of)
-                                    .collect(Collectors.toList());
-                            ImmutableList<StringValue> list = mark
-                                    ? ImmutableList.<StringValue>builder().addAll(old).addAll(slots).build()
-                                    : ImmutableList.copyOf(old.stream().filter(it -> !slots.contains(it)).iterator());
-                            if (list.isEmpty()) {
-                                attribute.clearValues(stack);
-                            } else {
-                                attribute.setValues(stack, list);
-                            }
-                            this.locale.to(src, "commands.marker.mark-attribute", stack, "equipment");
-                        }
-                        return CommandResult.success();
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
+        this.commandManager.register(container, this.injector.getInstance(EquipmentCommand.class).callable(attribute), "aaa-equipment");
     }
 
 }

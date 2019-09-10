@@ -1,14 +1,18 @@
 package io.izzel.aaa.command;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.command.elements.IndexValueElement;
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.CommandElement;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.type.HandTypes;
@@ -19,9 +23,40 @@ import org.spongepowered.api.text.Text;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-class NonMarkerValueCommand {
+class ValueCommand {
 
     @Inject private AmberLocale locale;
+
+    CommandCallable marker(String id, Attribute<MarkerValue> attribute) {
+        return CommandSpec.builder()
+                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
+                .arguments(GenericArguments.choices(Text.of("marked"),
+                        ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        Optional<Boolean> marked = args.getOne(Text.of("marked"));
+                        if (stackOptional.isPresent() && marked.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                if (marked.get()) {
+                                    attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
+                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.locale.to(src, "commands.marker.mark-attribute", stack, id);
+                                } else {
+                                    attribute.clearValues(stack);
+                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
+                                }
+                                return CommandResult.success();
+                            }
+                        }
+                    }
+                    this.locale.to(src, "commands.drop.nonexist");
+                    return CommandResult.success();
+                })
+                .build();
+    }
 
     <T extends DataSerializable> CommandCallable prepend(String id, Attribute<T> attribute, CommandElement valueElement) {
         return CommandSpec.builder()
