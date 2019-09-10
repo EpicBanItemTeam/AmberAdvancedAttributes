@@ -8,7 +8,6 @@ import io.izzel.aaa.command.elements.EquipmentTypeElement;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.amber.commons.i18n.AmberLocale;
-import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
@@ -16,7 +15,6 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.text.Text;
 
 import java.util.Collection;
@@ -45,8 +43,7 @@ class EquipmentCommand {
                             ItemStack stack = optional.get();
                             ImmutableList<StringValue> old = attribute.getValues(stack);
                             boolean mark = args.<Boolean>getOne("marked").orElse(Boolean.FALSE);
-                            Collection<StringValue> slots = args.<EquipmentType>getAll("slots").stream()
-                                    .map(CatalogType::getId)
+                            Collection<StringValue> slots = args.<String>getAll("slots").stream()
                                     .map(StringValue::of)
                                     .collect(Collectors.toList());
                             ImmutableList<StringValue> list = mark

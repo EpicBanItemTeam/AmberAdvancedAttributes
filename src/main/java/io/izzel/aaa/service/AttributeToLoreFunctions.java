@@ -17,7 +17,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TranslatableText;
@@ -94,16 +93,16 @@ public class AttributeToLoreFunctions {
                 } else {
                     builder.add(Maps.immutableEntry(((byte) 16), locale.getAs("attributes.suit.name", TEXT, suitItem.get(Keys.DISPLAY_NAME)).get()));
                     ItemStack stack = suitItem.createStack();
-                    Map<EquipmentType, ItemStack> actualSlots = EquipmentUtil.itemsWithSlot(equipable)
+                    Map<String, ItemStack> actualSlots = EquipmentUtil.itemsWithSlot(equipable)
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                     Attributes.EQUIPMENT.getValues(stack).stream()
-                            .flatMap(eq -> Streams.stream(Sponge.getRegistry().getType(EquipmentType.class, eq.getString())))
-                            .forEach(eq -> {
-                                String node = actualSlots.containsKey(eq) && Attributes.SUIT.getValues(actualSlots.get(eq)).contains(it)
+                            .map(StringValue::getString)
+                            .forEach(slot -> {
+                                String node = actualSlots.containsKey(slot) && Attributes.SUIT.getValues(actualSlots.get(slot)).contains(it)
                                         ? "attributes.suit.present" : "attributes.suit.absent";
                                 builder.add(Maps.immutableEntry(
                                         (byte) 16,
-                                        locale.getAs(node, TEXT, Arg.ref("attributes.equipment.slots." + eq.getId())).get()
+                                        locale.getAs(node, TEXT, Arg.ref("attributes.equipment.slots." + slot)).get()
                                 ));
                             });
 

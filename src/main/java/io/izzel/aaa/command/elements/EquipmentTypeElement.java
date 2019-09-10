@@ -1,14 +1,12 @@
 package io.izzel.aaa.command.elements;
 
-import io.izzel.aaa.util.EquipmentUtil;
-import org.spongepowered.api.CatalogType;
+import io.izzel.aaa.service.EquipmentSlotService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
@@ -26,14 +24,20 @@ public class EquipmentTypeElement extends CommandElement {
     @Nullable
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        return Sponge.getRegistry().getType(EquipmentType.class, args.next())
-                .orElseThrow(() -> args.createError(Text.of("Not a equipment type")));
+        EquipmentSlotService service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
+        String next = args.next();
+        if (service.slots().contains(next)) {
+            return next;
+        } else {
+            throw args.createError(Text.of("Not a registered equipment slot"));
+        }
     }
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+        EquipmentSlotService service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
         List<String> all = args.getAll();
-        return EquipmentUtil.EQUIPMENT_TYPES.stream().map(CatalogType::getId).filter(it -> !all.contains(it))
+        return service.slots().stream().filter(it -> !all.contains(it))
                 .collect(Collectors.toList());
     }
 }

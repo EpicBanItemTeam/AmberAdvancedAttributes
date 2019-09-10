@@ -8,32 +8,26 @@ import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.Attributes;
+import io.izzel.aaa.service.EquipmentSlotService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.equipment.EquipmentType;
-import org.spongepowered.api.item.inventory.equipment.EquipmentTypes;
 import org.spongepowered.api.util.Tuple;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 public class EquipmentUtil {
 
-    public static final List<EquipmentType> EQUIPMENT_TYPES = ImmutableList.of(
-            EquipmentTypes.HEADWEAR,
-            EquipmentTypes.CHESTPLATE,
-            EquipmentTypes.LEGGINGS,
-            EquipmentTypes.BOOTS,
-            EquipmentTypes.OFF_HAND,
-            EquipmentTypes.MAIN_HAND
-    );
-
-    public static Stream<Map.Entry<EquipmentType, ItemStack>> itemsWithSlot(Equipable equipable) {
-        return EQUIPMENT_TYPES.stream()
-                .map(it -> Tuple.of(it, equipable.getEquipped(it)))
+    public static Stream<Map.Entry<String, ItemStack>> itemsWithSlot(Equipable equipable) {
+        EquipmentSlotService service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
+        return service.slots().stream()
+                .map(it -> Tuple.of(it, service.getItemStack(equipable, it)))
                 .filter(tuple -> {
                     if (!tuple.getSecond().isPresent()) return false;
                     List<MarkerValue> gem = new ArrayList<>();
@@ -41,9 +35,7 @@ public class EquipmentUtil {
                     if (!gem.isEmpty()) return false;
                     ImmutableList<StringValue> values = Attributes.EQUIPMENT.getValues(tuple.getSecond().get());
                     return values.isEmpty() || values.stream()
-                            .map(it -> Sponge.getRegistry().getType(EquipmentType.class, it.getString()))
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
+                            .map(StringValue::getString)
                             .anyMatch(it -> it.equals(tuple.getFirst()));
                 })
                 .map(it -> Maps.immutableEntry(it.getFirst(), it.getSecond().get()));
