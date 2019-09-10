@@ -1,4 +1,4 @@
-package io.izzel.aaa.command;
+package io.izzel.aaa.command.elements;
 
 import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.CatalogType;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @NonnullByDefault
 public class EquipmentTypeElement extends CommandElement {
 
-    EquipmentTypeElement(String key) {
+    public EquipmentTypeElement(String key) {
         super(Text.of(key));
     }
 

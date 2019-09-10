@@ -1,4 +1,4 @@
-package io.izzel.aaa.command;
+package io.izzel.aaa.command.elements;
 
 import com.google.common.collect.ImmutableList;
 import io.izzel.aaa.data.StringValue;
@@ -14,16 +14,23 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @NonnullByDefault
-public class StringValueElement extends CommandElement {
+public class TemplateStringElement extends CommandElement {
 
-    protected StringValueElement(@Nullable Text key) {
+    public TemplateStringElement(@Nullable Text key) {
         super(key);
     }
 
     @Nullable
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        return StringValue.of(args.next());
+        String next = args.next();
+        if (args.hasNext() && args.peek().equals("as")) {
+            args.next();
+            if (args.next().equals("hidden")) {
+                return StringValue.of(";" + next);
+            }
+        }
+        return StringValue.of(next);
     }
 
     @Override

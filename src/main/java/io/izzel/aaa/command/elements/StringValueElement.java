@@ -1,7 +1,7 @@
-package io.izzel.aaa.command;
+package io.izzel.aaa.command.elements;
 
 import com.google.common.collect.ImmutableList;
-import io.izzel.aaa.data.InlayData;
+import io.izzel.aaa.data.StringValue;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.ArgumentParseException;
 import org.spongepowered.api.command.args.CommandArgs;
@@ -14,16 +14,16 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @NonnullByDefault
-public class InlayDataElement extends CommandElement {
+public class StringValueElement extends CommandElement {
 
-    protected InlayDataElement(String key) {
-        super(Text.of(key));
+    public StringValueElement(@Nullable Text key) {
+        super(key);
     }
 
     @Nullable
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        return InlayData.of(args.next(), args.nextIfPresent().orElse(null));
+        return StringValue.of(args.next());
     }
 
     @Override

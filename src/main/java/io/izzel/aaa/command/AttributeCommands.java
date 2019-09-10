@@ -2,9 +2,11 @@ package io.izzel.aaa.command;
 
 import com.google.common.collect.*;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
+import io.izzel.aaa.command.elements.*;
 import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -12,11 +14,8 @@ import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.AttributeToLoreFunction;
-import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
-import io.izzel.amber.commons.i18n.args.Arg;
-import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
@@ -37,14 +36,12 @@ import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
-import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -63,13 +60,15 @@ public class AttributeCommands {
     private final PluginContainer container;
     private final CommandManager commandManager;
     private final AmberLocale locale;
+    private final Injector injector;
 
     @Inject
-    public AttributeCommands(PluginContainer container, ByteItemsHandler biHandler, CommandManager c, EventManager eventManager, AmberLocale locale) {
+    public AttributeCommands(PluginContainer container, ByteItemsHandler biHandler, CommandManager c, EventManager eventManager, AmberLocale locale, Injector injector) {
         this.container = container;
         this.biHandler = biHandler;
         this.commandManager = c;
         this.locale = locale;
+        this.injector = injector;
         eventManager.registerListener(container, Attribute.RegistryEvent.class, Order.EARLY, this::on);
         eventManager.registerListener(container, ChangeEntityEquipmentEvent.class, Order.LATE, this::on);
     }
@@ -148,7 +147,7 @@ public class AttributeCommands {
     }
 
     private void registerItemsCommand(PluginContainer container) {
-        this.commandManager.register(container, this.getItemsCommand(), "aaa-items");
+        this.commandManager.register(container, this.injector.getInstance(ItemCommand.class).callable(), "aaa-items");
     }
 
     private void registerPermissionCap(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -196,8 +195,9 @@ public class AttributeCommands {
     private void registerTextValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<Text> function = (values, equipable) -> ImmutableList.of();
         Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
-        this.commandManager.register(container, this.getInitCommand(attribute), "aaa-init");
-        this.commandManager.register(container, this.getDropCommand(attribute), "aaa-drop");
+        InitDropCommand command = this.injector.getInstance(InitDropCommand.class);
+        this.commandManager.register(container, command.init(attribute), "aaa-init");
+        this.commandManager.register(container, command.drop(attribute), "aaa-drop");
     }
 
     private void registerDurabilityValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
@@ -233,142 +233,15 @@ public class AttributeCommands {
     private void registerPossessValue(PluginContainer container, Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<GameProfile> function = profile(this.locale);
         Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, function);
-        this.commandManager.register(container, this.getPossessCommand(attribute), "aaa-possess");
-        this.commandManager.register(container, this.getPublicizeCommand(attribute), "aaa-publicize");
+        PossessCommand command = this.injector.getInstance(PossessCommand.class);
+        this.commandManager.register(container, command.possess(attribute), "aaa-possess");
+        this.commandManager.register(container, command.publicize(attribute), "aaa-publicize");
     }
 
     private void registerEquipment(PluginContainer container, Attribute.RegistryEvent event) {
         AttributeToLoreFunction<StringValue> function = equipment(this.locale);
         Attribute<StringValue> attribute = event.register("aaa-equipment", StringValue.class, function);
         this.commandManager.register(container, this.getEquipmentCommand(attribute), "aaa-equipment");
-    }
-
-    private CommandSpec getItemsCommand() {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-items")
-                .arguments(GenericArguments.firstParsing(
-                        GenericArguments.literal(Text.of("give"), "give"),
-                        GenericArguments.literal(Text.of("save"), "save")),
-                        GenericArguments.string(Text.of("name")))
-                .executor((src, args) -> {
-                    String name = args.<String>getOne(Text.of("name")).orElse("null");
-                    if (!NAME_PATTERN.matcher(name).matches()) {
-                        this.locale.to(src, "commands.byte-items.invalid-name", name);
-                        return CommandResult.success();
-                    }
-                    if (args.hasAny(Text.of("save"))) {
-                        if (src instanceof Player) {
-                            Player player = (Player) src;
-                            Optional<ItemStack> stackOptional = player.getItemInHand(HandTypes.MAIN_HAND);
-                            if (stackOptional.isPresent()) {
-                                ItemStack stack = stackOptional.get();
-                                if (DataUtil.hasData(stack)) {
-                                    stack.remove(Keys.ITEM_LORE); // lore texts are generated
-                                    Attributes.ID.setValues(stack, ImmutableList.of(StringValue.of(name)));
-                                    player.setItemInHand(HandTypes.MAIN_HAND, stack);
-                                    this.biHandler.save(name, player);
-                                    this.locale.to(src, "commands.byte-items.save-succeed", name, "aaa-" + name);
-                                    return CommandResult.success();
-                                }
-                            }
-                        }
-                        this.locale.to(src, "commands.drop.nonexist");
-                    }
-                    if (args.hasAny(Text.of("give"))) {
-                        if (src instanceof Player) {
-                            Player player = (Player) src;
-                            ItemStackSnapshot snapshot = this.biHandler.read(name);
-                            if (snapshot.isEmpty()) {
-                                this.locale.to(src, "commands.byte-items.nonexist", name, "aaa-" + name);
-                                return CommandResult.success();
-                            }
-                            InventoryTransactionResult result = player.getInventory().offer(snapshot.createStack());
-                            if (InventoryTransactionResult.Type.SUCCESS.equals(result.getType())) {
-                                this.locale.to(src, "commands.byte-items.give-succeed", name, "aaa-" + name);
-                                return CommandResult.success();
-                            }
-                        }
-                        this.locale.to(src, "commands.byte-items.full");
-                    }
-                    return CommandResult.success();
-                })
-                .child(CommandSpec.builder()
-                        .arguments(GenericArguments.optionalWeak(GenericArguments.remainingJoinedStrings(Text.of("display"))))
-                        .executor((src, args) -> {
-                            if (src instanceof Player) {
-                                Optional<ItemStack> optional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                                if (optional.isPresent()) {
-                                    ItemStack stack = optional.get();
-                                    String text = args.<String>getOne("display").orElse(null);
-                                    if (StringUtils.isNotEmpty(text)) {
-                                        stack.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(text));
-                                    } else {
-                                        stack.remove(Keys.DISPLAY_NAME);
-                                    }
-                                    return CommandResult.success();
-                                }
-                            }
-                            this.locale.to(src, "commands.drop.nonexist");
-                            return CommandResult.success();
-                        })
-                        .build(), "name")
-                .build();
-    }
-
-    private CommandSpec getDropCommand(Attribute<Text> attribute) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-drop")
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        AtomicBoolean isCallbackExecuted = new AtomicBoolean(false);
-                        Arg arg = Arg.ref("commands.drop.warning-ok").withCallback(value -> {
-                            if (!isCallbackExecuted.getAndSet(true)) {
-                                Optional<ItemStack> stackOptional = ((Player) value).getItemInHand(HandTypes.MAIN_HAND);
-                                if (stackOptional.isPresent()) {
-                                    ItemStack stack = stackOptional.get();
-                                    if (DataUtil.hasData(stack)) {
-                                        List<Text> lore = attribute.getValues(stack);
-                                        DataUtil.dropData(stack);
-                                        stack.offer(Keys.ITEM_LORE, lore);
-                                        ((Player) value).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                        this.locale.to(value, "commands.drop.succeed");
-                                        return;
-                                    }
-                                }
-                                this.locale.to(value, "commands.drop.nonexist");
-                            }
-                        });
-                        locale.to(src, "commands.drop.warning", arg);
-                        return CommandResult.success();
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    private CommandSpec getInitCommand(Attribute<Text> attribute) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-init")
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                this.locale.to(src, "commands.init.already-exist");
-                            } else {
-                                attribute.setValues(stack, stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of()));
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
-                                this.locale.to(src, "commands.init.succeed");
-                            }
-                            return CommandResult.success();
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
     }
 
     private <T extends DataSerializable> CommandSpec getPrependCommand(String id, Attribute<T> attribute, CommandElement valueElement) {
@@ -501,50 +374,6 @@ public class AttributeCommands {
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                     this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
                                 }
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    private CommandSpec getPublicizeCommand(Attribute<GameProfile> attribute) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-publicize")
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                attribute.clearValues(stack);
-                                this.locale.to(src, "commands.possess.unmark-attribute");
-                                return CommandResult.success();
-                            }
-                        }
-                    }
-                    this.locale.to(src, "commands.drop.nonexist");
-                    return CommandResult.success();
-                })
-                .build();
-    }
-
-    private CommandSpec getPossessCommand(Attribute<GameProfile> attribute) {
-        return CommandSpec.builder()
-                .permission(AmberAdvancedAttributes.ID + ".command.aaa-possess")
-                .arguments(GenericArguments.optional(GenericArguments.player(Text.of("player"))))
-                .executor((src, args) -> {
-                    if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Player target = args.<Player>getOne(Text.of("player")).orElse((Player) src);
-                        if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
-                            if (DataUtil.hasData(stack)) {
-                                attribute.setValues(stack, ImmutableList.of(target.getProfile()));
-                                this.locale.to(src, "commands.possess.mark-attribute", target.getName());
                                 return CommandResult.success();
                             }
                         }

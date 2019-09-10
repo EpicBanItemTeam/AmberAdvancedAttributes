@@ -1,4 +1,4 @@
-package io.izzel.aaa.command;
+package io.izzel.aaa.command.elements;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
@@ -28,7 +28,7 @@ public class RangeValueElement extends CommandElement {
     private final boolean fixedValue;
     private final AmberLocale locale;
 
-    RangeValueElement(AmberLocale locale, boolean fixed, Text key) {
+    public RangeValueElement(AmberLocale locale, boolean fixed, Text key) {
         super(key);
         this.locale = locale;
         this.fixedValue = fixed;

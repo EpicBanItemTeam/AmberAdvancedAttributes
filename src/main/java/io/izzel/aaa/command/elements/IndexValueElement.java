@@ -1,4 +1,4 @@
-package io.izzel.aaa.command;
+package io.izzel.aaa.command.elements;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
@@ -26,7 +26,7 @@ public class IndexValueElement extends CommandElement {
     private final TypeToken<Text> token;
     private final AmberLocale locale;
 
-    IndexValueElement(AmberLocale locale, Text key) {
+    public IndexValueElement(AmberLocale locale, Text key) {
         super(key);
         this.locale = locale;
         this.token = TypeToken.of(Text.class);
