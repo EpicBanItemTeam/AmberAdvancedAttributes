@@ -25,6 +25,7 @@ configurations {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+    sourceCompatibility = 12 // for the IDE support
 }
 
 repositories {
@@ -39,6 +40,13 @@ dependencies {
     compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
     compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
     compile 'com.github.randombyte-developer:byte-items:v2.4.1'
+    annotationProcessor 'com.github.bsideup.jabel:jabel-javac-plugin:0.2.0'
+}
+
+compileJava {
+    options.compilerArgs = [
+            "--release", "8" // Avoid using Java 12 APIs
+    ]
 }
 
 shadowJar {
