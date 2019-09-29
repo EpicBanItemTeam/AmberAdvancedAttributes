@@ -8,6 +8,7 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
+import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.DataUtil;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Key;
@@ -51,17 +52,19 @@ public class AttributeListeners {
             Key<ListValue<Text>> key = Keys.ITEM_LORE;
             ItemStack item = transaction.getFinal().createStack();
             if (DataUtil.hasData(item)) {
-                texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
-                Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
-                attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute, (Equipable) event.getTargetEntity()));
-                item.offer(key, Multimaps.asMap(texts).values().stream().reduce(ImmutableList.of(), (a, b) -> {
-                    if (a.isEmpty()) {
-                        return b;
-                    } else {
-                        return ImmutableList.<Text>builder().addAll(a).add(LORE_SEPARATOR).addAll(b).build();
-                    }
-                }));
-                transaction.setCustom(item.createSnapshot());
+                if (Attributes.NO_LORE.getValues(item).isEmpty()) {
+                    texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
+                    Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
+                    attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute, (Equipable) event.getTargetEntity()));
+                    item.offer(key, Multimaps.asMap(texts).values().stream().reduce(ImmutableList.of(), (a, b) -> {
+                        if (a.isEmpty()) {
+                            return b;
+                        } else {
+                            return ImmutableList.<Text>builder().addAll(a).add(LORE_SEPARATOR).addAll(b).build();
+                        }
+                    }));
+                    transaction.setCustom(item.createSnapshot());
+                }
             }
         }
     }

@@ -64,6 +64,9 @@ public final class Attributes {
     public static final Attribute<RangeValue> LEVEL_CAP;
     public static final Attribute<Text> CUSTOM_LORE;
 
+    // Alpha.4
+    public static final Attribute<MarkerValue> NO_LORE;
+
     static {
         AttributeService service = AttributeService.instance();
 
@@ -119,6 +122,8 @@ public final class Attributes {
         PERMISSION_CAP = getAttributeById(service, "aaa-permission-cap");
         LEVEL_CAP = getAttributeById(service, "aaa-level-cap");
         CUSTOM_LORE = getAttributeById(service, "aaa-custom-lore");
+
+        NO_LORE = getAttributeById(service, "aaa-no-lore");
     }
 
     private Attributes() {

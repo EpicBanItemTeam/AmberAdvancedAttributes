@@ -102,12 +102,19 @@ public class AttributeCommands {
         this.registerPermissionCap(event, "permission-cap");
         this.registerRangeValue(event, "level-cap");
         this.registerItemsCommand();
+        this.registerNoLore(event, "no-lore");
 
         event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
     }
 
     private void registerItemsCommand() {
         this.commandManager.register(this.container, this.injector.getInstance(ItemCommand.class).callable(), "aaa-items");
+    }
+
+    private void registerNoLore(Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<MarkerValue> function = markerValue(this.locale, id);
+        Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, function);
+        this.commandManager.register(this.container, this.command.noLore(id, attribute), "aaa-" + id);
     }
 
     private void registerPermissionCap(Attribute.RegistryEvent event, String id) {

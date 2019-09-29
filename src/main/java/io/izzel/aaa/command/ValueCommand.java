@@ -8,6 +8,7 @@ import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.command.elements.IndexValueElement;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.service.Attribute;
+import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.command.CommandCallable;
@@ -16,6 +17,7 @@ import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -29,6 +31,42 @@ import java.util.Optional;
 class ValueCommand {
 
     @Inject private AmberLocale locale;
+
+    CommandCallable noLore(String id, Attribute<MarkerValue> attribute) {
+        return CommandSpec.builder()
+                .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
+                .arguments(GenericArguments.choices(Text.of("marked"),
+                        ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        Optional<Boolean> marked = args.getOne(Text.of("marked"));
+                        if (stackOptional.isPresent() && marked.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                if (marked.get()) {
+                                    attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
+                                    ImmutableList<Text> list = Attributes.ORIGINAL_LORE.getValues(stack);
+                                    stack.offer(Keys.ITEM_LORE, list);
+                                    Attributes.ORIGINAL_LORE.clearValues(stack);
+                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.locale.to(src, "commands.marker.mark-attribute", stack, id);
+                                } else {
+                                    attribute.clearValues(stack);
+                                    List<Text> list = stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of());
+                                    Attributes.ORIGINAL_LORE.setValues(stack, list);
+                                    ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                    this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
+                                }
+                                return CommandResult.success();
+                            }
+                        }
+                    }
+                    this.locale.to(src, "commands.drop.nonexist");
+                    return CommandResult.success();
+                })
+                .build();
+    }
 
     CommandCallable marker(String id, Attribute<MarkerValue> attribute) {
         return CommandSpec.builder()
@@ -207,7 +245,7 @@ class ValueCommand {
                 .child(prepend(id, attribute, element), "prepend")
                 .child(clear(id, attribute), "clear")
                 .child(insert(id, attribute, element), "insert")
-                .child(set(id ,attribute, element), "set")
+                .child(set(id, attribute, element), "set")
                 .build();
     }
 }
