@@ -22,6 +22,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author ustc_zzzz
@@ -34,7 +35,9 @@ public class AttributeServiceImpl implements AttributeService {
     private final Map<String, Attribute<?>> attributeMapUnmodifiable = Collections.unmodifiableMap(this.attributeMap);
 
     @Inject
-    public AttributeServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager, DataManager dataManager) {
+    public AttributeServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager, DataManager dataManager,
+                                EquipmentSlotService slot) {
+        Objects.requireNonNull(slot);
         serviceManager.setProvider(container, AttributeService.class, this);
         eventManager.registerListener(container, GamePreInitializationEvent.class, event -> {
             Data.register(dataManager);

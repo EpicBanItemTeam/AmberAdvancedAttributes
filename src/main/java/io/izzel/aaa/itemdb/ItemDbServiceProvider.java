@@ -1,9 +1,14 @@
 package io.izzel.aaa.itemdb;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import ninja.leaping.configurate.ValueType;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueType;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -19,7 +24,6 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,6 +47,8 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
         this.container = container;
         this.path = path;
         this.logger = logger;
+        Path resolve = path.resolve("items.conf");
+        this.loader = HoconConfigurationLoader.builder().setPath(resolve).build();
         game.getEventManager().registerListener(container, GameInitializationEvent.class, this::on);
         Task.builder().intervalTicks(20 * 3600).delayTicks(20 * 3600).execute(this::taskSave).submit(container);
         game.getEventManager().registerListener(container, GameStoppingServerEvent.class, event -> save(map));
@@ -50,18 +56,24 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
 
     private void on(GameInitializationEvent event) throws Exception {
         Path resolve = path.resolve("items.conf");
-        loader = HoconConfigurationLoader.builder().setPath(resolve).build();
-        CommentedConfigurationNode load = loader.load();
-        for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : load.getChildrenMap().entrySet()) {
-            if (entry.getValue().getValueType() != ValueType.NULL) {
-                try {
-                    DataContainer container = DataFormats.NBT.readFrom(Base64.getDecoder().wrap(
-                            new ByteArrayInputStream(entry.getValue().getString().getBytes())));
-                    Optional<ItemStack> deserialize = Sponge.getDataManager().deserialize(ItemStack.class, container);
-                    map.put(entry.getKey().toString(), deserialize.get());
-                } catch (Exception e) {
-                    logger.error("Error deserializing item '{}': {}", entry.getKey().toString(), e);
+        Config root = ConfigFactory.parseFile(resolve.toFile(), HoconConfigurationLoader.defaultParseOptions()).resolve();
+        Gson gson = new Gson();
+        for (Map.Entry<String, ConfigValue> entry : root.root().entrySet()) {
+            try {
+                DataContainer container;
+                if (entry.getValue().valueType() == ConfigValueType.STRING) {
+                    container = DataFormats.NBT.readFrom(Base64.getDecoder().wrap(
+                            new ByteArrayInputStream(entry.getValue().unwrapped().toString().getBytes())));
+                } else if (entry.getValue().valueType() == ConfigValueType.OBJECT) {
+                    // due to Sponge's broken HOCON deserialization
+                    container = DataFormats.JSON.read(gson.toJson(entry.getValue().unwrapped()));
+                } else {
+                    throw new NullPointerException();
                 }
+                Optional<ItemStack> deserialize = Sponge.getDataManager().deserialize(ItemStack.class, container);
+                map.put(entry.getKey(), deserialize.get());
+            } catch (Exception e) {
+                logger.error("Error deserializing item '{}': {}", entry.getKey(), e);
             }
         }
     }
@@ -81,9 +93,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
             for (Map.Entry<String, ItemStack> entry : map.entrySet()) {
                 try {
                     ItemStack stack = entry.getValue();
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    DataFormats.NBT.writeTo(Base64.getEncoder().wrap(out), stack.toContainer());
-                    node.getNode(entry.getKey()).setValue(out.toString("utf-8"));
+                    node.getNode(entry.getKey()).setValue(TypeToken.of(ItemStack.class), stack);
                 } catch (Exception e) {
                     logger.error("Error serializing item '{}': {}", entry.getKey(), e);
                 }

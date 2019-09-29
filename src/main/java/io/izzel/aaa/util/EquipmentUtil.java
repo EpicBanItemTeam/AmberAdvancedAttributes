@@ -29,9 +29,9 @@ public class EquipmentUtil {
         return service.slots().stream()
                 .map(it -> Tuple.of(it, service.getItemStack(equipable, it)))
                 .filter(tuple -> {
+                    // todo 将判断物品有效的逻辑迁移至 AttributeCollector
                     if (!tuple.getSecond().isPresent()) return false;
-                    List<MarkerValue> gem = new ArrayList<>();
-                    AttributeCollector.of(tuple.getSecond().get()).collect(Attributes.INLAY_GEM, gem).submit();
+                    List<MarkerValue> gem = Attributes.INLAY_GEM.getValues(tuple.getSecond().get());
                     if (!gem.isEmpty()) return false;
                     ImmutableList<StringValue> values = Attributes.EQUIPMENT.getValues(tuple.getSecond().get());
                     return values.isEmpty() || values.stream()
