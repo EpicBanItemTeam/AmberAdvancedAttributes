@@ -1,5 +1,6 @@
 package io.izzel.aaa.data;
 
+import com.flowpowered.math.GenericMath;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.data.*;
@@ -62,6 +63,10 @@ public class RangeValue implements DataSerializable {
 
     public boolean isRelative() {
         return this.isRelative;
+    }
+
+    public boolean isFixed() {
+        return getSize() < GenericMath.DBL_EPSILON;
     }
 
     public double getLowerBound() {

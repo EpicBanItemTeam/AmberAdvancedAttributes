@@ -2,6 +2,7 @@ package io.izzel.aaa.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import io.izzel.aaa.AmberAdvancedAttributes;
 import io.izzel.aaa.command.elements.IndexValueElement;
@@ -20,9 +21,11 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+@SuppressWarnings("WeakerAccess")
 class ValueCommand {
 
     @Inject private AmberLocale locale;
@@ -167,6 +170,36 @@ class ValueCommand {
                 .build();
     }
 
+    <T extends DataSerializable> CommandCallable set(String id, Attribute<T> attribute, CommandElement valueElement) {
+        return CommandSpec.builder()
+                .arguments(valueElement, GenericArguments.optionalWeak(new IndexValueElement(this.locale, Text.of("index"))))
+                .executor((src, args) -> {
+                    if (src instanceof Player) {
+                        int index = args.<Integer>getOne(Text.of("index")).orElse(1) - 1;
+                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
+                        if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
+                            ItemStack stack = stackOptional.get();
+                            if (DataUtil.hasData(stack)) {
+                                List<T> list = Lists.newArrayList(attribute.getValues(stack));
+                                if (index >= list.size() || index < 0) {
+                                    this.locale.to(src, "commands.args.index-out-of-bound", list.size());
+                                    return CommandResult.success();
+                                }
+                                list.set(index, rangeValueOptional.get());
+                                attribute.setValues(stack, list);
+                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
+                                this.locale.to(src, "commands.range.set-attribute", stack, index, id);
+                                return CommandResult.success();
+                            }
+                        }
+                    }
+                    this.locale.to(src, "commands.drop.nonexist");
+                    return CommandResult.success();
+                })
+                .build();
+    }
+
     <T extends DataSerializable> CommandCallable callable(Attribute<T> attribute, String id, CommandElement element) {
         return CommandSpec.builder()
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-" + id)
@@ -174,6 +207,7 @@ class ValueCommand {
                 .child(prepend(id, attribute, element), "prepend")
                 .child(clear(id, attribute), "clear")
                 .child(insert(id, attribute, element), "insert")
+                .child(set(id ,attribute, element), "set")
                 .build();
     }
 }
