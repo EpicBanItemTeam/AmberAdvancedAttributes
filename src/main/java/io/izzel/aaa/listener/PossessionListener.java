@@ -30,7 +30,7 @@ public class PossessionListener {
     @Listener
     public void on(AffectSlotEvent event, @Root Player player) {
         event.getTransactions().stream().filter(Transaction::isValid).forEach(transaction -> {
-            ItemStackSnapshot stack = transaction.getCustom().orElse(transaction.getDefault());
+            var stack = transaction.getCustom().orElse(transaction.getDefault());
             List<GameProfile> possession = new ArrayList<>();
             List<StringValue> permsCap = new ArrayList<>();
             List<RangeValue> levelCap = new ArrayList<>();

@@ -40,8 +40,8 @@ public class AttributeToLoreFunctions {
 
     public static <T extends RangeValue> AttributeToLoreFunction<T> rangeValue(AmberLocale locale, String id) {
         return (values, equipable) -> values.stream().map(it -> {
-            String lower = it.isRelative() ? FORMAT.format(it.getLowerBound() * 100D) + "%" : FORMAT.format(it.getLowerBound());
-            String higher = it.isRelative() ? FORMAT.format(it.getUpperBound() * 100D) + "%" : FORMAT.format(it.getUpperBound());
+            var lower = it.isRelative() ? FORMAT.format(it.getLowerBound() * 100D) + "%" : FORMAT.format(it.getLowerBound());
+            var higher = it.isRelative() ? FORMAT.format(it.getUpperBound() * 100D) + "%" : FORMAT.format(it.getUpperBound());
             if (it.getSize() < GenericMath.DBL_EPSILON) {
                 return locale.getAs(String.format("attributes.%s.fixed", id), TEXT, lower).get();
             } else {
@@ -63,8 +63,8 @@ public class AttributeToLoreFunctions {
 
     public static AttributeToLoreFunction<GameProfile> profile(AmberLocale locale) {
         return (values, equipable) -> (values.stream().flatMap(it -> {
-            String name = Sponge.getServer().getGameProfileManager().fill(it).join().getName().orElse("[Server]");
-            Optional<Text> text = locale.getAs("attributes.possession.lore", TEXT, name);
+            var name = Sponge.getServer().getGameProfileManager().fill(it).join().getName().orElse("[Server]");
+            var text = locale.getAs("attributes.possession.lore", TEXT, name);
             return Streams.stream(text);
         })).map(v -> Maps.immutableEntry(Byte.MIN_VALUE, v)).collect(ImmutableList.toImmutableList());
     }
@@ -74,10 +74,10 @@ public class AttributeToLoreFunctions {
             if (values.isEmpty()) {
                 return ImmutableList.of();
             }
-            Stream<Text> stream = values.stream().map(StringValue::getString)
+            var stream = values.stream().map(StringValue::getString)
                     .map(it -> locale.getAs("attributes.equipment.slots." + it, TEXT).orElse(Text.of(it)));
-            Text joined = Text.joinWith(Text.of(' '), stream.iterator());
-            Text ret = locale.getAs("attributes.equipment.item-name", TEXT, joined).get();
+            var joined = Text.joinWith(Text.of(' '), stream.iterator());
+            var ret = locale.getAs("attributes.equipment.item-name", TEXT, joined).get();
             return ImmutableList.of(Maps.immutableEntry((byte) 0, ret));
         };
     }
@@ -87,18 +87,18 @@ public class AttributeToLoreFunctions {
             ImmutableList.Builder<Map.Entry<Byte, Text>> builder = ImmutableList.builder();
 
             values.forEach(it -> {
-                ItemStackSnapshot suitItem = biHandler.read(it.getString());
+                var suitItem = biHandler.read(it.getString());
                 if (suitItem.equals(ItemStackSnapshot.NONE)) {
                     builder.add(Maps.immutableEntry(((byte) 16), locale.getAs("attributes.suit.unknown", TEXT, it.getString()).get()));
                 } else {
                     builder.add(Maps.immutableEntry(((byte) 16), locale.getAs("attributes.suit.name", TEXT, suitItem.get(Keys.DISPLAY_NAME)).get()));
-                    ItemStack stack = suitItem.createStack();
-                    Map<String, ItemStack> actualSlots = EquipmentUtil.itemsWithSlot(equipable)
+                    var stack = suitItem.createStack();
+                    var actualSlots = EquipmentUtil.itemsWithSlot(equipable)
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                     Attributes.EQUIPMENT.getValues(stack).stream()
                             .map(StringValue::getString)
                             .forEach(slot -> {
-                                String node = actualSlots.containsKey(slot) && Attributes.SUIT.getValues(actualSlots.get(slot)).contains(it)
+                                var node = actualSlots.containsKey(slot) && Attributes.SUIT.getValues(actualSlots.get(slot)).contains(it)
                                         ? "attributes.suit.present" : "attributes.suit.absent";
                                 builder.add(Maps.immutableEntry(
                                         (byte) 16,
@@ -107,10 +107,10 @@ public class AttributeToLoreFunctions {
                             });
 
                     builder.add(Maps.immutableEntry((byte) 24, locale.getAs("attributes.suit.suit-attribute-name", TEXT, suitItem.get(Keys.DISPLAY_NAME)).get()));
-                    Text indent = locale.getAs("attributes.suit.attribute-indent", TEXT).get();
+                    var indent = locale.getAs("attributes.suit.attribute-indent", TEXT).get();
                     // todo 我觉得这下面一堆可以弄成一个方法
                     ListMultimap<Byte, Text> texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
-                    Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
+                    var attributes = AttributeService.instance().getAttributes();
                     attributes.values().stream().filter(attr -> attr != Attributes.EQUIPMENT)
                             .forEach(attribute -> DataUtil.collectLore(texts, stack, attribute, equipable));
                     Multimaps.asMap(texts).values().stream().reduce(ImmutableList.of(), (a, b) -> {
@@ -131,12 +131,12 @@ public class AttributeToLoreFunctions {
         return (values, equipable) -> {
             ImmutableList.Builder<Map.Entry<Byte, Text>> builder = ImmutableList.builder();
             values.stream().map(StringValue::getString).filter(it -> !it.startsWith(";")).distinct().forEach(it -> {
-                ItemStackSnapshot snapshot = biHandler.read(it);
+                var snapshot = biHandler.read(it);
                 if (snapshot.isEmpty()) {
                     builder.add(Maps.immutableEntry((byte) 0, locale.getAs("attributes.template.unknown", TEXT, it).get()));
                 } else {
                     ListMultimap<Byte, Text> texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
-                    for (Attribute<?> attribute : AttributeService.instance().getAttributes().values()) {
+                    for (var attribute : AttributeService.instance().getAttributes().values()) {
                         if (!Attributes.TEMPLATE.equals(attribute)) {
                             DataUtil.collectAllLore(texts, snapshot, attribute, equipable);
                         }
@@ -155,8 +155,8 @@ public class AttributeToLoreFunctions {
                 ImmutableList.Builder<Map.Entry<Byte, Text>> builder = ImmutableList.builder();
                 builder.add(Maps.immutableEntry((byte) 0, locale.getAs("attributes.inlay.header", TEXT, values.size()).get()));
                 values.forEach(data -> {
-                    String slot = data.getSlot();
-                    Text t = locale.getAs("attributes.inlay.slot", TEXT,
+                    var slot = data.getSlot();
+                    var t = locale.getAs("attributes.inlay.slot", TEXT,
                             Arg.ref("attributes.inlay.slot-names." + slot),
                             data.getGem().map(biHandler::read).map(item -> {
                                 if (item.isEmpty())

@@ -43,7 +43,7 @@ final class EquipmentSlotServiceImpl implements EquipmentSlotService {
     public EquipmentSlotServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager) {
         serviceManager.setProvider(container, EquipmentSlotService.class, this);
         eventManager.registerListener(container, GameAboutToStartServerEvent.class, event -> {
-            try (CauseStackManager.StackFrame stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {
+            try (var stackFrame = Sponge.getCauseStackManager().pushCauseFrame()) {
                 Sponge.getEventManager().post(new RegistryEventImpl(stackFrame.getCurrentCause()));
             }
         });

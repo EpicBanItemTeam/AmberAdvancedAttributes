@@ -22,7 +22,7 @@ public class RangeValue implements DataSerializable {
 
     private RangeValue(double lower, double upper, boolean isRelative) {
         Preconditions.checkArgument(Double.isFinite(lower) && Double.isFinite(upper), "bounds should be finite");
-        double diff = upper - lower;
+        var diff = upper - lower;
         Preconditions.checkArgument(diff >= 0, "lower bound should be smaller than upper bound");
         this.isRelative = isRelative;
         this.lowerBound = lower;
@@ -53,10 +53,10 @@ public class RangeValue implements DataSerializable {
 
     public DoubleUnaryOperator getFunction(Random random) {
         if (random.nextBoolean()) {
-            double amount = this.lowerBound + this.diff * random.nextDouble();
+            var amount = this.lowerBound + this.diff * random.nextDouble();
             return this.isRelative ? d -> d * amount : d -> amount;
         } else {
-            double amount = this.upperBound - this.diff * random.nextDouble();
+            var amount = this.upperBound - this.diff * random.nextDouble();
             return this.isRelative ? d -> d * amount : d -> amount;
         }
     }
@@ -104,7 +104,7 @@ public class RangeValue implements DataSerializable {
     public boolean equals(Object obj) {
         if (obj != this) {
             if (obj instanceof RangeValue) {
-                RangeValue that = (RangeValue) obj;
+                var that = (RangeValue) obj;
                 if (that.isRelative == this.isRelative) {
                     return that.lowerBound == this.lowerBound && that.upperBound == this.upperBound;
                 }

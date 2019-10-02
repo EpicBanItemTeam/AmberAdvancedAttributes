@@ -43,9 +43,9 @@ public class AttackListener {
     private final Random random = new Random();
 
     private Optional<Equipable> getBySource(EntityDamageSource source) {
-        Entity from = source.getSource();
+        var from = source.getSource();
         if (from instanceof Projectile) {
-            ProjectileSource shooter = ((Projectile) from).getShooter();
+            var shooter = ((Projectile) from).getShooter();
             if (shooter instanceof Equipable) return Optional.of(((Equipable) shooter));
             else return Optional.empty();
         } else if (from instanceof Equipable) {
@@ -64,36 +64,36 @@ public class AttackListener {
                 List<RangeValue> pvpAttack = new ArrayList<>();
                 List<RangeValue> pveAttack = new ArrayList<>();
 
-                boolean attackFlag = AttributeCollector.of(item)
+                var attackFlag = AttributeCollector.of(item)
                         .collect(Attributes.PVE_ATTACK, pveAttack)
                         .collect(Attributes.PVP_ATTACK, pvpAttack)
                         .collect(Attributes.ATTACK, attack).submit();
 
                 if (attackFlag) {
-                    for (RangeValue v : attack) {
-                        DamageModifier m = DamageModifier.builder()
+                    for (var v : attack) {
+                        var m = DamageModifier.builder()
                                 .cause(event.getCause().with(Attributes.ATTACK).with(new Object()))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
                     }
                 }
 
-                boolean pvpFlag = attackFlag && from instanceof Player && to instanceof Player;
+                var pvpFlag = attackFlag && from instanceof Player && to instanceof Player;
 
                 if (pvpFlag) {
-                    for (RangeValue v : pvpAttack) {
-                        DamageModifier m = DamageModifier.builder()
+                    for (var v : pvpAttack) {
+                        var m = DamageModifier.builder()
                                 .cause(event.getCause().with(Attributes.PVP_ATTACK).with(new Object()))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
                     }
                 }
 
-                boolean pveFlag = attackFlag && from instanceof Player && !(to instanceof Player);
+                var pveFlag = attackFlag && from instanceof Player && !(to instanceof Player);
 
                 if (pveFlag) {
-                    for (RangeValue v : pveAttack) {
-                        DamageModifier m = DamageModifier.builder()
+                    for (var v : pveAttack) {
+                        var m = DamageModifier.builder()
                                 .cause(event.getCause().with(Attributes.PVE_ATTACK).with(new Object()))
                                 .type(DamageModifierTypes.WEAPON_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, v.getFunction(this.random), ImmutableSet.of());
@@ -106,7 +106,7 @@ public class AttackListener {
     private DoubleUnaryOperator defense(RangeValue value) {
         if (!value.isRelative()) return d -> Math.max(-value.getFunction(this.random).applyAsDouble(d), 0D);
         else {
-            double amount = random.nextBoolean()
+            var amount = random.nextBoolean()
                     ? value.getLowerBound() + value.getSize() * random.nextDouble()
                     : value.getUpperBound() - value.getSize() * random.nextDouble();
             return d -> ((1D / (1D + amount)) - 1D) * d;
@@ -116,7 +116,7 @@ public class AttackListener {
     @Listener(order = Order.EARLY)
     public void onDefense(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First DamageSource source) {
         if (to instanceof Equipable) {
-            Equipable target = (Equipable) to;
+            var target = (Equipable) to;
             EquipmentUtil.items(target).forEach(item -> {
                 Sponge.getCauseStackManager().pushCause(target);
 
@@ -124,39 +124,39 @@ public class AttackListener {
                 List<RangeValue> pvpDefense = new ArrayList<>();
                 List<RangeValue> pveDefense = new ArrayList<>();
 
-                boolean fromPlayer = source instanceof EntityDamageSource
+                var fromPlayer = source instanceof EntityDamageSource
                         && getBySource(((EntityDamageSource) source)).filter(Player.class::isInstance).isPresent();
 
-                boolean defenseFlag = AttributeCollector.of(item)
+                var defenseFlag = AttributeCollector.of(item)
                         .collect(Attributes.PVE_DEFENSE, pveDefense)
                         .collect(Attributes.PVP_DEFENSE, pvpDefense)
                         .collect(Attributes.DEFENSE, defense).submit();
 
                 if (defenseFlag) {
-                    for (RangeValue v : defense) {
-                        DamageModifier m = DamageModifier.builder()
+                    for (var v : defense) {
+                        var m = DamageModifier.builder()
                                 .cause(event.getCause().with(Attributes.DEFENSE).with(new Object()))
                                 .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, defense(v), ImmutableSet.of());
                     }
                 }
 
-                boolean pvpFlag = defenseFlag && fromPlayer && to instanceof Player;
+                var pvpFlag = defenseFlag && fromPlayer && to instanceof Player;
 
                 if (pvpFlag) {
-                    for (RangeValue v : pvpDefense) {
-                        DamageModifier m = DamageModifier.builder()
+                    for (var v : pvpDefense) {
+                        var m = DamageModifier.builder()
                                 .cause(event.getCause().with(Attributes.PVP_DEFENSE).with(new Object()))
                                 .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, defense(v), ImmutableSet.of());
                     }
                 }
 
-                boolean pveFlag = defenseFlag && fromPlayer && !(to instanceof Player);
+                var pveFlag = defenseFlag && fromPlayer && !(to instanceof Player);
 
                 if (pveFlag) {
-                    for (RangeValue v : pveDefense) {
-                        DamageModifier m = DamageModifier.builder()
+                    for (var v : pveDefense) {
+                        var m = DamageModifier.builder()
                                 .cause(event.getCause().with(Attributes.PVE_DEFENSE).with(new Object()))
                                 .type(DamageModifierTypes.ARMOR_ENCHANTMENT).item(item).build();
                         event.addDamageModifierBefore(m, defense(v), ImmutableSet.of());
@@ -169,7 +169,7 @@ public class AttackListener {
     @Listener(order = Order.FIRST)
     public void onDodge(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
-            double dodge = EquipmentUtil.allOf(((Equipable) to), Attributes.DODGE);
+            var dodge = EquipmentUtil.allOf(((Equipable) to), Attributes.DODGE);
             double accuracy = getBySource(source).map(it -> EquipmentUtil.allOf(it, Attributes.ACCURACY)).orElse(0D);
             if (random.nextDouble() < dodge - accuracy) {
                 event.setCancelled(true);
@@ -185,8 +185,8 @@ public class AttackListener {
             EquipmentUtil.items(from).map(AttributeCollector::of)
                     .forEach(it -> it.collect(Attributes.CRIT_RATE, critRate)
                             .collect(Attributes.CRIT, crit).submit());
-            double rate = 0D;
-            for (RangeValue value : critRate) {
+            var rate = 0D;
+            for (var value : critRate) {
                 if (value.isRelative()) {
                     rate += random.nextDouble() * value.getSize() + value.getLowerBound();
                 } else {
@@ -205,13 +205,13 @@ public class AttackListener {
     @Listener(order = Order.LATE)
     public void onInstantDeath(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         getBySource(source).ifPresent(from -> {
-            double instantDeath = EquipmentUtil.allOf(from, Attributes.INSTANT_DEATH);
-            boolean instantImmune = false;
+            var instantDeath = EquipmentUtil.allOf(from, Attributes.INSTANT_DEATH);
+            var instantImmune = false;
             if (to instanceof Equipable) {
                 instantImmune = EquipmentUtil.hasAny(((Equipable) to), Attributes.INSTANT_DEATH_IMMUNE);
             }
             if (!instantImmune && random.nextDouble() < instantDeath) {
-                double damage = event.getFinalDamage();
+                var damage = event.getFinalDamage();
                 event.addDamageModifierBefore(DamageModifier.builder().cause(event.getCause().with(new Object()))
                                 .type(DamageModifierTypes.CRITICAL_HIT).build(),
                         d -> to.get(Keys.HEALTH).orElse(damage) - damage, ImmutableSet.of());
@@ -223,16 +223,16 @@ public class AttackListener {
     public void onReflect(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (to instanceof Equipable) {
             getBySource(source).ifPresent(from -> {
-                double reflectRate = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT_RATE);
+                var reflectRate = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT_RATE);
                 if (random.nextDouble() < reflectRate) {
-                    double reflect = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT);
+                    var reflect = EquipmentUtil.allOf(((Equipable) to), Attributes.REFLECT);
                     double pvpReflect = 0D, pveReflect = 0D;
                     if (to instanceof Player && from instanceof Player) {
                         pvpReflect = EquipmentUtil.allOf(((Player) to), Attributes.PVP_REFLECT);
                     } else if (to instanceof Player) {
                         pveReflect = EquipmentUtil.allOf(((Player) to), Attributes.PVE_REFLECT);
                     }
-                    double total = reflect + pvpReflect + pveReflect;
+                    var total = reflect + pvpReflect + pveReflect;
                     ((Entity) from).damage(event.getFinalDamage() * total,
                             EntityDamageSource.builder().absolute().entity(to).type(DamageTypes.CUSTOM).build());
                 }
@@ -244,19 +244,19 @@ public class AttackListener {
     @Listener
     public <T extends Equipable & Entity> void onLoot(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
         if (source.getSource() instanceof Equipable && to instanceof Equipable) {
-            T from = (T) source.getSource();
-            double loot = EquipmentUtil.allOf(from, Attributes.LOOT_RATE);
+            var from = (T) source.getSource();
+            var loot = EquipmentUtil.allOf(from, Attributes.LOOT_RATE);
             if (random.nextDouble() < loot) {
                 try {
-                    CarriedInventory<? extends Carrier> inventory = ((Carrier) to).getInventory();
-                    List<Inventory> slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
-                    Inventory slot = slots.get(random.nextInt(slots.size()));
+                    var inventory = ((Carrier) to).getInventory();
+                    var slots = Streams.stream(inventory.slots()).collect(Collectors.toList());
+                    var slot = slots.get(random.nextInt(slots.size()));
                     slot.poll(1).ifPresent(item -> {
                         Sponge.getCauseStackManager().pushCause(to);
                         if (AttributeCollector.of(item).collect(Attributes.LOOT_IMMUNE, new ArrayList<>()).submit()) {
                             slot.offer(item);
                         } else {
-                            Item entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));
+                            var entityItem = ((Item) from.getLocation().getExtent().createEntity(EntityTypes.ITEM, from.getLocation().getPosition()));
                             entityItem.offer(Keys.REPRESENTED_ITEM, item.createSnapshot());
                             from.getLocation().getExtent().spawnEntity(entityItem);
                         }

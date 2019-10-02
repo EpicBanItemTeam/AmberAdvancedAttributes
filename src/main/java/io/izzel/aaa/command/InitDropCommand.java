@@ -29,9 +29,9 @@ class InitDropCommand {
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-init")
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 this.locale.to(src, "commands.init.already-exist");
                             } else {
@@ -53,12 +53,12 @@ class InitDropCommand {
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-drop")
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        AtomicBoolean isCallbackExecuted = new AtomicBoolean(false);
-                        Arg arg = Arg.ref("commands.drop.warning-ok").withCallback(value -> {
+                        var isCallbackExecuted = new AtomicBoolean(false);
+                        var arg = Arg.ref("commands.drop.warning-ok").withCallback(value -> {
                             if (!isCallbackExecuted.getAndSet(true)) {
-                                Optional<ItemStack> stackOptional = ((Player) value).getItemInHand(HandTypes.MAIN_HAND);
+                                var stackOptional = ((Player) value).getItemInHand(HandTypes.MAIN_HAND);
                                 if (stackOptional.isPresent()) {
-                                    ItemStack stack = stackOptional.get();
+                                    var stack = stackOptional.get();
                                     if (DataUtil.hasData(stack)) {
                                         List<Text> lore = attribute.getValues(stack);
                                         DataUtil.dropData(stack);

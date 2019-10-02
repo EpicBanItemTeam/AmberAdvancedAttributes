@@ -39,21 +39,21 @@ class ValueCommand {
                         ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         Optional<Boolean> marked = args.getOne(Text.of("marked"));
                         if (stackOptional.isPresent() && marked.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 if (marked.get()) {
                                     attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
-                                    ImmutableList<Text> list = Attributes.ORIGINAL_LORE.getValues(stack);
+                                    var list = Attributes.ORIGINAL_LORE.getValues(stack);
                                     stack.offer(Keys.ITEM_LORE, list);
                                     Attributes.ORIGINAL_LORE.clearValues(stack);
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                     this.locale.to(src, "commands.marker.mark-attribute", stack, id);
                                 } else {
                                     attribute.clearValues(stack);
-                                    List<Text> list = stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of());
+                                    var list = stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of());
                                     Attributes.ORIGINAL_LORE.setValues(stack, list);
                                     ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                     this.locale.to(src, "commands.marker.unmark-attribute", stack, id);
@@ -75,10 +75,10 @@ class ValueCommand {
                         ImmutableMap.of("mark", Boolean.TRUE, "unmark", Boolean.FALSE)))
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         Optional<Boolean> marked = args.getOne(Text.of("marked"));
                         if (stackOptional.isPresent() && marked.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 if (marked.get()) {
                                     attribute.setValues(stack, ImmutableList.of(MarkerValue.of()));
@@ -104,10 +104,10 @@ class ValueCommand {
                 .arguments(valueElement)
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.prependValue(stack, rangeValueOptional.get());
                                 ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
@@ -136,10 +136,10 @@ class ValueCommand {
                 .arguments(valueElement)
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.appendValue(stack, rangeValueOptional.get());
                                 ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
@@ -169,10 +169,10 @@ class ValueCommand {
                 .executor((src, args) -> {
                     if (src instanceof Player) {
                         int index = args.<Integer>getOne(Text.of("index")).orElseThrow(NoSuchElementException::new);
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.insertValue(stack, index, rangeValueOptional.get());
                                 ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
@@ -191,9 +191,9 @@ class ValueCommand {
         return CommandSpec.builder()
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.clearValues(stack);
                                 ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
@@ -213,11 +213,11 @@ class ValueCommand {
                 .arguments(valueElement, GenericArguments.optionalWeak(new IndexValueElement(this.locale, Text.of("index"))))
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        int index = args.<Integer>getOne(Text.of("index")).orElse(1) - 1;
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var index = args.<Integer>getOne(Text.of("index")).orElse(1) - 1;
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         Optional<T> rangeValueOptional = args.getOne(valueElement.getKey());
                         if (stackOptional.isPresent() && rangeValueOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 List<T> list = Lists.newArrayList(attribute.getValues(stack));
                                 if (index >= list.size() || index < 0) {

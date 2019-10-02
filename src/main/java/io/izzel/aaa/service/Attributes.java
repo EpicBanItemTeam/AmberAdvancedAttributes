@@ -68,7 +68,7 @@ public final class Attributes {
     public static final Attribute<MarkerValue> NO_LORE;
 
     static {
-        AttributeService service = AttributeService.instance();
+        var service = AttributeService.instance();
 
         ATTACK = getAttributeById(service, "aaa-attack");
         TRACING = getAttributeById(service, "aaa-tracing");

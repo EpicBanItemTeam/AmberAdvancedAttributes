@@ -47,7 +47,7 @@ public class InlayData implements DataSerializable {
 
     @Override
     public DataContainer toContainer() {
-        DataContainer container = DataContainer.createNew()
+        var container = DataContainer.createNew()
                 .set(Builder.SLOT_NAME, slot);
         if (gem != null) container = container.set(Builder.GEM, gem);
         return container.set(Queries.CONTENT_VERSION, this.getContentVersion());
@@ -57,7 +57,7 @@ public class InlayData implements DataSerializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        InlayData inlayData = (InlayData) o;
+        var inlayData = (InlayData) o;
         return slot.equals(inlayData.slot) &&
                 Objects.equals(gem, inlayData.gem);
     }
@@ -86,8 +86,8 @@ public class InlayData implements DataSerializable {
 
         @Override
         protected Optional<InlayData> buildContent(DataView container) throws InvalidDataException {
-            String slot = container.getString(SLOT_NAME).orElseThrow(IllegalArgumentException::new);
-            String gem = container.getString(GEM).orElse(null);
+            var slot = container.getString(SLOT_NAME).orElseThrow(IllegalArgumentException::new);
+            var gem = container.getString(GEM).orElse(null);
             return Optional.of(new InlayData(slot, gem));
         }
     }

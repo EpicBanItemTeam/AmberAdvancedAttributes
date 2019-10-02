@@ -37,16 +37,16 @@ class EquipmentCommand {
                 .child(command.clear("equipment", attribute), "clear")
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Player player = (Player) src;
-                        Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
+                        var player = (Player) src;
+                        var optional = player.getItemInHand(HandTypes.MAIN_HAND);
                         if (optional.isPresent()) {
-                            ItemStack stack = optional.get();
-                            ImmutableList<StringValue> old = attribute.getValues(stack);
+                            var stack = optional.get();
+                            var old = attribute.getValues(stack);
                             boolean mark = args.<Boolean>getOne("marked").orElse(Boolean.FALSE);
                             Collection<StringValue> slots = args.<String>getAll("slots").stream()
                                     .map(StringValue::of)
                                     .collect(Collectors.toList());
-                            ImmutableList<StringValue> list = mark
+                            var list = mark
                                     ? ImmutableList.<StringValue>builder().addAll(old).addAll(slots).build()
                                     : ImmutableList.copyOf(old.stream().filter(it -> !slots.contains(it)).iterator());
                             if (list.isEmpty()) {

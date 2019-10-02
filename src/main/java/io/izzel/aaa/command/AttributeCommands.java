@@ -112,22 +112,22 @@ public class AttributeCommands {
     }
 
     private void registerNoLore(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<MarkerValue> function = markerValue(this.locale, id);
-        Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, function);
+        var function = markerValue(this.locale, id);
+        var attribute = event.register("aaa-" + id, MarkerValue.class, function);
         this.commandManager.register(this.container, this.command.noLore(id, attribute), "aaa-" + id);
     }
 
     private void registerPermissionCap(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<StringValue> function = permissionCap(this.locale);
-        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        var function = permissionCap(this.locale);
+        var attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
     }
 
     private void registerInlay(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<InlayData> function = inlay(this.locale, this.biHandler);
-        Attribute<InlayData> attribute = event.register("aaa-" + id, InlayData.class, function);
+        var function = inlay(this.locale, this.biHandler);
+        var attribute = event.register("aaa-" + id, InlayData.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new InlayDataElement(id)),
                 "aaa-" + id);
@@ -137,23 +137,23 @@ public class AttributeCommands {
         AttributeToLoreFunction<Text> function = (values, equipable) -> values.stream()
                 .map(text -> Maps.immutableEntry((byte) 0, (Text) text))
                 .collect(Collectors.toList());
-        Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
+        var attribute = event.register("aaa-" + id, Text.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, GenericArguments.text(Text.of("lore"), TextSerializers.FORMATTING_CODE, true))
                 , "aaa-" + id);
     }
 
     private void registerTemplate(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<StringValue> function = template(this.locale, this.biHandler);
-        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        var function = template(this.locale, this.biHandler);
+        var attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new TemplateStringElement(Text.of("template"))),
                 "aaa-" + id);
     }
 
     private void registerSuit(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<StringValue> function = suit(this.locale, this.biHandler);
-        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        var function = suit(this.locale, this.biHandler);
+        var attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);
@@ -161,23 +161,23 @@ public class AttributeCommands {
 
     private void registerTextValue(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<Text> function = (values, equipable) -> ImmutableList.of();
-        Attribute<Text> attribute = event.register("aaa-" + id, Text.class, function);
-        InitDropCommand command = this.injector.getInstance(InitDropCommand.class);
+        var attribute = event.register("aaa-" + id, Text.class, function);
+        var command = this.injector.getInstance(InitDropCommand.class);
         this.commandManager.register(this.container, command.init(attribute), "aaa-init");
         this.commandManager.register(this.container, command.drop(attribute), "aaa-drop");
     }
 
     private void registerDurabilityValue(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<RangeValue> function = durability(this.locale);
-        Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
+        var function = durability(this.locale);
+        var attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
     private void registerRangeValue(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<RangeValue> function = rangeValue(this.locale, id);
-        Attribute<RangeValue> attribute = event.register("aaa-" + id, RangeValue.class, function);
+        var function = rangeValue(this.locale, id);
+        var attribute = event.register("aaa-" + id, RangeValue.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new RangeValueElement(this.locale, false, Text.of("rangeValue"))),
                 "aaa-" + id);
@@ -185,29 +185,29 @@ public class AttributeCommands {
 
     private void registerRangeValueFixed(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<RangeValue.Fixed> function = rangeValue(this.locale, id);
-        Attribute<RangeValue.Fixed> attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
+        var attribute = event.register("aaa-" + id, RangeValue.Fixed.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new RangeValueElement(this.locale, true, Text.of("rangeValue"))),
                 "aaa-" + id);
     }
 
     private void registerMarkerValue(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<MarkerValue> function = markerValue(this.locale, id);
-        Attribute<MarkerValue> attribute = event.register("aaa-" + id, MarkerValue.class, function);
+        var function = markerValue(this.locale, id);
+        var attribute = event.register("aaa-" + id, MarkerValue.class, function);
         this.commandManager.register(this.container, this.command.marker(id, attribute), "aaa-" + id);
     }
 
     private void registerPossessValue(Attribute.RegistryEvent event, String id) {
-        AttributeToLoreFunction<GameProfile> function = profile(this.locale);
-        Attribute<GameProfile> attribute = event.register("aaa-" + id, GameProfile.class, function);
-        PossessCommand command = this.injector.getInstance(PossessCommand.class);
+        var function = profile(this.locale);
+        var attribute = event.register("aaa-" + id, GameProfile.class, function);
+        var command = this.injector.getInstance(PossessCommand.class);
         this.commandManager.register(this.container, command.possess(attribute), "aaa-possess");
         this.commandManager.register(this.container, command.publicize(attribute), "aaa-publicize");
     }
 
     private void registerEquipment(Attribute.RegistryEvent event) {
-        AttributeToLoreFunction<StringValue> function = equipment(this.locale);
-        Attribute<StringValue> attribute = event.register("aaa-equipment", StringValue.class, function);
+        var function = equipment(this.locale);
+        var attribute = event.register("aaa-equipment", StringValue.class, function);
         this.commandManager.register(this.container, this.injector.getInstance(EquipmentCommand.class).callable(attribute), "aaa-equipment");
     }
 

@@ -36,22 +36,22 @@ public class IndexValueElement extends CommandElement {
     @Nullable
     @Override
     protected Integer parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        String string = args.next();
+        var string = args.next();
         try {
             Validate.isTrue(AT_LIST.contains(string));
             Validate.isTrue(args.hasNext());
             return Integer.parseInt(args.next());
         } catch (Exception e) {
-            Optional<Text> text = this.locale.getAs("commands.args.not-a-number", this.token, string);
+            var text = this.locale.getAs("commands.args.not-a-number", this.token, string);
             throw args.createError(text.orElseThrow(IllegalStateException::new));
         }
     }
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-        CommandArgs.Snapshot snapshot = args.getSnapshot();
+        var snapshot = args.getSnapshot();
         if (args.nextIfPresent().isPresent()) {
-            Optional<String> literal = args.nextIfPresent();
+            var literal = args.nextIfPresent();
             if (literal.isPresent() && !args.hasNext()) {
                 args.applySnapshot(snapshot);
                 return AT_LIST;
