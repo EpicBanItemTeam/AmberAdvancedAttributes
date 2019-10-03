@@ -85,10 +85,10 @@ final class LoreTemplateServiceImpl implements LoreTemplateService {
             var p = matcher.group("p");
             if (p != null) appendEscaped(builder, p);
         }
-        var service = AttributeService.instance();
         var compiled = ((Compilable) JS).compile(builder.toString());
         return (equipable, itemStack) -> {
             var sb = new StringBuilder();
+            var service = AttributeService.instance();
             var bindings = compiled.getEngine().createBindings();
             bindings.put("entity", equipable);
             bindings.put("item", itemStack);
