@@ -6,10 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import io.izzel.aaa.byteitems.ByteItemsHandler;
-import io.izzel.aaa.command.elements.InlayDataElement;
-import io.izzel.aaa.command.elements.RangeValueElement;
-import io.izzel.aaa.command.elements.StringValueElement;
-import io.izzel.aaa.command.elements.TemplateStringElement;
+import io.izzel.aaa.command.elements.*;
 import io.izzel.aaa.data.InlayData;
 import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
@@ -19,6 +16,7 @@ import io.izzel.aaa.service.AttributeToLoreFunction;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -104,12 +102,21 @@ public class AttributeCommands {
         this.registerItemsCommand();
         this.registerNoLore(event, "no-lore");
         this.registerLoreTemplate(event, "lore-template");
+        this.registerPotionEffect(event, "potion-effect");
 
         event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
     }
 
     private void registerItemsCommand() {
         this.commandManager.register(this.container, this.injector.getInstance(ItemCommand.class).callable(), "aaa-items");
+    }
+
+    private void registerPotionEffect(Attribute.RegistryEvent event, String id) {
+        var function = potionEffect(this.locale);
+        var attribute = event.register("aaa-" + id, PotionEffect.class, function);
+        this.commandManager.register(this.container,
+                this.command.callable(attribute, id, new PotionEffectElement("string")),
+                "aaa-" + id);
     }
 
     private void registerLoreTemplate(Attribute.RegistryEvent event, String id) {

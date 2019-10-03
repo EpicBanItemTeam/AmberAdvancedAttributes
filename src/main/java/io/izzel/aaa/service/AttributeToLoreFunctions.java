@@ -15,11 +15,14 @@ import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.TranslatableText;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Map;
@@ -174,6 +177,17 @@ public class AttributeToLoreFunctions {
                 .map(StringValue::getString)
                 .map(it -> locale.getAs("attributes.permission-cap.mappings." + it, TEXT).orElse(Text.of(it)))
                 .map(it -> locale.getAs("attributes.permission-cap.value", TEXT, it))
+                .flatMap(Streams::stream)
+                .map(it -> Maps.immutableEntry((byte) 0, it))
+                .collect(Collectors.toList());
+    }
+
+    public static AttributeToLoreFunction<PotionEffect> potionEffect(AmberLocale locale) {
+        return (values, equipable) -> values.stream()
+                .map(it -> locale.getAs("attributes.potion-effect.value", TEXT,
+                        TranslatableText.of(it.getType().getTranslation()),
+                        it.getAmplifier(),
+                        BigDecimal.valueOf(it.getDuration() / 20D).setScale(2, RoundingMode.HALF_UP).toString()))
                 .flatMap(Streams::stream)
                 .map(it -> Maps.immutableEntry((byte) 0, it))
                 .collect(Collectors.toList());

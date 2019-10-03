@@ -5,6 +5,7 @@ import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.data.StringValue;
 import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
 
@@ -67,6 +68,7 @@ public final class Attributes {
     // Alpha.4
     public static final Attribute<MarkerValue> NO_LORE;
     public static final Attribute<StringValue> LORE_TEMPLATE;
+    public static final Attribute<PotionEffect> POTION_EFFECT;
 
     static {
         var service = AttributeService.instance();
@@ -126,6 +128,7 @@ public final class Attributes {
 
         NO_LORE = getAttributeById(service, "aaa-no-lore");
         LORE_TEMPLATE = getAttributeById(service, "aaa-lore-template");
+        POTION_EFFECT = getAttributeById(service, "aaa-potion-effect");
     }
 
     private Attributes() {

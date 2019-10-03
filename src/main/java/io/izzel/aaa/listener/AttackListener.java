@@ -9,6 +9,8 @@ import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.manipulator.mutable.PotionEffectData;
+import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.Equipable;
@@ -25,6 +27,7 @@ import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.entity.DamageEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.data.Supports;
 import org.spongepowered.api.item.inventory.Carrier;
 
 import java.util.ArrayList;
@@ -262,6 +265,19 @@ public class AttackListener {
                     // TODO java.lang.AbstractMethodError: Method net/minecraft/entity/monster/EntityZombie.getInventory()Lorg/spongepowered/api/item/inventory/type/CarriedInventory; is abstract
                 }
             }
+        }
+    }
+
+    @Listener
+    public void onPotionEffect(DamageEntityEvent event, @Supports(PotionEffectData.class) @Getter("getTargetEntity") Entity to,
+                               @First EntityDamageSource source) {
+        if (source.getSource() instanceof Equipable) {
+            var potions = new ArrayList<PotionEffect>();
+            EquipmentUtil.items(((Equipable) source.getSource())).forEach(itemStack ->
+                    AttributeCollector.of(itemStack).collect(Attributes.POTION_EFFECT, potions).submit());
+            var potionEffectData = to.getOrCreate(PotionEffectData.class).orElseThrow(IllegalArgumentException::new);
+            potionEffectData.addElements(potions);
+            to.offer(potionEffectData);
         }
     }
 
