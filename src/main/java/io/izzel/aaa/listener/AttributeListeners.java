@@ -6,9 +6,11 @@ import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import io.izzel.aaa.data.StringValue;
 import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.Attributes;
+import io.izzel.aaa.template.LoreTemplateService;
 import io.izzel.aaa.util.DataUtil;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Key;
@@ -24,6 +26,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -52,7 +55,13 @@ public class AttributeListeners {
             Key<ListValue<Text>> key = Keys.ITEM_LORE;
             ItemStack item = transaction.getFinal().createStack();
             if (DataUtil.hasData(item)) {
-                if (Attributes.NO_LORE.getValues(item).isEmpty()) {
+                ImmutableList<StringValue> template = Attributes.LORE_TEMPLATE.getValues(item);
+                if (!template.isEmpty()) {
+                    String string = template.get(0).getString();
+                    List<Text> list = LoreTemplateService.instance().eval(string, ((Equipable) event.getTargetEntity()), item);
+                    item.offer(key, list);
+                    transaction.setCustom(item.createSnapshot());
+                } else if (Attributes.NO_LORE.getValues(item).isEmpty()) {
                     texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
                     Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
                     attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute, (Equipable) event.getTargetEntity()));

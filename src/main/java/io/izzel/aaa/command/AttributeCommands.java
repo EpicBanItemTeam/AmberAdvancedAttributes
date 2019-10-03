@@ -103,12 +103,21 @@ public class AttributeCommands {
         this.registerRangeValue(event, "level-cap");
         this.registerItemsCommand();
         this.registerNoLore(event, "no-lore");
+        this.registerLoreTemplate(event, "lore-template");
 
         event.register("aaa-id", StringValue.class, (v, e) -> ImmutableList.of());
     }
 
     private void registerItemsCommand() {
         this.commandManager.register(this.container, this.injector.getInstance(ItemCommand.class).callable(), "aaa-items");
+    }
+
+    private void registerLoreTemplate(Attribute.RegistryEvent event, String id) {
+        AttributeToLoreFunction<StringValue> function = (a, b) -> ImmutableList.of();
+        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        this.commandManager.register(this.container,
+                this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
+                "aaa-" + id);
     }
 
     private void registerNoLore(Attribute.RegistryEvent event, String id) {

@@ -66,6 +66,7 @@ public final class Attributes {
 
     // Alpha.4
     public static final Attribute<MarkerValue> NO_LORE;
+    public static final Attribute<StringValue> LORE_TEMPLATE;
 
     static {
         AttributeService service = AttributeService.instance();
@@ -124,6 +125,7 @@ public final class Attributes {
         CUSTOM_LORE = getAttributeById(service, "aaa-custom-lore");
 
         NO_LORE = getAttributeById(service, "aaa-no-lore");
+        LORE_TEMPLATE = getAttributeById(service, "aaa-lore-template");
     }
 
     private Attributes() {

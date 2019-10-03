@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.collector.AttributeCollectorImpl;
 import io.izzel.aaa.data.*;
+import io.izzel.aaa.template.LoreTemplateService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataManager;
 import org.spongepowered.api.data.DataSerializable;
@@ -36,8 +37,9 @@ public class AttributeServiceImpl implements AttributeService {
 
     @Inject
     public AttributeServiceImpl(PluginContainer container, ServiceManager serviceManager, EventManager eventManager, DataManager dataManager,
-                                EquipmentSlotService slot) {
+                                EquipmentSlotService slot, LoreTemplateService template) {
         Objects.requireNonNull(slot);
+        Objects.requireNonNull(template);
         serviceManager.setProvider(container, AttributeService.class, this);
         eventManager.registerListener(container, GamePreInitializationEvent.class, event -> {
             Data.register(dataManager);
