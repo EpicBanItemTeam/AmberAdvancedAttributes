@@ -5,3 +5,5 @@
 * [命令](/zh-cn/commands.md)
 * [权限](/zh-cn/permissions.md)
 * [所有属性](/zh-cn/attributes.md)
+
+* [常见问题](/zh-cn/faq.md)
