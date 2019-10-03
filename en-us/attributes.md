@@ -177,3 +177,8 @@ To set a inlay attribute,
     * Add `aaa-inlay-success` attributes to set the inlay success chance, when failed the gem disappeared.
 * Hold the item in mainhand with gem in offhand, then press `F` (swap hand) to perform inlay action.
 
+#### `potion-effect`
+
+Apply potion effects when attacking target
+
+Use `/aaa-potion-effect append <Type ID> <duration> [amplifier]` to add a potion effect

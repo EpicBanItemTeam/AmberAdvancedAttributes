@@ -175,3 +175,10 @@
     * 添加 `aaa-inlay-success` 属性设置镶嵌成功率，失败则物品（宝石）消失
 * 主手持物品，副手持宝石，按 `F` （交换主副手物品）键镶嵌
 
+#### `potion-effect`
+
+击中目标后应用药水效果
+
+使用 `/aaa-potion-effect append <效果ID> <时长> [倍数]` 添加一种药水效果到装备
+
+可以通过添加 `minecraft_server.jar` 内 `/assets/lang` 的语言文件实现效果名的汉化
