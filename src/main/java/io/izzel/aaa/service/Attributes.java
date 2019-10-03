@@ -69,7 +69,7 @@ public final class Attributes {
     public static final Attribute<StringValue> LORE_TEMPLATE;
 
     static {
-        AttributeService service = AttributeService.instance();
+        var service = AttributeService.instance();
 
         ATTACK = getAttributeById(service, "aaa-attack");
         TRACING = getAttributeById(service, "aaa-tracing");

@@ -31,7 +31,7 @@ public class AttributeCollectorImpl implements AttributeCollector {
 
     @Override
     public boolean submit() {
-        try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+        try (var frame = Sponge.getCauseStackManager().pushCauseFrame()) {
             Sponge.getEventManager().post(new Event(frame.getCurrentCause(), this.snapshot, this.collections));
             return this.collections.values().stream().mapToInt(List::size).sum() > 0;
         }
@@ -47,7 +47,7 @@ public class AttributeCollectorImpl implements AttributeCollector {
         @SuppressWarnings("unchecked")
         private Event(Cause cause, ItemStackSnapshot snapshot, Map<Attribute<?>, List<?>> collections) {
             this.attributes = Collections.unmodifiableSet(collections.keySet());
-            for (Attribute<?> key : this.attributes) {
+            for (var key : this.attributes) {
                 List value = collections.get(key);
                 if (value.isEmpty()) {
                     value.addAll(key.getValues(snapshot));

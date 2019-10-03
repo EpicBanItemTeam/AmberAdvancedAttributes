@@ -47,7 +47,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
         this.container = container;
         this.path = path;
         this.logger = logger;
-        Path resolve = path.resolve("items.conf");
+        var resolve = path.resolve("items.conf");
         this.loader = HoconConfigurationLoader.builder().setPath(resolve).build();
         game.getEventManager().registerListener(container, GameInitializationEvent.class, this::on);
         Task.builder().intervalTicks(20 * 3600).delayTicks(20 * 3600).execute(this::taskSave).submit(container);
@@ -55,10 +55,10 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
     }
 
     private void on(GameInitializationEvent event) throws Exception {
-        Path resolve = path.resolve("items.conf");
-        Config root = ConfigFactory.parseFile(resolve.toFile(), HoconConfigurationLoader.defaultParseOptions()).resolve();
-        Gson gson = new Gson();
-        for (Map.Entry<String, ConfigValue> entry : root.root().entrySet()) {
+        var resolve = path.resolve("items.conf");
+        var root = ConfigFactory.parseFile(resolve.toFile(), HoconConfigurationLoader.defaultParseOptions()).resolve();
+        var gson = new Gson();
+        for (var entry : root.root().entrySet()) {
             try {
                 DataContainer container;
                 if (entry.getValue().valueType() == ConfigValueType.STRING) {
@@ -70,7 +70,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
                 } else {
                     throw new NullPointerException();
                 }
-                Optional<ItemStack> deserialize = Sponge.getDataManager().deserialize(ItemStack.class, container);
+                var deserialize = Sponge.getDataManager().deserialize(ItemStack.class, container);
                 map.put(entry.getKey(), deserialize.get());
             } catch (Exception e) {
                 logger.error("Error deserializing item '{}': {}", entry.getKey(), e);
@@ -80,19 +80,19 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
 
     private void save(Map<String, ItemStack> map) {
         synchronized (writeLock) {
-            Path cur = path.resolve("items.conf");
+            var cur = path.resolve("items.conf");
             try {
                 if (Files.exists(cur)) {
-                    Path old = path.resolve("items.conf.old");
+                    var old = path.resolve("items.conf.old");
                     Files.move(cur, old, StandardCopyOption.REPLACE_EXISTING);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            CommentedConfigurationNode node = loader.createEmptyNode();
-            for (Map.Entry<String, ItemStack> entry : map.entrySet()) {
+            var node = loader.createEmptyNode();
+            for (var entry : map.entrySet()) {
                 try {
-                    ItemStack stack = entry.getValue();
+                    var stack = entry.getValue();
                     node.getNode(entry.getKey()).setValue(TypeToken.of(ItemStack.class), stack);
                 } catch (Exception e) {
                     logger.error("Error serializing item '{}': {}", entry.getKey(), e);
@@ -107,7 +107,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
     }
 
     private void taskSave() {
-        LinkedHashMap<String, ItemStack> copy = new LinkedHashMap<>(map);
+        var copy = new LinkedHashMap<String, ItemStack>(map);
         Task.builder().async().execute(() -> save(copy)).submit(container);
     }
 

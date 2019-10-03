@@ -47,7 +47,6 @@ import java.util.Set;
 public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
     private final CommandManager commandManager;
     private final ServiceManager serviceManager;
-    private final PluginManager pluginManager;
     private final EventManager eventManager;
     private final PluginContainer container;
     private final AmberLocale locale;
@@ -57,7 +56,6 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
     public ByteItemsProvider(AmberLocale locale, PluginContainer container, Game game, Injector injector) {
         this.commandManager = game.getCommandManager();
         this.serviceManager = game.getServiceManager();
-        this.pluginManager = game.getPluginManager();
         this.eventManager = game.getEventManager();
         this.container = container;
         this.locale = locale;
@@ -66,7 +64,7 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
 
     @Override
     public ByteItemsHandler get() {
-        ItemDbService service = injector.getInstance(ItemDbService.class);
+        var service = injector.getInstance(ItemDbService.class);
         return new ByteItemsHandler() {
             @Override
             public ItemStackSnapshot read(String id) {
@@ -75,9 +73,9 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
 
             @Override
             public ItemStackSnapshot save(String id, Player player) {
-                Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
+                var optional = player.getItemInHand(HandTypes.MAIN_HAND);
                 if (optional.isPresent()) {
-                    ItemStack stack = optional.get();
+                    var stack = optional.get();
                     service.save(stack, id);
                     return stack.createSnapshot();
                 } else {
@@ -122,23 +120,23 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
 
         @Override
         public ItemStackSnapshot read(String id) {
-            ByteItemsService service = serviceManager.provideUnchecked(ByteItemsService.class);
+            var service = serviceManager.provideUnchecked(ByteItemsService.class);
             return service.get(PREFIX + id).orElse(ItemStackSnapshot.NONE);
         }
 
         @Override
         public ItemStackSnapshot save(String id, Player player) throws CommandException {
-            Optional<ItemStack> optional = player.getItemInHand(HandTypes.MAIN_HAND);
+            var optional = player.getItemInHand(HandTypes.MAIN_HAND);
             playerReference.set(new WeakReference<>(player));
             try {
-                CommandMapping mapping = Iterables.getOnlyElement(commandManager.getAll("byte-items:bi"));
-                ByteItemsService service = serviceManager.provideUnchecked(ByteItemsService.class);
+                var mapping = Iterables.getOnlyElement(commandManager.getAll("byte-items:bi"));
+                var service = serviceManager.provideUnchecked(ByteItemsService.class);
                 if (service.get(PREFIX + id).isPresent()) {
-                    String arguments = "delete " + PREFIX + id;
+                    var arguments = "delete " + PREFIX + id;
                     mapping.getCallable().process(player, arguments);
                 }
                 if (optional.isPresent()) {
-                    String arguments = "save " + PREFIX + id;
+                    var arguments = "save " + PREFIX + id;
                     mapping.getCallable().process(player, arguments);
                     return optional.get().createSnapshot();
                 }
@@ -150,7 +148,7 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
 
         @Listener
         public void on(MessageChannelEvent event) {
-            Player player = playerReference.get().get();
+            var player = playerReference.get().get();
             if (player != null && event.getOriginalChannel().getMembers().contains(player)) {
                 event.setChannel(MessageChannel.TO_NONE);
             }
@@ -158,18 +156,18 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
 
         @Listener
         public void on(ClientConnectionEvent.Join event) {
-            SubjectData subjectData = event.getTargetEntity().getTransientSubjectData();
+            var subjectData = event.getTargetEntity().getTransientSubjectData();
             subjectData.setPermission(Collections.singleton(context), BYTE_ITEMS_PERMISSION, Tristate.TRUE);
         }
 
         @Listener
         public void on(GameStartingServerEvent event) {
-            PermissionService permissionService = serviceManager.provideUnchecked(PermissionService.class);
+            var permissionService = serviceManager.provideUnchecked(PermissionService.class);
             permissionService.registerContextCalculator(new ContextCalculator<Subject>() {
                 @Override
                 @NonnullByDefault
                 public void accumulateContexts(Subject target, Set<Context> acc) {
-                    Player player = playerReference.get().get();
+                    var player = playerReference.get().get();
                     if (player != null && player.getIdentifier().equals(target.getIdentifier())) {
                         acc.add(context);
                     }
@@ -179,7 +177,7 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
                 @NonnullByDefault
                 public boolean matches(Context c, Subject target) {
                     if (Objects.equals(c, context)) {
-                        Player player = playerReference.get().get();
+                        var player = playerReference.get().get();
                         return player != null && player.getIdentifier().equals(target.getIdentifier());
                     }
                     return false;

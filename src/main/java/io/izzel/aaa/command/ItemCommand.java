@@ -40,17 +40,17 @@ class ItemCommand {
                         GenericArguments.literal(Text.of("save"), "save")),
                         GenericArguments.string(Text.of("name")))
                 .executor((src, args) -> {
-                    String name = args.<String>getOne(Text.of("name")).orElse("null");
+                    var name = args.<String>getOne(Text.of("name")).orElse("null");
                     if (!NAME_PATTERN.matcher(name).matches()) {
                         this.locale.to(src, "commands.byte-items.invalid-name", name);
                         return CommandResult.success();
                     }
                     if (args.hasAny(Text.of("save"))) {
                         if (src instanceof Player) {
-                            Player player = (Player) src;
-                            Optional<ItemStack> stackOptional = player.getItemInHand(HandTypes.MAIN_HAND);
+                            var player = (Player) src;
+                            var stackOptional = player.getItemInHand(HandTypes.MAIN_HAND);
                             if (stackOptional.isPresent()) {
-                                ItemStack stack = stackOptional.get();
+                                var stack = stackOptional.get();
                                 if (DataUtil.hasData(stack)) {
                                     stack.remove(Keys.ITEM_LORE); // lore texts are generated
                                     Attributes.ID.setValues(stack, ImmutableList.of(StringValue.of(name)));
@@ -65,13 +65,13 @@ class ItemCommand {
                     }
                     if (args.hasAny(Text.of("give"))) {
                         if (src instanceof Player) {
-                            Player player = (Player) src;
-                            ItemStackSnapshot snapshot = this.biHandler.read(name);
+                            var player = (Player) src;
+                            var snapshot = this.biHandler.read(name);
                             if (snapshot.isEmpty()) {
                                 this.locale.to(src, "commands.byte-items.nonexist", name, "aaa-" + name);
                                 return CommandResult.success();
                             }
-                            InventoryTransactionResult result = player.getInventory().offer(snapshot.createStack());
+                            var result = player.getInventory().offer(snapshot.createStack());
                             if (InventoryTransactionResult.Type.SUCCESS.equals(result.getType())) {
                                 this.locale.to(src, "commands.byte-items.give-succeed", name, "aaa-" + name);
                                 return CommandResult.success();
@@ -85,10 +85,10 @@ class ItemCommand {
                         .arguments(GenericArguments.optionalWeak(GenericArguments.remainingJoinedStrings(Text.of("display"))))
                         .executor((src, args) -> {
                             if (src instanceof Player) {
-                                Optional<ItemStack> optional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                                var optional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                                 if (optional.isPresent()) {
-                                    ItemStack stack = optional.get();
-                                    String text = args.<String>getOne("display").orElse(null);
+                                    var stack = optional.get();
+                                    var text = args.<String>getOne("display").orElse(null);
                                     if (StringUtils.isNotEmpty(text)) {
                                         stack.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(text));
                                     } else {

@@ -28,10 +28,10 @@ class PossessCommand {
                 .arguments(GenericArguments.optional(GenericArguments.player(Text.of("player"))))
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
-                        Player target = args.<Player>getOne(Text.of("player")).orElse((Player) src);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var target = args.<Player>getOne(Text.of("player")).orElse((Player) src);
                         if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.setValues(stack, ImmutableList.of(target.getProfile()));
                                 this.locale.to(src, "commands.possess.mark-attribute", target.getName());
@@ -50,9 +50,9 @@ class PossessCommand {
                 .permission(AmberAdvancedAttributes.ID + ".command.aaa-publicize")
                 .executor((src, args) -> {
                     if (src instanceof Player) {
-                        Optional<ItemStack> stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
+                        var stackOptional = ((Player) src).getItemInHand(HandTypes.MAIN_HAND);
                         if (stackOptional.isPresent()) {
-                            ItemStack stack = stackOptional.get();
+                            var stack = stackOptional.get();
                             if (DataUtil.hasData(stack)) {
                                 attribute.clearValues(stack);
                                 this.locale.to(src, "commands.possess.unmark-attribute");

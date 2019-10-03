@@ -41,7 +41,7 @@ public class AttributeImpl<T extends DataSerializable> implements Attribute<T> {
 
     @Override
     public ImmutableListMultimap<Byte, Text> getLoreTexts(List<? extends T> values, Equipable equipable) {
-        Stream<Map.Entry<Byte, Text>> stream = this.toLoreFunction.toLoreTexts(values, equipable).stream();
+        var stream = this.toLoreFunction.toLoreTexts(values, equipable).stream();
         return stream.collect(ImmutableListMultimap.toImmutableListMultimap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

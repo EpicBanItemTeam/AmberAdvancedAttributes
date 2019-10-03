@@ -52,15 +52,15 @@ public class ArrowListener {
         event.getEntities().stream().filter(Projectile.class::isInstance).map(Projectile.class::cast)
                 .filter(it -> it.getShooter() instanceof Equipable && it.getShooter() instanceof Living)
                 .forEach(projectile -> {
-                    T shooter = (T) projectile.getShooter();
-                    double tracing = EquipmentUtil.allOf(shooter, Attributes.TRACING);
+                    var shooter = (T) projectile.getShooter();
+                    var tracing = EquipmentUtil.allOf(shooter, Attributes.TRACING);
                     if (Math.abs(tracing) > GenericMath.DBL_EPSILON) {
-                        Vector3d rot = shooter.getHeadRotation();
-                        double pitch = rot.getX();
-                        double yaw = rot.getY();
-                        double xz = Math.cos(Math.toRadians(pitch));
-                        Vector3d vec = new Vector3d(-xz * Math.sin(Math.toRadians(yaw)), -Math.sin(Math.toRadians(pitch)), xz * Math.cos(Math.toRadians(yaw)));
-                        Vector3d pos = shooter.getLocation().getPosition();
+                        var rot = shooter.getHeadRotation();
+                        var pitch = rot.getX();
+                        var yaw = rot.getY();
+                        var xz = Math.cos(Math.toRadians(pitch));
+                        var vec = new Vector3d(-xz * Math.sin(Math.toRadians(yaw)), -Math.sin(Math.toRadians(pitch)), xz * Math.cos(Math.toRadians(yaw)));
+                        var pos = shooter.getLocation().getPosition();
                         shooter.getNearbyEntities(DISTANCE).stream()
                                 .filter(it -> it != shooter)
                                 .filter(Living.class::isInstance)
@@ -69,7 +69,7 @@ public class ArrowListener {
                                 .ifPresent(living -> Task.builder().delayTicks(1).intervalTicks(1)
                                         .execute(new RedirectProjectileTask(tracing, projectile, living)).submit(this.provider.get()));
                     }
-                    double accelerate = EquipmentUtil.allOf(shooter, Attributes.ACCELERATE);
+                    var accelerate = EquipmentUtil.allOf(shooter, Attributes.ACCELERATE);
                     if (Math.abs(accelerate) > GenericMath.DBL_EPSILON) {
                         Task.builder().delayTicks(1).intervalTicks(1).execute(new AccelerateProjectileTask(accelerate, projectile));
                     }
@@ -88,7 +88,7 @@ public class ArrowListener {
 
         @Override
         public void accept(Task task) {
-            Projectile projectile = projectileWf.get();
+            var projectile = projectileWf.get();
             if (projectile == null || projectile.isOnGround()) {
                 task.cancel();
                 return;
@@ -113,15 +113,15 @@ public class ArrowListener {
 
         @Override
         public void accept(Task task) {
-            Projectile projectile = projectileWf.get();
-            Living living = targetWf.get();
+            var projectile = projectileWf.get();
+            var living = targetWf.get();
             if (projectile == null || projectile.isOnGround() || living == null) {
                 task.cancel();
                 return;
             }
 
-            Vector3d velocity = projectile.getVelocity();
-            Vector3d direction = living.getProperty(EyeLocationProperty.class)
+            var velocity = projectile.getVelocity();
+            var direction = living.getProperty(EyeLocationProperty.class)
                     .map(AbstractProperty::getValue).orElse(living.getLocation().getPosition())
                     .sub(projectile.getLocation().getPosition());
 

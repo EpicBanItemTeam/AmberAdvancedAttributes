@@ -48,7 +48,7 @@ public final class StringValue implements DataSerializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        StringValue that = (StringValue) o;
+        var that = (StringValue) o;
         return string.equals(that.string);
     }
 

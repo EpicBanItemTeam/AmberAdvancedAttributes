@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public class EquipmentUtil {
 
     public static Stream<Map.Entry<String, ItemStack>> itemsWithSlot(Equipable equipable) {
-        EquipmentSlotService service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
+        var service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
         return service.slots().stream()
                 .map(it -> Tuple.of(it, service.getItemStack(equipable, it)))
                 .filter(tuple -> {
@@ -33,7 +33,7 @@ public class EquipmentUtil {
                     if (!tuple.getSecond().isPresent()) return false;
                     List<MarkerValue> gem = Attributes.INLAY_GEM.getValues(tuple.getSecond().get());
                     if (!gem.isEmpty()) return false;
-                    ImmutableList<StringValue> values = Attributes.EQUIPMENT.getValues(tuple.getSecond().get());
+                    var values = Attributes.EQUIPMENT.getValues(tuple.getSecond().get());
                     return values.isEmpty() || values.stream()
                             .map(StringValue::getString)
                             .anyMatch(it -> it.equals(tuple.getFirst()));
@@ -46,13 +46,13 @@ public class EquipmentUtil {
     }
 
     public static <T extends RangeValue> double allOf(Equipable equipable, Attribute<T> attribute, double value) {
-        double result = value;
+        var result = value;
         List<T> collection = new ArrayList<>();
         Sponge.getCauseStackManager().pushCause(equipable);
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (Iterator<ItemStack> iterator = items(equipable).iterator(); iterator.hasNext(); collection.clear()) {
+        var random = ThreadLocalRandom.current();
+        for (var iterator = items(equipable).iterator(); iterator.hasNext(); collection.clear()) {
             if (AttributeCollector.of(iterator.next()).collect(attribute, collection).submit()) {
-                for (T range : collection) {
+                for (var range : collection) {
                     result += range.getFunction(random).applyAsDouble(result);
                 }
             }
@@ -67,7 +67,7 @@ public class EquipmentUtil {
     public static <T extends DataSerializable> boolean hasAny(Equipable equipable, Attribute<T> attribute) {
         List<T> collection = new ArrayList<>();
         Sponge.getCauseStackManager().pushCause(equipable);
-        for (Iterator<ItemStack> iterator = items(equipable).iterator(); iterator.hasNext(); collection.clear()) {
+        for (var iterator = items(equipable).iterator(); iterator.hasNext(); collection.clear()) {
             if (AttributeCollector.of(iterator.next()).collect(attribute, collection).submit()) {
                 return true;
             }

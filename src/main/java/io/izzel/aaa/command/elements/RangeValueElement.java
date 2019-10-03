@@ -37,33 +37,33 @@ public class RangeValueElement extends CommandElement {
     @Nullable
     @Override
     protected RangeValue parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        String string = args.next();
+        var string = args.next();
         try {
             if (string.endsWith("%")) {
-                double lowerBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
+                var lowerBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
                 if (!this.fixedValue && args.hasNext() && TO_LIST.contains(args.peek().toLowerCase())) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
-                        double upperBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
+                        var upperBound = Double.parseDouble(string.substring(0, string.length() - 1)) / 100;
                         return RangeValue.relative(lowerBound, upperBound);
                     } else {
-                        Optional<Text> text = this.locale.getAs("commands.args.range-consistency", TOKEN);
+                        var text = this.locale.getAs("commands.args.range-consistency", TOKEN);
                         throw args.createError(text.orElseThrow(IllegalStateException::new));
                     }
                 } else {
                     return RangeValue.relative(lowerBound);
                 }
             } else {
-                double lowerBound = Double.parseDouble(string);
+                var lowerBound = Double.parseDouble(string);
                 if (!this.fixedValue && args.hasNext() && TO_LIST.contains(args.peek().toLowerCase())) {
                     string = args.next();
                     string = args.next();
                     if (string.endsWith("%")) {
-                        Optional<Text> text = this.locale.getAs("commands.args.range-consistency", TOKEN);
+                        var text = this.locale.getAs("commands.args.range-consistency", TOKEN);
                         throw args.createError(text.orElseThrow(IllegalStateException::new));
                     } else {
-                        double upperBound = Double.parseDouble(string);
+                        var upperBound = Double.parseDouble(string);
                         return RangeValue.absolute(lowerBound, upperBound);
                     }
                 } else {
@@ -71,16 +71,16 @@ public class RangeValueElement extends CommandElement {
                 }
             }
         } catch (NumberFormatException e) {
-            Optional<Text> text = this.locale.getAs("commands.args.not-a-number", TOKEN, string);
+            var text = this.locale.getAs("commands.args.not-a-number", TOKEN, string);
             throw args.createError(text.orElseThrow(IllegalStateException::new));
         }
     }
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-        CommandArgs.Snapshot snapshot = args.getSnapshot();
+        var snapshot = args.getSnapshot();
         if (!this.fixedValue && args.nextIfPresent().isPresent()) {
-            Optional<String> literal = args.nextIfPresent();
+            var literal = args.nextIfPresent();
             if (literal.isPresent() && !args.hasNext()) {
                 args.applySnapshot(snapshot);
                 return TO_LIST;

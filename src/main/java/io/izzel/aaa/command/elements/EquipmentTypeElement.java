@@ -24,8 +24,8 @@ public class EquipmentTypeElement extends CommandElement {
     @Nullable
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        EquipmentSlotService service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
-        String next = args.next();
+        var service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
+        var next = args.next();
         if (service.slots().contains(next)) {
             return next;
         } else {
@@ -35,8 +35,8 @@ public class EquipmentTypeElement extends CommandElement {
 
     @Override
     public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-        EquipmentSlotService service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
-        List<String> all = args.getAll();
+        var service = Sponge.getServiceManager().provideUnchecked(EquipmentSlotService.class);
+        var all = args.getAll();
         return service.slots().stream().filter(it -> !all.contains(it))
                 .collect(Collectors.toList());
     }

@@ -43,12 +43,12 @@ public class MiscListener {
     public MiscListener(PluginContainer container, Game game) {
         game.getEventManager().registerListener(container, GameStartingServerEvent.class, event -> {
             Runnable executor = () -> {
-                for (Player player : game.getServer().getOnlinePlayers()) {
-                    double saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
-                    double starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
+                for (var player : game.getServer().getOnlinePlayers()) {
+                    var saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
+                    var starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
                     int food = player.get(Keys.FOOD_LEVEL).orElse(0);
                     player.offer(Keys.FOOD_LEVEL, food + (int) (saturation - starvation));
-                    double regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
+                    var regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
                     double max = player.get(Keys.MAX_HEALTH).orElse(0D);
                     double health = player.get(Keys.HEALTH).orElse(0D);
                     player.offer(Keys.HEALTH, Math.min(max, health + regen));
@@ -60,11 +60,11 @@ public class MiscListener {
 
     @Listener
     public void onBurn(DamageEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        Entity from = source.getSource();
+        var from = source.getSource();
         if (from instanceof Equipable) {
-            double burnRate = EquipmentUtil.allOf(((Equipable) from), Attributes.BURN_RATE);
+            var burnRate = EquipmentUtil.allOf(((Equipable) from), Attributes.BURN_RATE);
             if (random.nextDouble() < burnRate) {
-                double burn = EquipmentUtil.allOf(((Equipable) from), Attributes.BURN);
+                var burn = EquipmentUtil.allOf(((Equipable) from), Attributes.BURN);
                 to.offer(Keys.FIRE_TICKS, to.get(Keys.FIRE_TICKS).orElse(0) + (int) burn);
             }
         }
@@ -72,11 +72,11 @@ public class MiscListener {
 
     @Listener
     public void onLifeSteal(DamageEntityEvent event, @Supports(HealthData.class) @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        Entity from = source.getSource();
+        var from = source.getSource();
         if (from instanceof Equipable) {
-            double lifeStealRate = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL_RATE);
+            var lifeStealRate = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL_RATE);
             if (random.nextDouble() < lifeStealRate) {
-                double lifeSteal = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL);
+                var lifeSteal = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL);
                 to.offer(Keys.HEALTH, Math.min(to.get(Keys.MAX_HEALTH).orElse(0D), to.get(Keys.HEALTH).orElse(0D) + lifeSteal));
             }
         }
@@ -84,36 +84,36 @@ public class MiscListener {
 
     @Listener
     public void onKnockback(AttackEntityEvent event, @Getter("getTargetEntity") Entity to, @First EntityDamageSource source) {
-        Entity from = source.getSource();
+        var from = source.getSource();
         if (from instanceof Equipable) {
-            double knockback = EquipmentUtil.allOf(((Equipable) from), Attributes.KNOCKBACK);
+            var knockback = EquipmentUtil.allOf(((Equipable) from), Attributes.KNOCKBACK);
             event.setKnockbackModifier(event.getKnockbackModifier() + (int) knockback);
         }
     }
 
     @Listener()
     public void on(ChangeEntityEquipmentEvent event) {
-        Entity entity = event.getTargetEntity();
+        var entity = event.getTargetEntity();
         if (entity instanceof Equipable) {
             if (entity.supports(Keys.WALKING_SPEED)) {
-                double speed = EquipmentUtil.allOf(((Equipable) entity), Attributes.MOVE_SPEED, DEFAULT_MOVE_SPEED);
+                var speed = EquipmentUtil.allOf(((Equipable) entity), Attributes.MOVE_SPEED, DEFAULT_MOVE_SPEED);
                 entity.offer(Keys.WALKING_SPEED, speed);
             }
             // TODO double attackSpeed = EquipmentEquipmentUtil.allOf(((Equipable) entity), Attributes.ATTACK_SPEED, 0D);
             //  Keys.ATTACK_SPEED
             if (entity.supports(Keys.MAX_HEALTH)) {
-                double max = EquipmentUtil.allOf(((Equipable) entity), Attributes.MAX_HEALTH, DEFAULT_MAX_HEALTH);
+                var max = EquipmentUtil.allOf(((Equipable) entity), Attributes.MAX_HEALTH, DEFAULT_MAX_HEALTH);
                 entity.offer(Keys.MAX_HEALTH, max);
             }
             // TODO ((Player) entity).getCooldownTracker()..getCooldown()
         }
-        Transaction<ItemStackSnapshot> transaction = event.getTransaction();
+        var transaction = event.getTransaction();
         if (transaction.isValid()) {
-            ItemStack stack = transaction.getFinal().createStack();
-            ItemStackSnapshot originalStack = transaction.getOriginal();
+            var stack = transaction.getFinal().createStack();
+            var originalStack = transaction.getOriginal();
             if (originalStack.getType().equals(stack.getType()) && stack.supports(DurabilityData.class)) {
-                DurabilityData newData = stack.get(DurabilityData.class).get();
-                ImmutableDurabilityData oldData = originalStack.getOrCreate(ImmutableDurabilityData.class).get();
+                var newData = stack.get(DurabilityData.class).get();
+                var oldData = originalStack.getOrCreate(ImmutableDurabilityData.class).get();
 
                 if (Attributes.UNBREAKABLE.getValues(stack).isEmpty()) {
                     stack.offer(Keys.HIDE_UNBREAKABLE, Boolean.FALSE);
@@ -121,9 +121,9 @@ public class MiscListener {
 
                     List<RangeValue> data = Attributes.DURABILITY.getValues(stack);
                     if (!data.isEmpty()) {
-                        MutableBoundedValue<Integer> durability = newData.durability();
-                        double lower = data.stream().mapToDouble(RangeValue::getLowerBound).sum();
-                        double upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+                        var durability = newData.durability();
+                        var lower = data.stream().mapToDouble(RangeValue::getLowerBound).sum();
+                        var upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
 
                         lower = lower + durability.get() - oldData.durability().get();
                         Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(lower, upper)));
@@ -136,8 +136,8 @@ public class MiscListener {
 
                     List<RangeValue> data = Attributes.DURABILITY.getValues(stack);
                     if (!data.isEmpty()) {
-                        MutableBoundedValue<Integer> durability = newData.durability();
-                        double upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+                        var durability = newData.durability();
+                        var upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
 
                         Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(upper)));
 

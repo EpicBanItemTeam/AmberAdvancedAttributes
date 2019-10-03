@@ -23,7 +23,7 @@ public class TemplateStringElement extends CommandElement {
     @Nullable
     @Override
     protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-        String next = args.next();
+        var next = args.next();
         if (args.hasNext() && args.peek().equals("as")) {
             args.next();
             if (args.next().equals("hidden")) {

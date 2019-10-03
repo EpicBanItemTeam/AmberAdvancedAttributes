@@ -49,11 +49,11 @@ public class AttributeListeners {
     }
 
     private void on(ChangeEntityEquipmentEvent event) {
-        Transaction<ItemStackSnapshot> transaction = event.getTransaction();
+        var transaction = event.getTransaction();
         if (transaction.isValid() && event.getTargetEntity() instanceof Equipable) {
             ListMultimap<Byte, Text> texts;
-            Key<ListValue<Text>> key = Keys.ITEM_LORE;
-            ItemStack item = transaction.getFinal().createStack();
+            var key = Keys.ITEM_LORE;
+            var item = transaction.getFinal().createStack();
             if (DataUtil.hasData(item)) {
                 ImmutableList<StringValue> template = Attributes.LORE_TEMPLATE.getValues(item);
                 if (!template.isEmpty()) {
@@ -63,7 +63,7 @@ public class AttributeListeners {
                     transaction.setCustom(item.createSnapshot());
                 } else if (Attributes.NO_LORE.getValues(item).isEmpty()) {
                     texts = Multimaps.newListMultimap(new TreeMap<>(), ArrayList::new);
-                    Map<String, Attribute<?>> attributes = AttributeService.instance().getAttributes();
+                    var attributes = AttributeService.instance().getAttributes();
                     attributes.values().forEach(attribute -> DataUtil.collectLore(texts, item, attribute, (Equipable) event.getTargetEntity()));
                     item.offer(key, Multimaps.asMap(texts).values().stream().reduce(ImmutableList.of(), (a, b) -> {
                         if (a.isEmpty()) {

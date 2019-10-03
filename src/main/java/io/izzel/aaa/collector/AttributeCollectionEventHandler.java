@@ -40,14 +40,14 @@ public class AttributeCollectionEventHandler {
     }
 
     private void onInlay(AttributeCollectionEvent event) {
-        ItemStackSnapshot snapshot = event.getTargetItem();
+        var snapshot = event.getTargetItem();
         List<InlayData> inlay = Attributes.INLAY.getValues(snapshot);
         inlay.stream().filter(it -> it.getGem().isPresent())
                 .map(it -> it.getGem().get())
                 .map(handler::read)
                 .map(AttributeCollector::of)
                 .forEach(collector -> {
-                    for (Attribute<?> attribute : event.getCollectedAttributes()) {
+                    for (var attribute : event.getCollectedAttributes()) {
                         if (!attribute.equals(Attributes.INLAY_GEM))
                             collector = this.collect(attribute, event, collector);
                     }
@@ -58,7 +58,7 @@ public class AttributeCollectionEventHandler {
     private void onInlayDistinct(AttributeCollectionEvent event) {
         if (event.getCollectedAttributes().contains(Attributes.INLAY)) {
             Map<String, InlayData> map = new LinkedHashMap<>();
-            List<? super InlayData> list = event.getCollectionByAttribute(Attributes.INLAY);
+            var list = event.getCollectionByAttribute(Attributes.INLAY);
             list.stream()
                     .map(InlayData.class::cast)
                     .forEach(data -> map.compute(data.getSlot(), (s, oldData) -> {
@@ -73,15 +73,15 @@ public class AttributeCollectionEventHandler {
     private void onSuit(AttributeCollectionEvent event) {
         if (!event.getCause().contains(this.handler)) {
             if (event.getTargetEntity() instanceof Equipable) {
-                ItemStackSnapshot item = event.getTargetItem();
-                Equipable equipable = (Equipable) event.getTargetEntity();
-                for (StringValue value : Attributes.SUIT.getValues(item)) {
+                var item = event.getTargetItem();
+                var equipable = (Equipable) event.getTargetEntity();
+                for (var value : Attributes.SUIT.getValues(item)) {
                     if (EquipmentUtil
                             .items(equipable).filter(i -> !i.isEmpty())
                             .map(Attributes.SUIT::getValues).allMatch(values -> values.contains(value))) {
                         Sponge.getCauseStackManager().pushCause(this.handler);
-                        AttributeCollector collector = AttributeCollector.of(item);
-                        for (Attribute<?> attribute : event.getCollectedAttributes()) {
+                        var collector = AttributeCollector.of(item);
+                        for (var attribute : event.getCollectedAttributes()) {
                             collector = this.collect(attribute, event, collector);
                         }
                         collector.submit();
@@ -95,13 +95,13 @@ public class AttributeCollectionEventHandler {
         Set<StringValue> set = new LinkedHashSet<>(Attributes.TEMPLATE.getValues(event.getTargetItem()).reverse());
         Deque<StringValue> deque = new ArrayDeque<>(set);
         while (!deque.isEmpty()) {
-            String template = deque.removeLast().getString().replace(";", "");
-            ItemStackSnapshot templateItem = this.handler.read(template);
+            var template = deque.removeLast().getString().replace(";", "");
+            var templateItem = this.handler.read(template);
             if (!templateItem.isEmpty()) {
-                for (Attribute<?> attribute : event.getCollectedAttributes()) {
+                for (var attribute : event.getCollectedAttributes()) {
                     this.merge(attribute, event, templateItem);
                 }
-                for (StringValue value : Attributes.TEMPLATE.getValues(templateItem).reverse()) {
+                for (var value : Attributes.TEMPLATE.getValues(templateItem).reverse()) {
                     if (!set.contains(value)) {
                         deque.addLast(value);
                         set.add(value);

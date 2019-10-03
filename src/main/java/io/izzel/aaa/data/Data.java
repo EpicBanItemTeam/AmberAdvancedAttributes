@@ -36,15 +36,15 @@ public class Data extends AbstractData<Data, ImmutableData> {
     }
 
     static DataContainer fillContainer(DataContainer container, ListMultimap<String, ?> data) {
-        for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
-            String key = entry.getKey();
-            List<?> values = data.get(key);
+        for (var entry : AttributeService.instance().getAttributes().entrySet()) {
+            var key = entry.getKey();
+            var values = data.get(key);
             if (values.isEmpty()) {
-                DataQuery query = DataQuery.of(key);
+                var query = DataQuery.of(key);
                 container.remove(query);
             } else {
-                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
-                DataQuery query = DataQuery.of(key);
+                var clazz = entry.getValue().getDataClass();
+                var query = DataQuery.of(key);
                 if (MarkerValue.class == clazz) {
                     container.set(query, values.size());
                 } else {
@@ -56,11 +56,11 @@ public class Data extends AbstractData<Data, ImmutableData> {
     }
 
     static Data fromContainer(DataView container, Data data) {
-        for (Map.Entry<String, Attribute<?>> entry : AttributeService.instance().getAttributes().entrySet()) {
-            String key = entry.getKey();
-            DataQuery query = DataQuery.of(key);
+        for (var entry : AttributeService.instance().getAttributes().entrySet()) {
+            var key = entry.getKey();
+            var query = DataQuery.of(key);
             if (container.contains(query)) {
-                Class<? extends DataSerializable> clazz = entry.getValue().getDataClass();
+                var clazz = entry.getValue().getDataClass();
                 if (MarkerValue.class == clazz) {
                     List<?> values = Collections.nCopies(container.getInt(query).orElse(0), MarkerValue.of());
                     data.data.replaceValues(key, values);
@@ -92,9 +92,9 @@ public class Data extends AbstractData<Data, ImmutableData> {
 
     @Override
     public Optional<Data> fill(DataHolder dataHolder, MergeFunction overlap) {
-        Data original = dataHolder.get(Data.class).orElse(null);
-        Data data = overlap.merge(this, original);
-        for (String id : AttributeService.instance().getAttributes().keySet()) {
+        var original = dataHolder.get(Data.class).orElse(null);
+        var data = overlap.merge(this, original);
+        for (var id : AttributeService.instance().getAttributes().keySet()) {
             this.data.replaceValues(id, data.data.get(id));
         }
         return Optional.of(this);

@@ -44,9 +44,7 @@ dependencies {
 }
 
 compileJava {
-    options.compilerArgs = [
-            "--release", "8" // Avoid using Java 12 APIs
-    ]
+    options.compilerArgs = ['--release', '8']
 }
 
 shadowJar {

@@ -54,8 +54,8 @@ public interface Attribute<T extends DataSerializable> {
         } else if (index == -1) {
             appendValue(item, value);
         } else {
-            ImmutableList<T> oldValues = this.getValues(item);
-            final int size = oldValues.size();
+            var oldValues = this.getValues(item);
+            final var size = oldValues.size();
             if (index == size) {
                 this.setValues(item, ImmutableList.<T>builder().addAll(oldValues).add(value).build());
             } else {
