@@ -6,28 +6,19 @@ import com.google.common.collect.Multimaps;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import io.izzel.aaa.data.StringValue;
-import io.izzel.aaa.service.Attribute;
 import io.izzel.aaa.service.AttributeService;
 import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.template.LoreTemplateService;
 import io.izzel.aaa.util.DataUtil;
-import org.spongepowered.api.data.Transaction;
-import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.value.mutable.ListValue;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.EventManager;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -55,10 +46,10 @@ public class AttributeListeners {
             var key = Keys.ITEM_LORE;
             var item = transaction.getFinal().createStack();
             if (DataUtil.hasData(item)) {
-                ImmutableList<StringValue> template = Attributes.LORE_TEMPLATE.getValues(item);
+                var template = Attributes.LORE_TEMPLATE.getValues(item);
                 if (!template.isEmpty()) {
-                    String string = template.get(0).getString();
-                    List<Text> list = LoreTemplateService.instance().eval(string, ((Equipable) event.getTargetEntity()), item);
+                    var string = template.get(0).getString();
+                    var list = LoreTemplateService.instance().eval(string, ((Equipable) event.getTargetEntity()), item);
                     item.offer(key, list);
                     transaction.setCustom(item.createSnapshot());
                 } else if (Attributes.NO_LORE.getValues(item).isEmpty()) {

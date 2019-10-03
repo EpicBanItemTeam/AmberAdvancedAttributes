@@ -114,7 +114,7 @@ public class AttributeCommands {
 
     private void registerLoreTemplate(Attribute.RegistryEvent event, String id) {
         AttributeToLoreFunction<StringValue> function = (a, b) -> ImmutableList.of();
-        Attribute<StringValue> attribute = event.register("aaa-" + id, StringValue.class, function);
+        var attribute = event.register("aaa-" + id, StringValue.class, function);
         this.commandManager.register(this.container,
                 this.command.callable(attribute, id, new StringValueElement(Text.of("string"))),
                 "aaa-" + id);

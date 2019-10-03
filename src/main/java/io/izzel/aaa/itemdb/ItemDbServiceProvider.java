@@ -5,11 +5,8 @@ import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
@@ -28,7 +25,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Singleton
 public final class ItemDbServiceProvider implements Provider<ItemDbService> {
@@ -54,7 +54,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
         game.getEventManager().registerListener(container, GameStoppingServerEvent.class, event -> save(map));
     }
 
-    private void on(GameInitializationEvent event) throws Exception {
+    private void on(GameInitializationEvent event) {
         var resolve = path.resolve("items.conf");
         var root = ConfigFactory.parseFile(resolve.toFile(), HoconConfigurationLoader.defaultParseOptions()).resolve();
         var gson = new Gson();
@@ -107,7 +107,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
     }
 
     private void taskSave() {
-        var copy = new LinkedHashMap<String, ItemStack>(map);
+        var copy = new LinkedHashMap<>(map);
         Task.builder().async().execute(() -> save(copy)).submit(container);
     }
 

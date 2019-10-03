@@ -5,7 +5,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.izzel.aaa.service.AttributeService;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
@@ -17,7 +16,10 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import javax.script.*;
+import javax.script.Compilable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,7 +31,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -41,14 +42,14 @@ final class LoreTemplateServiceImpl implements LoreTemplateService {
     @Inject
     public LoreTemplateServiceImpl(PluginContainer container, @ConfigDir(sharedRoot = false) Path dir) {
         Sponge.getServiceManager().setProvider(container, LoreTemplateService.class, this);
-        Path resolve = dir.resolve("templates.conf");
+        var resolve = dir.resolve("templates.conf");
         try {
             if (!Files.exists(resolve)) {
                 Files.createDirectories(dir);
                 Files.createFile(resolve);
             }
-            CommentedConfigurationNode root = HoconConfigurationLoader.builder().setPath(resolve).build().load();
-            for (Map.Entry<Object, ? extends CommentedConfigurationNode> entry : root.getChildrenMap().entrySet()) {
+            var root = HoconConfigurationLoader.builder().setPath(resolve).build().load();
+            for (var entry : root.getChildrenMap().entrySet()) {
                 try {
                     map.put(entry.getKey().toString(), compile(entry.getValue().getString().trim()));
                 } catch (Exception e) {
@@ -74,21 +75,21 @@ final class LoreTemplateServiceImpl implements LoreTemplateService {
     private static final ScriptEngine JS = new ScriptEngineManager().getEngineByExtension("js");
 
     private BiFunction<Equipable, ItemStack, List<Text>> compile(String script) throws Exception {
-        Matcher matcher = PATTERN.matcher(script);
-        StringBuilder builder = new StringBuilder();
+        var matcher = PATTERN.matcher(script);
+        var builder = new StringBuilder();
         while (matcher.find()) {
             if (builder.length() == 0) {
                 appendEscaped(builder, script.substring(0, matcher.start()));
             }
             builder.append('{').append(matcher.group("c")).append('}');
-            String p = matcher.group("p");
+            var p = matcher.group("p");
             if (p != null) appendEscaped(builder, p);
         }
-        AttributeService service = AttributeService.instance();
-        CompiledScript compiled = ((Compilable) JS).compile(builder.toString());
+        var service = AttributeService.instance();
+        var compiled = ((Compilable) JS).compile(builder.toString());
         return (equipable, itemStack) -> {
-            StringBuilder sb = new StringBuilder();
-            Bindings bindings = compiled.getEngine().createBindings();
+            var sb = new StringBuilder();
+            var bindings = compiled.getEngine().createBindings();
             bindings.put("entity", equipable);
             bindings.put("item", itemStack);
             bindings.put("attr", (Function<String, List<DataSerializable>>)
@@ -111,7 +112,7 @@ final class LoreTemplateServiceImpl implements LoreTemplateService {
 
     private void appendEscaped(StringBuilder builder, String text) {
         builder.append("print(\"");
-        for (char c : text.toCharArray()) {
+        for (var c : text.toCharArray()) {
             switch (c) {
                 case '\r' -> {} // no crlf
                 case '\'', '\"', '\\', '\n', '\t', '\b', '\f' -> builder.append('\\').append(c);

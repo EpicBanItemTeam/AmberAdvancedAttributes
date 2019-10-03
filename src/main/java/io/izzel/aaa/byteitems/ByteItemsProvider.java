@@ -12,7 +12,6 @@ import io.izzel.amber.commons.i18n.AmberLocale;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandManager;
-import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.EventManager;
@@ -23,13 +22,11 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.service.ServiceManager;
 import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.service.permission.Subject;
-import org.spongepowered.api.service.permission.SubjectData;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageChannel;
 import org.spongepowered.api.util.Tristate;
@@ -163,7 +160,7 @@ public final class ByteItemsProvider implements Provider<ByteItemsHandler> {
         @Listener
         public void on(GameStartingServerEvent event) {
             var permissionService = serviceManager.provideUnchecked(PermissionService.class);
-            permissionService.registerContextCalculator(new ContextCalculator<Subject>() {
+            permissionService.registerContextCalculator(new ContextCalculator<>() {
                 @Override
                 @NonnullByDefault
                 public void accumulateContexts(Subject target, Set<Context> acc) {

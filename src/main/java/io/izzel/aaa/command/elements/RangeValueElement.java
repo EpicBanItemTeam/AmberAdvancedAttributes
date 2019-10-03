@@ -14,7 +14,6 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Values can be: 1, 10%, 1 to 2, 10% to 20%

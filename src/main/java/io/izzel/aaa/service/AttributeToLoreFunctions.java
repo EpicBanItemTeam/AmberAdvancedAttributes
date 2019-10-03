@@ -15,7 +15,6 @@ import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.profile.GameProfile;
 import org.spongepowered.api.text.Text;
@@ -24,10 +23,8 @@ import org.spongepowered.api.text.TranslatableText;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static io.izzel.aaa.listener.AttributeListeners.LORE_SEPARATOR;
 

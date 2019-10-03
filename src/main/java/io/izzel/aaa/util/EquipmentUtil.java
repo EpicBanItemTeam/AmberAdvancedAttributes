@@ -1,6 +1,5 @@
 package io.izzel.aaa.util;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.izzel.aaa.collector.AttributeCollector;
 import io.izzel.aaa.data.MarkerValue;
@@ -16,7 +15,6 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.util.Tuple;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
