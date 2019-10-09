@@ -72,7 +72,7 @@ public class MiscListener {
             var lifeStealRate = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL_RATE);
             if (random.nextDouble() < lifeStealRate) {
                 var lifeSteal = EquipmentUtil.allOf(((Equipable) from), Attributes.LIFE_STEAL);
-                to.offer(Keys.HEALTH, Math.min(to.get(Keys.MAX_HEALTH).orElse(0D), to.get(Keys.HEALTH).orElse(0D) + lifeSteal));
+                from.offer(Keys.HEALTH, from.get(Keys.HEALTH).orElse(0D) + lifeSteal);
             }
         }
     }
