@@ -122,7 +122,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
 
             @Override
             public void save(ItemStack stack, String id) {
-                map.put(id, stack);
+                map.put(id, stack.copy());
             }
 
             @Override

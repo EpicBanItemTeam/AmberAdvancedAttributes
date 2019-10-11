@@ -35,7 +35,8 @@ class ItemCommand {
                 .arguments(GenericArguments.firstParsing(
                         GenericArguments.literal(Text.of("give"), "give"),
                         GenericArguments.literal(Text.of("save"), "save")),
-                        GenericArguments.string(Text.of("name")))
+                        GenericArguments.string(Text.of("name")),
+                        GenericArguments.playerOrSource(Text.of("to")))
                 .executor((src, args) -> {
                     var name = args.<String>getOne(Text.of("name")).orElse("null");
                     if (!NAME_PATTERN.matcher(name).matches()) {
@@ -61,8 +62,9 @@ class ItemCommand {
                         this.locale.to(src, "commands.drop.nonexist");
                     }
                     if (args.hasAny(Text.of("give"))) {
-                        if (src instanceof Player) {
-                            var player = (Player) src;
+                        var optional = args.<Player>getOne("to");
+                        if (optional.isPresent()) {
+                            var player = optional.get();
                             var snapshot = this.biHandler.read(name);
                             if (snapshot.isEmpty()) {
                                 this.locale.to(src, "commands.byte-items.nonexist", name, "aaa-" + name);
