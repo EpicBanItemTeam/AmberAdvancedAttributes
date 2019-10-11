@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigParseOptions;
 import com.typesafe.config.ConfigValueType;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public final class ItemDbServiceProvider implements Provider<ItemDbService> {
 
     private void on(GameInitializationEvent event) {
         var resolve = path.resolve("items.conf");
-        var root = ConfigFactory.parseFile(resolve.toFile(), HoconConfigurationLoader.defaultParseOptions()).resolve();
+        var root = ConfigFactory.parseFile(resolve.toFile(), ConfigParseOptions.defaults()).resolve();
         var gson = new Gson();
         for (var entry : root.root().entrySet()) {
             try {
