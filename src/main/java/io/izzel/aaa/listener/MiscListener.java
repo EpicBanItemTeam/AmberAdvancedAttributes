@@ -39,14 +39,16 @@ public class MiscListener {
         game.getEventManager().registerListener(container, GameStartingServerEvent.class, event -> {
             Runnable executor = () -> {
                 for (var player : game.getServer().getOnlinePlayers()) {
-                    var saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
-                    var starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
-                    int food = player.get(Keys.FOOD_LEVEL).orElse(0);
-                    player.offer(Keys.FOOD_LEVEL, food + (int) (saturation - starvation));
-                    var regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
-                    double max = player.get(Keys.MAX_HEALTH).orElse(0D);
-                    double health = player.get(Keys.HEALTH).orElse(0D);
-                    player.offer(Keys.HEALTH, Math.min(max, health + regen));
+                    if (player.get(Keys.HEALTH).orElse(0D) > 0D) {
+                        var saturation = EquipmentUtil.allOf(player, Attributes.SATURATION);
+                        var starvation = EquipmentUtil.allOf(player, Attributes.STARVATION);
+                        int food = player.get(Keys.FOOD_LEVEL).orElse(0);
+                        player.offer(Keys.FOOD_LEVEL, food + (int) (saturation - starvation));
+                        var regen = EquipmentUtil.allOf(player, Attributes.REGENERATION);
+                        double max = player.get(Keys.MAX_HEALTH).orElse(0D);
+                        double health = player.get(Keys.HEALTH).orElse(0D);
+                        player.offer(Keys.HEALTH, Math.min(max, health + regen));
+                    }
                 }
             };
             Task.builder().delayTicks(20).intervalTicks(20).execute(executor).submit(container);
