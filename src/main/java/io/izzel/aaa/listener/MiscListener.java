@@ -123,7 +123,7 @@ public class MiscListener {
                         var upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
 
                         lower = lower + durability.get() - oldData.durability().get();
-                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(lower, upper)));
+                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(Math.min(lower, upper), upper)));
 
                         stack.offer(newData.set(durability.set(Math.min((int) lower, durability.getMaxValue()))));
                     }
