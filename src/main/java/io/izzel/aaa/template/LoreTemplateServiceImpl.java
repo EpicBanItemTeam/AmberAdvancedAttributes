@@ -23,10 +23,7 @@ import javax.script.ScriptException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -63,12 +60,12 @@ final class LoreTemplateServiceImpl implements LoreTemplateService {
 
     @Override
     public List<Text> eval(String name, Equipable entity, ItemStack itemStack) {
-        return map.get(name).apply(entity, itemStack);
+        return Optional.of(map.get(name)).map(it -> it.apply(entity, itemStack)).orElse(ImmutableList.of());
     }
 
     @Override
     public List<Text> eval(String name, Equipable entity, ItemStackSnapshot itemStack) {
-        return map.get(name).apply(entity, itemStack.createStack());
+        return Optional.of(map.get(name)).map(it -> it.apply(entity, itemStack.createStack())).orElse(ImmutableList.of());
     }
 
     private static final Pattern PATTERN = Pattern.compile("(?s)\\{\\{(?<c>(?!}}[^}]).)+}}(?<p>((?!\\{\\{).)+)?");
