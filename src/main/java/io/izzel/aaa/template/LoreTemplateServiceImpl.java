@@ -60,12 +60,12 @@ final class LoreTemplateServiceImpl implements LoreTemplateService {
 
     @Override
     public List<Text> eval(String name, Equipable entity, ItemStack itemStack) {
-        return Optional.of(map.get(name)).map(it -> it.apply(entity, itemStack)).orElse(ImmutableList.of());
+        return Optional.ofNullable(map.get(name)).map(it -> it.apply(entity, itemStack)).orElse(ImmutableList.of());
     }
 
     @Override
     public List<Text> eval(String name, Equipable entity, ItemStackSnapshot itemStack) {
-        return Optional.of(map.get(name)).map(it -> it.apply(entity, itemStack.createStack())).orElse(ImmutableList.of());
+        return Optional.ofNullable(map.get(name)).map(it -> it.apply(entity, itemStack.createStack())).orElse(ImmutableList.of());
     }
 
     private static final Pattern PATTERN = Pattern.compile("(?s)\\{\\{(?<c>(?!}}[^}]).)+}}(?<p>((?!\\{\\{).)+)?");
