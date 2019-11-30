@@ -5,6 +5,7 @@ import io.izzel.aaa.collector.AttributeCollectionEventHandler;
 import io.izzel.aaa.command.AttributeCommands;
 import io.izzel.aaa.listener.AttributeListeners;
 import io.izzel.aaa.service.AttributeService;
+import io.izzel.aaa.util.internal.org.bstats.sponge.Metrics;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 
@@ -23,10 +24,12 @@ public class AmberAdvancedAttributes {
     public AmberAdvancedAttributes(AttributeListeners listeners,
                                    AttributeCommands commands,
                                    AttributeService service,
-                                   AttributeCollectionEventHandler handler) {
+                                   AttributeCollectionEventHandler handler,
+                                   Metrics metrics) {
         Objects.requireNonNull(listeners);
         Objects.requireNonNull(commands);
         Objects.requireNonNull(service);
         Objects.requireNonNull(handler);
+        Objects.requireNonNull(metrics);
     }
 }
