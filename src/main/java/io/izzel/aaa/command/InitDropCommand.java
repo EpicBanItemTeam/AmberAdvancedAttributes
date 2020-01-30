@@ -3,7 +3,9 @@ package io.izzel.aaa.command;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import io.izzel.aaa.AmberAdvancedAttributes;
+import io.izzel.aaa.data.MarkerValue;
 import io.izzel.aaa.service.Attribute;
+import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.DataUtil;
 import io.izzel.amber.commons.i18n.AmberLocale;
 import io.izzel.amber.commons.i18n.args.Arg;
@@ -34,8 +36,12 @@ class InitDropCommand {
                                 this.locale.to(src, "commands.init.already-exist");
                             } else {
                                 attribute.setValues(stack, stack.get(Keys.ITEM_LORE).orElse(ImmutableList.of()));
-                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                                 this.locale.to(src, "commands.init.succeed");
+                                if (stack.getType().getId().contains("slashblade")) {
+                                    Attributes.NO_LORE.setValues(stack, ImmutableList.of(MarkerValue.of()));
+                                    this.locale.to(src, "commands.init.slash-blade-attention");
+                                }
+                                ((Player) src).setItemInHand(HandTypes.MAIN_HAND, stack);
                             }
                             return CommandResult.success();
                         }

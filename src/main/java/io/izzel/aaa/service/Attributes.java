@@ -30,7 +30,7 @@ public final class Attributes {
 
     public static final Attribute<RangeValue.Fixed> ATTACK_SPEED; // todo
     public static final Attribute<RangeValue.Fixed> MOVE_SPEED;
-    public static final Attribute<RangeValue> DURABILITY;
+    //public static final Attribute<RangeValue> DURABILITY;
     public static final Attribute<MarkerValue> UNBREAKABLE;
     public static final Attribute<RangeValue> LOOT_RATE;
     public static final Attribute<MarkerValue> LOOT_IMMUNE;
@@ -93,7 +93,7 @@ public final class Attributes {
 
         ATTACK_SPEED = getAttributeById(service, "aaa-attack-speed");
         MOVE_SPEED = getAttributeById(service, "aaa-move-speed");
-        DURABILITY = getAttributeById(service, "aaa-durability");
+        //DURABILITY = getAttributeById(service, "aaa-durability");
         UNBREAKABLE = getAttributeById(service, "aaa-unbreakable");
         LOOT_RATE = getAttributeById(service, "aaa-loot-rate");
         LOOT_IMMUNE = getAttributeById(service, "aaa-loot-immune");
