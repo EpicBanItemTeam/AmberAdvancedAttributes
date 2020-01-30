@@ -1,16 +1,12 @@
 package io.izzel.aaa.listener;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.izzel.aaa.data.RangeValue;
 import io.izzel.aaa.service.Attributes;
 import io.izzel.aaa.util.EquipmentUtil;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.manipulator.immutable.item.ImmutableDurabilityData;
 import org.spongepowered.api.data.manipulator.mutable.entity.HealthData;
-import org.spongepowered.api.data.manipulator.mutable.item.DurabilityData;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.Equipable;
 import org.spongepowered.api.event.Listener;
@@ -25,7 +21,6 @@ import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.Task;
 
-import java.util.List;
 import java.util.Random;
 
 @Singleton
@@ -88,7 +83,7 @@ public class MiscListener {
         }
     }
 
-    @Listener()
+    @Listener
     public void on(ChangeEntityEquipmentEvent event) {
         var entity = event.getTargetEntity();
         if (entity instanceof Equipable) {
@@ -104,6 +99,9 @@ public class MiscListener {
             }
             // TODO ((Player) entity).getCooldownTracker()..getCooldown()
         }
+
+        // todo 这里不能良好的处理更换物品，做成附属用 Mixin 实现
+        /*
         var transaction = event.getTransaction();
         if (transaction.isValid()) {
             var stack = transaction.getFinal().createStack();
@@ -111,38 +109,34 @@ public class MiscListener {
             if (originalStack.getType().equals(stack.getType()) && stack.supports(DurabilityData.class)) {
                 var newData = stack.get(DurabilityData.class).get();
                 var oldData = originalStack.getOrCreate(ImmutableDurabilityData.class).get();
-
-                if (Attributes.UNBREAKABLE.getValues(stack).isEmpty()) {
-                    stack.offer(Keys.HIDE_UNBREAKABLE, Boolean.FALSE);
-                    newData.set(newData.unbreakable().set(Boolean.FALSE));
-
+                var delta = newData.durability().get() - oldData.durability().get();
+                if (delta != 0) {
                     List<RangeValue> data = Attributes.DURABILITY.getValues(stack);
                     if (!data.isEmpty()) {
-                        var durability = newData.durability();
-                        var lower = data.stream().mapToDouble(RangeValue::getLowerBound).sum();
-                        var upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+                        if (Attributes.UNBREAKABLE.getValues(stack).isEmpty()) {
+                            stack.offer(Keys.HIDE_UNBREAKABLE, Boolean.FALSE);
+                            newData.set(newData.unbreakable().set(Boolean.FALSE));
 
-                        lower = lower + durability.get() - oldData.durability().get();
-                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(Math.min(lower, upper), upper)));
+                            var durability = newData.durability();
+                            var upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+                            var lower = Math.min(
+                                data.stream().mapToDouble(RangeValue::getLowerBound).sum() + delta,
+                                upper
+                            );
 
-                        stack.offer(newData.set(durability.set(Math.min((int) lower, durability.getMaxValue()))));
-                    }
-                } else {
-                    stack.offer(Keys.HIDE_UNBREAKABLE, Boolean.TRUE);
-                    newData.set(newData.unbreakable().set(Boolean.TRUE));
+                            Attributes.DURABILITY.setValues(stack,
+                                ImmutableList.of(RangeValue.absolute(lower, upper)));
 
-                    List<RangeValue> data = Attributes.DURABILITY.getValues(stack);
-                    if (!data.isEmpty()) {
-                        var durability = newData.durability();
-                        var upper = data.stream().mapToDouble(RangeValue::getUpperBound).sum();
+                            if (lower != newData.durability().get()) {
+                                stack.offer(newData.set(durability.set(Math.min((int) lower, durability.getMaxValue()))));
 
-                        Attributes.DURABILITY.setValues(stack, ImmutableList.of(RangeValue.absolute(upper)));
-
-                        stack.offer(newData.set(durability.set(Math.min((int) upper, durability.getMaxValue()))));
+                                transaction.setCustom(stack.createSnapshot());
+                            }
+                        }
+                        // todo offer unbreakable when marking unbreakable attr
                     }
                 }
-                transaction.setCustom(stack.createSnapshot());
             }
-        }
+        }*/
     }
 }

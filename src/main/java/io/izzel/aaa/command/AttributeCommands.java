@@ -72,7 +72,7 @@ public class AttributeCommands {
         this.registerRangeValue(event, "accelerate");
         this.registerRangeValueFixed(event, "attack-speed");
         this.registerRangeValueFixed(event, "move-speed");
-        this.registerDurabilityValue(event, "durability");
+        //this.registerDurabilityValue(event, "durability");
         this.registerMarkerValue(event, "unbreakable");
         this.registerRangeValue(event, "loot-rate");
         this.registerMarkerValue(event, "loot-immune");
