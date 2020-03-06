@@ -1,0 +1,8 @@
+.idea
+.gradle
+out
+build
+gradlew.bat
+
+#for somebody who use **
+.vs

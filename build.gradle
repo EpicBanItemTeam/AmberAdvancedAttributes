@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = 'sponge'
+            url = 'https://repo.spongepowered.org/maven'
+        }
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'com.github.johnrengelman.shadow' version '4.0.4'
+}
+
+configurations {
+    version = '2.0.0-alpha.1'
+    group = 'io.izzel.amberadvancedattributes'
+    sponge.plugin.id = 'amberadvancedattributes'
+
+    defaultTasks 'clean', 'build'
+    tasks.build.dependsOn tasks.shadowJar
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+    sourceCompatibility = 12 // for the IDE support
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'jitpack'
+        url = 'https://jitpack.io'
+    }
+}
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
+    compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
+    compile 'com.github.randombyte-developer:byte-items:v2.4.1'
+    annotationProcessor 'com.github.bsideup.jabel:jabel-javac-plugin:0.2.0'
+}
+
+compileJava {
+    options.compilerArgs = ['--release', '8']
+}
+
+shadowJar {
+    minimize()
+    classifier = null
+    dependencies {
+        it.include it.dependency('com.github.IzzelAliz:.*')
+    }
+}
+
+jar {
+    classifier = 'pure'
+}
