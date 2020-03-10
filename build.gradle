@@ -9,23 +9,22 @@ buildscript {
 }
 
 plugins {
-    id 'java'
+    id 'scala'
     id 'org.spongepowered.plugin' version '0.8.1'
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
-configurations {
-    version = '2.0.0-alpha.1'
-    group = 'io.izzel.amberadvancedattributes'
+projects {
+    version '2.0.0-alpha.1'
+    group 'io.izzel.amberadvancedattributes'
     sponge.plugin.id = 'amberadvancedattributes'
 
     defaultTasks 'clean', 'build'
     tasks.build.dependsOn tasks.shadowJar
+}
 
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-    }
-    sourceCompatibility = 12 // for the IDE support
+configurations {
+    compilerPlugin
 }
 
 repositories {
@@ -37,24 +36,27 @@ repositories {
 }
 
 dependencies {
+    compile 'org.scala-lang:scala-library:2.11.1'
     compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
     compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
     compile 'com.github.randombyte-developer:byte-items:v2.4.1'
-    annotationProcessor 'com.github.bsideup.jabel:jabel-javac-plugin:0.2.0'
+    compile 'org.scala-lang.plugins:scala-continuations-library_2.11:1.0.2'
+    compilerPlugin 'org.scala-lang.plugins:scala-continuations-plugin_2.11.1:1.0.2'
 }
 
-compileJava {
-    options.compilerArgs = ['--release', '8']
+compileScala {
+    sourceCompatibility = targetCompatibility = '1.7'
+    scalaCompileOptions.additionalParameters = ['-Xplugin:' + configurations.compilerPlugin.asPath, '-P:continuations:enable']
 }
 
 shadowJar {
     minimize()
-    classifier = null
+    archiveClassifier.set(null)
     dependencies {
         it.include it.dependency('com.github.IzzelAliz:.*')
     }
 }
 
 jar {
-    classifier = 'pure'
+    archiveClassifier.set('pure')
 }
