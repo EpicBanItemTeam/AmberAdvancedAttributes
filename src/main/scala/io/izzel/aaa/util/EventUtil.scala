@@ -1,4 +1,4 @@
-package io.izzel.aaa
+package io.izzel.aaa.util
 
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.event.{Event, EventListener}
@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.reflect.{ClassTag, classTag}
 import scala.util.continuations.{shift, suspendable}
 
-package object util {
+object EventUtil {
   private val handlers: mutable.Map[Class[_ <: Event], mutable.Queue[(Event => Boolean, Event => Unit)]] = mutable.Map()
 
   private class ScalaEventListener[E <: Event: ClassTag](handler: E => Unit) extends EventListener[E] {

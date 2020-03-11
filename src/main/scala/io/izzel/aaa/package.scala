@@ -1,6 +1,7 @@
 package io.izzel
 
 import com.google.inject.Inject
+import io.izzel.aaa.util.EventUtil._
 import io.izzel.amber.commons.i18n.AmberLocale
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent
 import org.spongepowered.api.plugin.{Dependency, Plugin, PluginContainer}
@@ -14,10 +15,11 @@ package object aaa {
   final val name = "Amber" + "Advanced" + "Attributes"
   final val dependency = "scala" + "dependency" + "loader"
 
+  // noinspection ScalaUnusedSymbol
   @Plugin(id = id, name = name, description = name, dependencies = Array(new Dependency(id = dependency)))
-  class AmberAdvancedAttributes @Inject()(implicit container: PluginContainer, locale: AmberLocale) {
+  class AmberAdvancedAttributes @Inject()(implicit container: PluginContainer, locale: AmberLocale, dataManager: data.DataManager) {
     reset {
-      util.waitFor[GamePreInitializationEvent]
+      waitFor[GamePreInitializationEvent]
       locale.log("log.hello-world",
         Text.of(TextColors.LIGHT_PURPLE, name),
         Text.of(TextColors.LIGHT_PURPLE, container.getVersion.orElse("unknown")))
