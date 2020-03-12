@@ -46,6 +46,7 @@ dependencies {
     compile 'org.scala-lang:scala-library:2.11.1'
     compile 'org.scala-lang:scala-reflect:2.11.1'
     compile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
+    apiCompile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
     compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
     compile 'com.github.randombyte-developer:byte-items:v2.4.1'
     compile 'org.scala-lang.plugins:scala-continuations-library_2.11:1.0.2'
