@@ -10,16 +10,16 @@ import org.spongepowered.api.plugin.PluginContainer
 import scala.util.continuations.reset
 
 @Singleton
-class DataManager @Inject()(implicit container: PluginContainer, logger: Logger) {
+class CustomDataManager @Inject()(implicit container: PluginContainer, logger: Logger) {
   reset {
     waitFor[GamePreInitializationEvent]
-    logger.info("Registering data ...")
-    registerTemplateList()
+    logger.info("Registering custom data ...")
+    registerCustomTemplates()
   }
 
-  private def registerTemplateList(): Unit = {
-    import io.izzel.aaa.data.TemplateList._
+  private def registerCustomTemplates(): Unit = {
+    import io.izzel.aaa.data.CustomTemplates._
     DataRegistration.builder.id(id).name(name)
-      .dataClass[Data, ImmutableData](classOf[Data]).immutableClass(classOf[ImmutableData]).builder(DataBuilder).build()
+      .dataClass[Data, ImmutableData](classOf[Data]).immutableClass(classOf[ImmutableData]).builder(Builder).build()
   }
 }
