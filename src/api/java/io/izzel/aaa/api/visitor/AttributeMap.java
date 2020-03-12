@@ -7,8 +7,7 @@ import io.izzel.aaa.api.AttributeTemplate;
 import org.spongepowered.api.util.ResettableBuilder;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 @NonnullByDefault
@@ -23,6 +22,18 @@ public final class AttributeMap implements Consumer<AttributeVisitor> {
 
     private <T> void visitEntry(AttributeVisitor visitor, Attribute<T> key, Object value) {
         visitor.visit(key, key.getDataClass().cast(value));
+    }
+
+    public Set<? extends AttributeTemplate> getTemplates() {
+        return this.templates.keySet();
+    }
+
+    public Optional<AttributeMap> getAttributeMap(AttributeTemplate template) {
+        return Optional.ofNullable(this.templates.get(template));
+    }
+
+    public <T> List<? extends T> getAttributeDataList(Attribute<T> attribute) {
+        return Lists.transform(this.attributeData.get(attribute), attribute.getDataClass()::cast);
     }
 
     @Override
