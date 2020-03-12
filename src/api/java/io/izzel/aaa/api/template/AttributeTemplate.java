@@ -1,4 +1,4 @@
-package io.izzel.aaa.api;
+package io.izzel.aaa.api.template;
 
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.util.annotation.NonnullByDefault;

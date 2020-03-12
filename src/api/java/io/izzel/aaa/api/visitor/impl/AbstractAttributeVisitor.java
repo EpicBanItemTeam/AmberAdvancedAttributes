@@ -2,7 +2,7 @@ package io.izzel.aaa.api.visitor.impl;
 
 import com.google.common.base.Preconditions;
 import io.izzel.aaa.api.Attribute;
-import io.izzel.aaa.api.AttributeTemplate;
+import io.izzel.aaa.api.template.AttributeTemplate;
 import io.izzel.aaa.api.visitor.AttributeVisitor;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 

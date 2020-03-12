@@ -3,7 +3,7 @@ package io.izzel.aaa.api.visitor;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 import io.izzel.aaa.api.Attribute;
-import io.izzel.aaa.api.AttributeTemplate;
+import io.izzel.aaa.api.template.AttributeTemplate;
 import org.spongepowered.api.util.ResettableBuilder;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
