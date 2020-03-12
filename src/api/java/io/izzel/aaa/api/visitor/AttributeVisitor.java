@@ -3,6 +3,7 @@ package io.izzel.aaa.api.visitor;
 import com.google.common.base.Preconditions;
 import io.izzel.aaa.api.Attribute;
 import io.izzel.aaa.api.AttributeTemplate;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
  * Order:
@@ -12,6 +13,7 @@ import io.izzel.aaa.api.AttributeTemplate;
  *   - visitTemplateEnd
  * - visitEnd
  */
+@NonnullByDefault
 public interface AttributeVisitor {
     AttributeVisitor EMPTY = new AttributeVisitor() {
         @Override
@@ -42,6 +44,7 @@ public interface AttributeVisitor {
 
     void visitEnd();
 
+    @NonnullByDefault
     interface Templates {
         Templates EMPTY = new Templates() {
             @Override

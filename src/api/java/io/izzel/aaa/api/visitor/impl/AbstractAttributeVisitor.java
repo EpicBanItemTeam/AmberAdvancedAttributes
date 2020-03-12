@@ -4,7 +4,9 @@ import com.google.common.base.Preconditions;
 import io.izzel.aaa.api.Attribute;
 import io.izzel.aaa.api.AttributeTemplate;
 import io.izzel.aaa.api.visitor.AttributeVisitor;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+@NonnullByDefault
 public abstract class AbstractAttributeVisitor implements AttributeVisitor {
     protected final AttributeVisitor parent;
 
@@ -27,6 +29,7 @@ public abstract class AbstractAttributeVisitor implements AttributeVisitor {
         this.parent.visitEnd();
     }
 
+    @NonnullByDefault
     public abstract static class Templates implements AttributeVisitor.Templates {
         protected final AttributeVisitor.Templates parent;
 
