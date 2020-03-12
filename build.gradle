@@ -23,6 +23,13 @@ projects {
     tasks.build.dependsOn tasks.shadowJar
 }
 
+sourceSets {
+    api
+    main {
+        compileClasspath += api.output
+    }
+}
+
 configurations {
     compilerPlugin
 }
@@ -56,8 +63,17 @@ shadowJar {
     dependencies {
         it.include it.dependency('com.github.IzzelAliz:.*')
     }
+    from sourceSets.api.output
 }
 
 jar {
     archiveClassifier.set('pure')
+    from sourceSets.api.output
 }
+
+task apiJar(type: Jar) {
+    archiveClassifier.set('api')
+    from sourceSets.api.output
+}
+
+jar.dependsOn(apiJar)
