@@ -4,12 +4,23 @@ import io.izzel.aaa.api.Attribute;
 import io.izzel.aaa.api.AttributeTemplate;
 
 /**
- * Order: visitAttributeData, visitTemplate, visitEnd
+ * Order:
+ * - visit
+ * - visitTemplates
+ *   - visitTemplate
+ *   - visitTemplateEnd
+ * - visitEnd
  */
 public interface AttributeVisitor {
-    <T> void visitAttributeData(Attribute<T> attribute, T attributeData);
+    <T> void visit(Attribute<T> attribute, T data);
 
-    AttributeVisitor visitTemplate(AttributeTemplate template);
+    Templates visitTemplates();
 
     void visitEnd();
+
+    interface Templates {
+        AttributeVisitor visitTemplate(AttributeTemplate template);
+
+        void visitTemplateEnd();
+    }
 }

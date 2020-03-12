@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 @NonnullByDefault
-public class AttributeMap implements Consumer<AttributeVisitor> {
+public final class AttributeMap implements Consumer<AttributeVisitor> {
     private final ImmutableMap<AttributeTemplate, AttributeMap> templates;
     private final ImmutableListMultimap<Attribute<?>, Object> attributeData;
 
@@ -22,7 +22,7 @@ public class AttributeMap implements Consumer<AttributeVisitor> {
     }
 
     private <T> void visitEntry(AttributeVisitor visitor, Attribute<T> key, Object value) {
-        visitor.visitAttributeData(key, key.getDataClass().cast(value));
+        visitor.visit(key, key.getDataClass().cast(value));
     }
 
     @Override
@@ -30,9 +30,11 @@ public class AttributeMap implements Consumer<AttributeVisitor> {
         for (Map.Entry<Attribute<?>, Object> entry : this.attributeData.entries()) {
             this.visitEntry(visitor, entry.getKey(), entry.getValue());
         }
+        AttributeVisitor.Templates templatesVisitor = visitor.visitTemplates();
         for (Map.Entry<AttributeTemplate, AttributeMap> entry : this.templates.entrySet()) {
-            entry.getValue().accept(visitor.visitTemplate(entry.getKey()));
+            entry.getValue().accept(templatesVisitor.visitTemplate(entry.getKey()));
         }
+        templatesVisitor.visitTemplateEnd();
         visitor.visitEnd();
     }
 
@@ -48,7 +50,10 @@ public class AttributeMap implements Consumer<AttributeVisitor> {
 
     public static AttributeMap empty() {
         Builder builder = builder();
-        builder.visitEnd();
+        {
+            builder.visitTemplates().visitTemplateEnd();
+            builder.visitEnd();
+        }
         return builder.build();
     }
 
@@ -59,43 +64,55 @@ public class AttributeMap implements Consumer<AttributeVisitor> {
     }
 
     @NonnullByDefault
-    public static class Builder implements ResettableBuilder<AttributeMap, Builder>, AttributeVisitor {
-        private boolean canVisitTemplate;
-        private boolean canVisitAttributeData;
+    public static final class Builder implements ResettableBuilder<AttributeMap, Builder>, AttributeVisitor {
         private final Consumer<Builder> callback;
         private final Map<AttributeTemplate, AttributeMap> templates;
         private final ListMultimap<Attribute<?>, Object> attributeData;
 
+        private State state = State.VISIT;
+
         private Builder(Consumer<Builder> callback) {
-            this.canVisitTemplate = true;
-            this.canVisitAttributeData = true;
             this.templates = Maps.newLinkedHashMap();
             this.attributeData = LinkedListMultimap.create();
             this.callback = Preconditions.checkNotNull(callback);
         }
 
+        private void checkAndSwitch(State checkState, State switchState) {
+            Preconditions.checkState(this.state == checkState, this.state.message);
+            this.state = switchState;
+        }
+
         public AttributeMap build() {
-            Preconditions.checkState(!this.canVisitAttributeData, "visitEnd should be called");
-            Preconditions.checkState(!this.canVisitTemplate, "visitEnd should be called");
+            this.checkAndSwitch(State.VISIT_END, State.VISIT_END);
             return new AttributeMap(this);
         }
 
         @Override
-        public <T> void visitAttributeData(Attribute<T> attribute, T attributeData) {
-            Preconditions.checkState(this.canVisitAttributeData, "cannot visit attribute data now");
-            this.attributeData.put(attribute, attributeData);
+        public <T> void visit(Attribute<T> attribute, T data) {
+            this.checkAndSwitch(State.VISIT, State.VISIT);
+            this.attributeData.put(attribute, data);
         }
 
         @Override
-        public AttributeVisitor visitTemplate(AttributeTemplate template) {
-            this.canVisitAttributeData = false;
-            Preconditions.checkState(this.canVisitTemplate, "cannot visit template now");
-            return new Builder(builder -> this.templates.put(template, builder.build()));
+        public AttributeVisitor.Templates visitTemplates() {
+            this.checkAndSwitch(State.VISIT, State.VISIT_TEMPLATE);
+            return new AttributeVisitor.Templates() {
+                @Override
+                public AttributeVisitor visitTemplate(AttributeTemplate template) {
+                    Builder.this.checkAndSwitch(State.VISIT_TEMPLATE, State.VISIT_TEMPLATE);
+                    return new Builder(builder -> Builder.this.templates.put(template, builder.build()));
+                }
+
+                @Override
+                public void visitTemplateEnd() {
+                    Builder.this.checkAndSwitch(State.VISIT_TEMPLATE, State.VISIT_TEMPLATE_END);
+                }
+            };
         }
 
         @Override
         public void visitEnd() {
-            this.canVisitAttributeData = this.canVisitTemplate = false;
+            this.checkAndSwitch(State.VISIT_TEMPLATE_END, State.VISIT_END);
             this.callback.accept(this);
         }
 
@@ -111,9 +128,21 @@ public class AttributeMap implements Consumer<AttributeVisitor> {
         public Builder reset() {
             this.templates.clear();
             this.attributeData.clear();
-            this.canVisitTemplate = true;
-            this.canVisitAttributeData = true;
+            this.state = State.VISIT;
             return this;
+        }
+
+        private enum State {
+            VISIT("only visitAttributeData and visitTemplates allowed here"),
+            VISIT_TEMPLATE("only visitTemplate and visitTemplateEnd allowed here"),
+            VISIT_TEMPLATE_END("only visitEnd allowed here"),
+            VISIT_END("only build method allowed here");
+
+            private final String message;
+
+            State(String message) {
+                this.message = message;
+            }
         }
     }
 }
