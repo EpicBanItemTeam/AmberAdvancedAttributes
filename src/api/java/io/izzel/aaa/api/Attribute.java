@@ -1,17 +1,18 @@
 package io.izzel.aaa.api;
 
 import com.google.common.reflect.TypeToken;
-import io.izzel.aaa.api.template.TemplateSlot;
-import io.izzel.aaa.api.visitor.AttributeVisitor;
-import io.izzel.aaa.api.visitor.impl.SimpleAttributeVisitor;
+import io.izzel.aaa.api.context.ContextualTransformer;
+import io.izzel.aaa.api.context.InitializationContext;
+import io.izzel.aaa.api.context.SummaryContext;
+import io.izzel.aaa.api.data.Template;
+import io.izzel.aaa.api.data.TemplateSlot;
+import io.izzel.aaa.api.data.visitor.impl.SimpleTemplatesVisitor;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 @NonnullByDefault
 public interface Attribute<T> {
@@ -21,19 +22,20 @@ public interface Attribute<T> {
 
     boolean isCompatibleWith(TemplateSlot slot);
 
-    default UnaryOperator<AttributeVisitor> initAttributes(Player player, TemplateSlot slot, ConfigurationNode node) {
-        return parent -> {
+    default ContextualTransformer<InitializationContext> initAttributes(ConfigurationNode node) {
+        return (context, parent) -> {
             try {
+                Template template = context.getCurrentTemplate();
                 T value = node.getValue(TypeToken.of(this.getDataClass()));
-                return value == null ? parent : new SimpleAttributeVisitor<T>(parent, value, this);
+                return value == null ? parent : new SimpleTemplatesVisitor<>(parent, template, value, this);
             } catch (ObjectMappingException e) {
                 return parent;
             }
         };
     }
 
-    default UnaryOperator<AttributeVisitor.Templates> filterAttributeTemplates(Player player) {
-        return UnaryOperator.identity(); // parent -> parent
+    default ContextualTransformer<SummaryContext> summarizeAttributes() {
+        return ContextualTransformer.identity(); // (context, parentVisitor) -> parentVisitor
     }
 
     @NonnullByDefault

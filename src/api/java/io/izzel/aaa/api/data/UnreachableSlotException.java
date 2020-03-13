@@ -1,4 +1,4 @@
-package io.izzel.aaa.api.template;
+package io.izzel.aaa.api.data;
 
 public class UnreachableSlotException extends Exception {
     private static final long serialVersionUID = 6222090226224399350L;
