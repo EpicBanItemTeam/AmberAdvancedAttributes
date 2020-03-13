@@ -17,6 +17,7 @@ public interface ContextualTransformer<T, U> {
         return (context, parent) -> a.transform(context, b.transform(context, parent));
     }
 
+    @SafeVarargs
     static <T, U> ContextualTransformer<T, U> concat(ContextualTransformer<T, U>... transformers) {
         return Arrays.stream(transformers).reduce(identity(), ContextualTransformer::concat);
     }
