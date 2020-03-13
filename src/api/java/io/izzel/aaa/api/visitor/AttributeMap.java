@@ -33,7 +33,10 @@ public final class AttributeMap implements Consumer<AttributeVisitor> {
     }
 
     public <T> List<? extends T> getAttributeDataList(Attribute<T> attribute) {
-        return Lists.transform(this.attributeData.get(attribute), attribute.getDataClass()::cast);
+        return this.attributeData
+                .get(attribute).stream()
+                .map(attribute.getDataClass()::cast)
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
