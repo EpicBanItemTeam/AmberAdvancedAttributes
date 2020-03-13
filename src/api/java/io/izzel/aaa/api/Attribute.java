@@ -26,8 +26,8 @@ public interface Attribute<T> {
         return (context, parent) -> {
             try {
                 Template template = context.getCurrentTemplate();
-                T value = node.getValue(TypeToken.of(this.getDataClass()));
-                return value == null ? parent : new SimpleTemplatesVisitor<>(parent, template, value, this);
+                List<T> value = node.getList(TypeToken.of(this.getDataClass()));
+                return value.isEmpty() ? parent : new SimpleTemplatesVisitor<>(parent, template, value, this);
             } catch (ObjectMappingException e) {
                 return parent;
             }

@@ -8,20 +8,21 @@ import io.izzel.aaa.api.data.visitor.TemplatesVisitor;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 /**
- * An templates visitor which just appends a new attribute to a specific template.
+ * An templates visitor which just appends a new attribute and corresponding data to a specific template.
  *
  * @param <T> the type of data
  */
 @NonnullByDefault
 public class SimpleTemplatesVisitor<T> extends AbstractTemplatesVisitor {
-    private final T data;
     private final Attribute<T> attribute;
+    private final Iterable<? extends T> data;
     private final Template attributeTemplate;
 
-    public SimpleTemplatesVisitor(TemplatesVisitor parent, Template template, T data, Attribute<T> attribute) {
+    public SimpleTemplatesVisitor(TemplatesVisitor parent, Template template,
+                                  Iterable<? extends T> dataCollection, Attribute<T> attribute) {
         super(parent);
-        this.data = Preconditions.checkNotNull(data);
         this.attribute = Preconditions.checkNotNull(attribute);
+        this.data = Preconditions.checkNotNull(dataCollection);
         this.attributeTemplate = Preconditions.checkNotNull(template);
     }
 
@@ -31,7 +32,9 @@ public class SimpleTemplatesVisitor<T> extends AbstractTemplatesVisitor {
         return !this.attributeTemplate.equals(template) ? parent : new AbstractMappingsVisitor(parent) {
             @Override
             public TemplatesVisitor visitTemplates() {
-                this.visitMapping(SimpleTemplatesVisitor.this.attribute, SimpleTemplatesVisitor.this.data);
+                for (T data : SimpleTemplatesVisitor.this.data) {
+                    this.visitMapping(SimpleTemplatesVisitor.this.attribute, data);
+                }
                 return super.visitTemplates();
             }
         };
