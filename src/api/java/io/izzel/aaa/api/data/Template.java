@@ -17,6 +17,11 @@ public final class Template implements Comparable<Template> {
         this.templateString = templateString;
     }
 
+    public static Template parse(String templateString) {
+        Preconditions.checkNotNull(templateString);
+        return new Template(templateString);
+    }
+
     @Override
     public String toString() {
         return this.templateString;

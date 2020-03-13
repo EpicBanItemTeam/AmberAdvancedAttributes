@@ -17,7 +17,11 @@ package object aaa {
 
   // noinspection ScalaUnusedSymbol
   @Plugin(id = id, name = name, description = name, dependencies = Array(new Dependency(id = dependency)))
-  class AmberAdvancedAttributes @Inject()(implicit container: PluginContainer, locale: AmberLocale, dataManager: data.CustomDataManager, rootCommand: command.RootCommand) {
+  class AmberAdvancedAttributes @Inject()(implicit container: PluginContainer,
+                                          locale: AmberLocale,
+                                          dataManager: data.CustomDataManager,
+                                          attributeManager: attribute.AttributeManager,
+                                          rootCommand: command.RootCommand) {
     reset {
       waitFor[GamePreInitializationEvent]
       locale.log("log.hello-world",
@@ -25,4 +29,5 @@ package object aaa {
         Text.of(TextColors.LIGHT_PURPLE, container.getVersion.orElse("unknown")))
     }
   }
+
 }
