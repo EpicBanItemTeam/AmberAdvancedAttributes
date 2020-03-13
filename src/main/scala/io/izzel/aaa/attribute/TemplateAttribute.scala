@@ -5,6 +5,7 @@ import io.izzel.aaa.api.context.{ContextualTransformer, InitializationContext}
 import io.izzel.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import io.izzel.aaa.api.data.{Template, TemplateSlot}
+import io.izzel.aaa
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 
@@ -14,7 +15,7 @@ import scala.util.control.NonFatal
 class TemplateAttribute extends Attribute[Nothing] {
   override def getDataClass: Class[Nothing] = classOf[Nothing]
 
-  override def getDeserializationKey: String = "aaa-template"
+  override def getDeserializationKey: String = aaa.templateKey
 
   override def isCompatibleWith(slot: TemplateSlot): Boolean = true
 

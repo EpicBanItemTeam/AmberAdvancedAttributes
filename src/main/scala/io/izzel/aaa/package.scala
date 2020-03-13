@@ -15,10 +15,13 @@ package object aaa {
   final val name = "Amber" + "Advanced" + "Attributes"
   final val dependency = "scala" + "dependency" + "loader"
 
+  final val templateKey = "aaa-template"
+
   // noinspection ScalaUnusedSymbol
   @Plugin(id = id, name = name, description = name, dependencies = Array(new Dependency(id = dependency)))
   class AmberAdvancedAttributes @Inject()(implicit container: PluginContainer,
                                           locale: AmberLocale,
+                                          configManager: config.ConfigManager,
                                           dataManager: data.CustomDataManager,
                                           attributeManager: attribute.AttributeManager,
                                           rootCommand: command.RootCommand) {
@@ -29,5 +32,4 @@ package object aaa {
         Text.of(TextColors.LIGHT_PURPLE, container.getVersion.orElse("unknown")))
     }
   }
-
 }
