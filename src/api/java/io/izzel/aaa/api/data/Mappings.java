@@ -10,6 +10,7 @@ import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @NonnullByDefault
 public final class Mappings implements Consumer<MappingsVisitor> {
@@ -25,6 +26,15 @@ public final class Mappings implements Consumer<MappingsVisitor> {
         visitor.visitMapping(key, key.getDataClass().cast(value));
     }
 
+    public static <T> Stream<T> dataStream(Mappings mappings, Attribute<T> attribute, boolean flatten) {
+        Stream<T> current = mappings.attributeData.get(attribute).stream().map(attribute.getDataClass()::cast);
+        if (flatten) {
+            Stream<T> children = mappings.templates.values().stream().flatMap(m -> dataStream(m, attribute, true));
+            return Stream.concat(current, children);
+        }
+        return current;
+    }
+
     public Set<? extends Template> getTemplates() {
         return this.templates.keySet();
     }
@@ -34,10 +44,7 @@ public final class Mappings implements Consumer<MappingsVisitor> {
     }
 
     public <T> List<? extends T> getAttributeDataList(Attribute<T> attribute) {
-        return this.attributeData
-                .get(attribute).stream()
-                .map(attribute.getDataClass()::cast)
-                .collect(ImmutableList.toImmutableList());
+        return dataStream(this, attribute, false).collect(ImmutableList.toImmutableList());
     }
 
     @Override
