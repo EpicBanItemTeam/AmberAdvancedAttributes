@@ -6,6 +6,7 @@ import io.izzel.aaa.api.context.InitializationContext;
 import io.izzel.aaa.api.context.SummaryContext;
 import io.izzel.aaa.api.data.Template;
 import io.izzel.aaa.api.data.TemplateSlot;
+import io.izzel.aaa.api.data.visitor.TemplatesVisitor;
 import io.izzel.aaa.api.data.visitor.impl.SimpleTemplatesVisitor;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
@@ -22,7 +23,7 @@ public interface Attribute<T> {
 
     boolean isCompatibleWith(TemplateSlot slot);
 
-    default ContextualTransformer<InitializationContext> initAttributes(ConfigurationNode node) {
+    default ContextualTransformer<InitializationContext, TemplatesVisitor> initAttributes(ConfigurationNode node) {
         return (context, parent) -> {
             try {
                 Template template = context.getCurrentTemplate();
@@ -34,7 +35,7 @@ public interface Attribute<T> {
         };
     }
 
-    default ContextualTransformer<SummaryContext> summarizeAttributes() {
+    default ContextualTransformer<SummaryContext, TemplatesVisitor> summarizeAttributes() {
         return ContextualTransformer.identity(); // (context, parentVisitor) -> parentVisitor
     }
 
