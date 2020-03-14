@@ -70,6 +70,17 @@ public final class Mappings implements Consumer<MappingsVisitor> {
         return Objects.hash(this.templates, this.attributeData);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Mappings{");
+        for (Map.Entry<Attribute<?>, Object> entry : this.attributeData.entries()) {
+            sb.append(entry.getKey().getDeserializationKey()).append("=");
+            sb.append(entry.getValue()).append(", ");
+        }
+        sb.append("aaa-template=").append(this.templates);
+        return sb.append("}").toString();
+    }
+
     public static Mappings empty() {
         Builder builder = builder();
         {
