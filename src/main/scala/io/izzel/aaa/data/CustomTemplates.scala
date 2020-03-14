@@ -3,6 +3,7 @@ package io.izzel.aaa.data
 import java.util.{Collections, Optional, UUID}
 
 import io.izzel.aaa
+import io.izzel.aaa.api.data.Template
 import org.spongepowered.api.data.manipulator.DataManipulatorBuilder
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableData
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractData
@@ -23,7 +24,7 @@ object CustomTemplates {
 
   case class Backup(name: Option[Text], lore: Option[List[Text]])
 
-  case class Value(uuid: UUID, backup: Backup, templates: List[String])
+  case class Value(uuid: UUID, backup: Backup, templates: List[Template])
 
   class Data(var value: Value) extends AbstractData[Data, ImmutableData] {
     override def registerGettersAndSetters(): Unit = ()
@@ -69,7 +70,7 @@ object CustomTemplates {
   private def fillData(view: DataContainer, data: Value): DataContainer = {
     data.templates match {
       case Nil => view.remove(DataQuery.of("Templates"))
-      case templates => view.set(DataQuery.of("Templates"), templates.asJava)
+      case templates => view.set(DataQuery.of("Templates"), templates.map(_.toString).asJava)
     }
     data.backup.name match {
       case None => view.remove(DataQuery.of("BackupDisplayName"))
@@ -93,7 +94,7 @@ object CustomTemplates {
     val uuid = new UUID(rawMost, rawLeast)
     val name = Option(rawBackupName).map(formattingCode.deserialize)
     val lore = Option(rawBackupLore).map(_.asScala.map(formattingCode.deserialize).toList)
-    val templates = rawTemplates.asScala.filter(template => "[a-z0-9_-]+".matches(template)).toList
+    val templates = rawTemplates.asScala.filter("[a-z0-9_-]+".matches).map(Template.parse).toList
 
     data.value = Value(uuid, Backup(name, lore), templates)
     Some(data)

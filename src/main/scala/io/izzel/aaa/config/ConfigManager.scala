@@ -26,9 +26,9 @@ import scala.util.control.NonFatal
 
 @Singleton
 class ConfigManager @Inject()(implicit container: PluginContainer, logger: Logger, @ConfigDir(sharedRoot = false) configDir: Path) {
-  private val templateNodes: mutable.Map[Template, ConfigurationNode] = mutable.HashMap()
-
   private val loader: HoconConfigurationLoader = HoconConfigurationLoader.builder.setSource(Executor).build()
+
+  private val nodes: mutable.Map[Template, ConfigurationNode] = mutable.Map().withDefaultValue(loader.createEmptyNode())
 
   private object Executor extends Consumer[Task] with Callable[BufferedReader] {
 
@@ -54,10 +54,10 @@ class ConfigManager @Inject()(implicit container: PluginContainer, logger: Logge
 
     private def reload(): Unit = for (e <- key.pollEvents.asScala; path = e.context.asInstanceOf[Path]) e.kind match {
       case OVERFLOW => ()
-      case ENTRY_DELETE => getTemplateByName(path).foreach(template => templateNodes.remove(template))
+      case ENTRY_DELETE => getTemplateByName(path).foreach(template => nodes.remove(template))
       case ENTRY_CREATE | ENTRY_MODIFY => for (template <- getTemplateByName(path)) try {
         logger.info(s"Hot reloading ${path.getFileName} (to $template)...")
-        templateNodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
+        nodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
       } catch {
         case e: IOException => logger.error(s"An error was found when hot reloading ${watchPath.resolve(path)}", e)
       }
@@ -72,10 +72,12 @@ class ConfigManager @Inject()(implicit container: PluginContainer, logger: Logge
       Task.builder.delayTicks(1).intervalTicks(1).execute(Executor).submit(container)
       for (path <- Files.list(watchPath).iterator.asScala; template <- getTemplateByName(path)) try {
         logger.info(s"Start loading ${path.getFileName} (to $template) ...")
-        templateNodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
+        nodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
       } catch {
         case e: IOException => logger.error(s"An error was found when start loading ${watchPath.resolve(path)}", e)
       }
     }
   }
+
+  def get(template: Template): ConfigurationNode = nodes(template)
 }

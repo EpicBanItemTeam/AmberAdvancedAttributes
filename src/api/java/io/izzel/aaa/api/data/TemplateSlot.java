@@ -15,4 +15,20 @@ public interface TemplateSlot {
     interface Equipment extends TemplateSlot {
         EquipmentType getEquipmentType();
     }
+
+    interface Global extends TemplateSlot {
+        List<? extends Template> getTemplates();
+
+        void setTemplates(List<? extends Template> templates);
+
+        @Override
+        default List<? extends Template> getTemplates(Player player) {
+            return this.getTemplates();
+        }
+
+        @Override
+        default void setTemplates(Player player, List<? extends Template> templates) {
+            this.setTemplates(templates);
+        }
+    }
 }
