@@ -7,6 +7,7 @@ import com.google.common.collect.Lists
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot}
 import io.izzel.aaa.api.{Attribute, AttributeService}
+import io.izzel.aaa.config.ConfigReloadEvent
 import io.izzel.aaa.slot.{EquipmentSlot, GlobalSlot}
 import io.izzel.aaa.util.EventUtil._
 import org.slf4j.Logger
@@ -17,14 +18,14 @@ import org.spongepowered.api.event.cause.Cause
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent
 import org.spongepowered.api.event.game.state.{GamePostInitializationEvent, GameStartingServerEvent}
 import org.spongepowered.api.event.network.ClientConnectionEvent
-import org.spongepowered.api.item.inventory.equipment.{EquipmentType, EquipmentTypes}
+import org.spongepowered.api.item.inventory.equipment.EquipmentTypes
 import org.spongepowered.api.plugin.PluginContainer
 
 import scala.collection.JavaConverters._
 import scala.util.continuations.reset
 
 @Singleton
-class AttributeManager @Inject()(implicit container: PluginContainer, logger: Logger) extends AttributeService {
+class AttributeManager @Inject()(implicit container: PluginContainer, logger: Logger, loader: MappingLoader) extends AttributeService {
   private var attributes: Map[String, Attribute[_]] = Map.empty
 
   private var templateSlots: Map[Template, TemplateSlot] = Map.empty
@@ -51,6 +52,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, logger: Lo
   }
 
   private object GenMappings extends CacheLoader[Player, Map[TemplateSlot, Mappings]] {
+    listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(key => cache.refresh(key)))
     listenTo[ClientConnectionEvent.Disconnect](event => cache.invalidate(event.getTargetEntity))
     listenTo[ClientConnectionEvent.Join](event => cache.refresh(event.getTargetEntity))
     listenTo[ChangeEntityEquipmentEvent](event => event.getTargetEntity match {
@@ -58,7 +60,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, logger: Lo
       case _ => ()
     })
 
-    override def load(key: Player): Map[TemplateSlot, Mappings] = Map.empty // TODO: implementation
+    override def load(key: Player): Map[TemplateSlot, Mappings] = loader.load(attributes, templateSlots, key)
   }
 
   reset {
