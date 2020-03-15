@@ -8,7 +8,7 @@ import io.izzel.aaa.api.Attribute
 import io.izzel.aaa.api.context.{InitializationContext, SummaryContext}
 import io.izzel.aaa.api.data.visitor.impl.AbstractTemplatesVisitor
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
-import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot}
+import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.config.ConfigManager
 import ninja.leaping.configurate.ConfigurationNode
 import org.slf4j.Logger
@@ -115,19 +115,35 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
     configManager.get(template).map(_.getNode(attribute.getDeserializationKey)).filterNot(_.isVirtual)
   }
 
-  def load(attributes: Attributes, slots: TemplateSlots, player: Player): Map[TemplateSlot, Mappings] = {
-    val combination = new Combination(slots.values.map { slot =>
-      val multiplex = new Multiplex(slot.getTemplates(player).asScala.map { template =>
-        val context = new MappingsInitContext(player, slot, template)
-        val mappingsOpening = new MappingsOpening(template, Mappings.empty)
-        val initializationSerial = new InitializationSerial(attributes, getConfig, context)(mappingsOpening)
-        template -> initializationSerial
-      })
-      slot -> multiplex
-    })
-    val context = new MappingsSummarizeContext(player)
-    val summarySerial = new SummarySerial(attributes, context)(combination)
+  def load(attributes: Attributes, slots: TemplateSlots)
+          (player: Player): Map[TemplateSlot, Mappings] = {
+    val summarySerial = loadGlobally(attributes, slots)(player)
     val buildersEnding = new BuildersEnding(slots, _ => Mappings.builder)(summarySerial)
     buildersEnding.call()
+  }
+
+  def loadPerSlot(attributes: Attributes, slot: TemplateSlot, templates: Iterable[Template])
+                 (player: Player): Consumer[TemplatesVisitor] = {
+    val multiplex = new Multiplex(templates.map { template =>
+      val context = new MappingsInitContext(player, slot, template)
+      val mappingsOpening = new MappingsOpening(template, Mappings.empty)
+      val initializationSerial = new InitializationSerial(attributes, getConfig, context)(mappingsOpening)
+      template -> initializationSerial
+    })
+    multiplex
+  }
+
+  def loadGlobally(attributes: Attributes, slots: TemplateSlots)
+                  (player: Player): Consumer[TemplatesVisitor] = {
+    val combination = new Combination(slots.values.flatMap(slot => try {
+      val templates = slot.getTemplates(player).asScala
+      val multiplex = loadPerSlot(attributes, slot, templates)(player)
+      Some(slot -> multiplex)
+    } catch {
+      case _: UnreachableSlotException => None
+    }))
+    val context = new MappingsSummarizeContext(player)
+    val summarySerial = new SummarySerial(attributes, context)(combination)
+    summarySerial
   }
 }

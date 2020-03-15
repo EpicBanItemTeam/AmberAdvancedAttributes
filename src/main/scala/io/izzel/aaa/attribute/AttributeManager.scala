@@ -4,7 +4,7 @@ import java.util.Optional
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.google.common.collect.Lists
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{Inject, Injector, Singleton}
 import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot}
 import io.izzel.aaa.api.{Attribute, AttributeService}
 import io.izzel.aaa.config.ConfigReloadEvent
@@ -25,7 +25,7 @@ import scala.collection.JavaConverters._
 import scala.util.continuations.reset
 
 @Singleton
-class AttributeManager @Inject()(implicit container: PluginContainer, logger: Logger, loader: MappingLoader) extends AttributeService {
+class AttributeManager @Inject()(implicit container: PluginContainer, injector: Injector, logger: Logger, loader: MappingLoader) extends AttributeService {
   private var attributes: Map[String, Attribute[_]] = Map.empty
 
   private var templateSlots: Map[Template, TemplateSlot] = Map.empty
@@ -52,15 +52,20 @@ class AttributeManager @Inject()(implicit container: PluginContainer, logger: Lo
   }
 
   private object GenMappings extends CacheLoader[Player, Map[TemplateSlot, Mappings]] {
-    listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(key => cache.refresh(key)))
+    listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(key => cache.invalidate(key)))
     listenTo[ClientConnectionEvent.Disconnect](event => cache.invalidate(event.getTargetEntity))
-    listenTo[ClientConnectionEvent.Join](event => cache.refresh(event.getTargetEntity))
+    listenTo[ClientConnectionEvent.Join](event => cache.get(event.getTargetEntity))
     listenTo[ChangeEntityEquipmentEvent](event => event.getTargetEntity match {
-      case player: Player => cache.refresh(player)
+      case player: Player => cache.invalidate(player)
       case _ => ()
     })
 
-    override def load(key: Player): Map[TemplateSlot, Mappings] = loader.load(attributes, templateSlots, key)
+    override def load(key: Player): Map[TemplateSlot, Mappings] = {
+      val timestamp = System.nanoTime()
+      val result = loader.load(attributes, templateSlots)(key)
+      logger.info(f"Refreshed ${key.getName} in ${1e-6 * (System.nanoTime() - timestamp)}%.6f milliseconds")
+      result
+    }
   }
 
   reset {
@@ -85,8 +90,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer, logger: Lo
   }
 
   listenTo[Attribute.LoadEvent] { event =>
-    event.register(new TemplateAttribute)
-    event.register(new DurabilityAttribute)
+    event.register(injector.getInstance(classOf[TemplateAttribute]))
+    event.register(injector.getInstance(classOf[DurabilityAttribute]))
   }
 
   listenTo[SlotLoadEvent.type] { event =>
@@ -99,8 +104,10 @@ class AttributeManager @Inject()(implicit container: PluginContainer, logger: Lo
     event.register(new GlobalSlot())
   }
 
+  def attributeMap: Map[String, Attribute[_]] = attributes
+
   override def collectMappings(player: Player, refresh: Boolean): java.util.Map[TemplateSlot, Mappings] = {
-    if (refresh) cache.refresh(player)
+    if (refresh) cache.invalidate(player)
     cache.get(player).asJava
   }
 

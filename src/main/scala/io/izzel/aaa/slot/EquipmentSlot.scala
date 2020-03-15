@@ -10,6 +10,8 @@ import org.spongepowered.api.item.inventory.equipment.EquipmentType
 import scala.collection.JavaConverters._
 
 class EquipmentSlot(equipment: EquipmentType) extends TemplateSlot.Equipment {
+  override def toString: String = s"EquipmentSlot{$equipment}"
+
   override def getEquipmentType: EquipmentType = equipment
 
   override def asTemplate(): Template = Template.parse(equipment.getId.replace('_', '-'))
@@ -31,7 +33,7 @@ class EquipmentSlot(equipment: EquipmentType) extends TemplateSlot.Equipment {
     set(player, item)
   }
 
-  private def set(player: Player, item: ItemStack): Unit =if (!player.equip(equipment, item)) unreachable(player, item)
+  private def set(player: Player, item: ItemStack): Unit = if (!player.equip(equipment, item)) unreachable(player, item)
 
   private def get(player: Player): ItemStack = player.getEquipped(equipment).orElse(ItemStack.empty)
 

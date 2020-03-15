@@ -15,8 +15,6 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.config.ConfigDir
-import org.spongepowered.api.event.Event
-import org.spongepowered.api.event.cause.Cause
 import org.spongepowered.api.event.game.state.GameStartingServerEvent
 import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.scheduler.Task
@@ -80,16 +78,19 @@ class ConfigManager @Inject()(implicit container: PluginContainer, logger: Logge
 
     reset {
       waitFor[GameStartingServerEvent]
-      val loadingAffected = Set.newBuilder[Template]
-      Task.builder.delayTicks(1).intervalTicks(1).execute(Executor).submit(container)
-      for (path <- Files.list(watchPath).iterator.asScala; template <- getTemplateByName(path)) try {
-        logger.info(s"Start loading ${path.getFileName} (to template{$template}) ...")
-        nodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
-        loadingAffected += template
-      } catch {
-        case e: IOException => logger.error(s"An error was found when start loading ${watchPath.resolve(path)}", e)
+      val affected = {
+        val affectedBuilder = Set.newBuilder[Template]
+        Task.builder.delayTicks(1).intervalTicks(1).execute(Executor).submit(container)
+        for (path <- Files.list(watchPath).iterator.asScala; template <- getTemplateByName(path)) try {
+          logger.info(s"Start loading ${path.getFileName} (to template{$template}) ...")
+          nodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
+          affectedBuilder += template
+        } catch {
+          case e: IOException => logger.error(s"An error was found when start loading ${watchPath.resolve(path)}", e)
+        }
+        affectedBuilder.result
       }
-      Sponge.getEventManager.post(new ConfigReloadEvent(loadingAffected.result))
+      if (affected.nonEmpty) Sponge.getEventManager.post(new ConfigReloadEvent(affected))
       ()
     }
   }

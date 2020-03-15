@@ -1,12 +1,14 @@
 package io.izzel.aaa.attribute
 
+import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.Attribute
 import io.izzel.aaa.api.data.TemplateSlot
-import org.spongepowered.api.plugin.PluginContainer
 import io.izzel.aaa.util.EventUtil._
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent
+import org.spongepowered.api.plugin.PluginContainer
 
-class DurabilityAttribute(implicit container: PluginContainer) extends Attribute[Int] {
+@Singleton
+class DurabilityAttribute @Inject()(implicit container: PluginContainer) extends Attribute[Int] {
   override def getDataClass: Class[Int] = classOf[Int]
 
   override def getDeserializationKey: String = "aaa-durability"
