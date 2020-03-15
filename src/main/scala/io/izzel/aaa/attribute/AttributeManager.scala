@@ -107,4 +107,6 @@ class AttributeManager @Inject()(implicit container: PluginContainer, logger: Lo
   override def getAttributes: java.util.Collection[Attribute[_]] = attributes.asJava.values
 
   override def getAttribute(key: String): Optional[Attribute[_]] = Optional.ofNullable(attributes.get(key).orNull)
+
+  override def getSlot(key: Template): Optional[TemplateSlot] = Optional.ofNullable(templateSlots.get(key).orNull)
 }

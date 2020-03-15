@@ -3,6 +3,7 @@ package io.izzel.aaa.api.data;
 import com.google.common.base.Preconditions;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,11 @@ public final class Template implements Comparable<Template> {
     public static Template parse(String templateString) {
         Preconditions.checkNotNull(templateString);
         return new Template(templateString);
+    }
+
+    public static Optional<Template> tryParse(String templateString) {
+        Preconditions.checkNotNull(templateString);
+        return PREDICATE.test(templateString) ? Optional.of(new Template(templateString)) : Optional.empty();
     }
 
     @Override
