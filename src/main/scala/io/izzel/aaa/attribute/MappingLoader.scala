@@ -37,7 +37,14 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
 
   class InitializationSerial(attributes: Attributes, configGetter: ConfigGetter, context: InitializationContext)
                             (parent: Consumer[TemplatesVisitor]) extends Consumer[TemplatesVisitor] {
-    override def accept(t: TemplatesVisitor): Unit = parent.accept(attributes.values.foldLeft(t) { (v, a) =>
+    override def accept(t: TemplatesVisitor): Unit = parent.accept(attributes.values.filter({
+      case a if a.isCompatibleWith(context.getSlot) => true
+      case a => locally {
+        val slotTemplate = context.getSlot.asTemplate
+        logger.warn(s"Slot $slotTemplate is not compatible with ${a.getDeserializationKey} (it will be ignored)")
+        false
+      }
+    }).foldLeft(t) { (v, a) =>
       configGetter(context.getCurrentTemplate, a).map(a.initAttributes(_).transform(context, v)).getOrElse(v)
     })
   }
