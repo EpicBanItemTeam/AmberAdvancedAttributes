@@ -12,7 +12,7 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{DynamicVariable, Try}
 
 @Singleton
 class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoader, logger: Logger) extends Attribute[Nothing] {
@@ -24,12 +24,22 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoad
 
   override def initAttributes(node: ConfigurationNode): Transformer = new Transformer(node)
 
+  private val templatePath: DynamicVariable[List[Template]] = new DynamicVariable(Nil)
+
+  private def warnRecursive(template: Template): MappingsVisitor = {
+    val pathString = templatePath.value.reverse.mkString(".")
+    val msg = s"Found recursive part of template{$template} (in $pathString) and the recursive part will be dropped"
+    logger.warn(msg, new RuntimeException(msg))
+    MappingsVisitor.EMPTY
+  }
+
   class Transformer(node: ConfigurationNode) extends ContextualTransformer[InitializationContext, TemplatesVisitor] {
     override def transform(context: InitializationContext, parent: TemplatesVisitor): TemplatesVisitor = {
       new AbstractTemplatesVisitor(parent) {
-        override def visitTemplate(template: Template): MappingsVisitor = {
-          val parent = super.visitTemplate(template)
-          if (context.getCurrentTemplate != template) parent else new TracedMappingsVisitor(parent, template :: Nil) {
+        override def visitTemplate(template: Template): MappingsVisitor = template match {
+          case _ if context.getCurrentTemplate != template => super.visitTemplate(template)
+          case _ if templatePath.value.contains(template) => warnRecursive(template)
+          case _ => new AbstractMappingsVisitor(super.visitTemplate(template)) {
             override def visitTemplates(): TemplatesVisitor = {
               val templates: Iterable[Template] = node.getChildrenList.asScala.map { childNode =>
                 Try(Template.parse(childNode.getString)).getOrElse {
@@ -37,26 +47,12 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoad
                 }
               }
               val summary = loader.loadPerSlot(manager.attributeMap, context.getSlot, templates)(context.getPlayer)
-              summary.accept(super.visitTemplates())
+              templatePath.withValue(template :: templatePath.value)(summary.accept(super.visitTemplates()))
               TemplatesVisitor.EMPTY
             }
           }
         }
       }
-    }
-  }
-
-  class TracedMappingsVisitor(parent: MappingsVisitor, path: List[Template]) extends AbstractMappingsVisitor(parent) {
-    override def visitTemplates(): TemplatesVisitor = new TracedTemplatesVisitor(super.visitTemplates(), path)
-  }
-
-  class TracedTemplatesVisitor(parent: TemplatesVisitor, path: List[Template]) extends AbstractTemplatesVisitor(parent) {
-    override def visitTemplate(template: Template): MappingsVisitor = template match {
-      case _ if path.contains(template) => locally {
-        logger.warn(s"Found that template{$template} is recursive and the recursive part will be dropped")
-        MappingsVisitor.EMPTY
-      }
-      case _ => new TracedMappingsVisitor(super.visitTemplate(template), template :: path)
     }
   }
 }
