@@ -61,9 +61,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
     })
 
     override def load(key: Player): Map[TemplateSlot, Mappings] = {
-      val timestamp = System.nanoTime()
       val result = loader.load(attributes, templateSlots)(key)
-      logger.info(f"Refreshed ${key.getName} in ${1e-6 * (System.nanoTime() - timestamp)}%.6f milliseconds")
+      logger.info(f"Refreshed templates for ${key.getName}")
       result
     }
   }
