@@ -22,7 +22,7 @@ class GlobalSlot extends TemplateSlot.Global {
       case Some(meta) => meta.split('|').filter("[a-z0-9_-]+".matches).map(Template.parse).toList.asJava
       case None => locally {
         subject.getTransientSubjectData.setOption(SubjectData.GLOBAL_CONTEXT, aaa.templateKey, defStr)
-    0    Collections.singletonList(Template.parse(defStr))
+        Collections.singletonList(Template.parse(defStr))
       }
     }
   }
