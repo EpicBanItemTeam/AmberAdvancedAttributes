@@ -27,6 +27,8 @@ public interface AttributeService {
 
     Optional<Attribute<?>> getAttribute(String deserializationKey);
 
+    Collection<? extends TemplateSlot> getSlots();
+
     Optional<TemplateSlot> getSlot(Template template);
 
     default Optional<TemplateSlot> getSlot(String templateString) {

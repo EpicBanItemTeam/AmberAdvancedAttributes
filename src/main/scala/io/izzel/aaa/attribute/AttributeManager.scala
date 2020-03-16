@@ -105,6 +105,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
 
   def attributeMap: Map[String, Attribute[_]] = attributes
 
+  def slotMap: Map[Template, TemplateSlot] = templateSlots
+
   override def collectMappings(player: Player, refresh: Boolean): java.util.Map[TemplateSlot, Mappings] = {
     if (refresh) cache.invalidate(player)
     cache.get(player).asJava
@@ -113,6 +115,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   override def getAttributes: java.util.Collection[Attribute[_]] = attributes.asJava.values
 
   override def getAttribute(key: String): Optional[Attribute[_]] = attributes.get(key).asJava
+
+  override def getSlots: java.util.Collection[_ <: TemplateSlot] = templateSlots.asJava.values
 
   override def getSlot(key: Template): Optional[TemplateSlot] = templateSlots.get(key).asJava
 }
