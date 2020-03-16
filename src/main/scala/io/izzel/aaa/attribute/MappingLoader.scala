@@ -10,11 +10,11 @@ import io.izzel.aaa.api.data.visitor.impl.AbstractTemplatesVisitor
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.config.ConfigManager
+import io.izzel.aaa.util._
 import ninja.leaping.configurate.ConfigurationNode
 import org.slf4j.Logger
 import org.spongepowered.api.entity.living.player.Player
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 @Singleton

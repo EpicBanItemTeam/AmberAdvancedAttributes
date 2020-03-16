@@ -2,7 +2,7 @@ package io.izzel.aaa.command
 
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa
-import io.izzel.aaa.util.EventUtil._
+import io.izzel.aaa.util._
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.command.args.CommandContext
@@ -14,7 +14,6 @@ import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.format.TextColors
 
-import scala.collection.JavaConverters._
 import scala.util.continuations.reset
 
 @Singleton

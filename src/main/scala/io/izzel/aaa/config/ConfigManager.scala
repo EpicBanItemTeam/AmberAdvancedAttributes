@@ -9,7 +9,7 @@ import java.util.function.Consumer
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa
 import io.izzel.aaa.api.data.Template
-import io.izzel.aaa.util.EventUtil._
+import io.izzel.aaa.util._
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader
 import org.slf4j.Logger
@@ -19,7 +19,6 @@ import org.spongepowered.api.event.game.state.GameStartingServerEvent
 import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.scheduler.Task
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.DynamicVariable
 import scala.util.continuations.reset

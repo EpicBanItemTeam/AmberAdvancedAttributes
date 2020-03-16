@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.reflect.{ClassTag, classTag}
 import scala.util.continuations.{shift, suspendable}
 
-object EventUtil {
+trait EventUtil {
   private val handlers: mutable.Map[Class[_ <: Event], mutable.Queue[(Event => Boolean, Event => Unit)]] = mutable.Map()
 
   private class ScalaEventListener[E <: Event: ClassTag](handler: E => Unit) extends EventListener[E] {

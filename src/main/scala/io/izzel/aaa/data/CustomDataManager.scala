@@ -1,7 +1,7 @@
 package io.izzel.aaa.data
 
 import com.google.inject.{Inject, Singleton}
-import io.izzel.aaa.util.EventUtil._
+import io.izzel.aaa.util._
 import org.slf4j.Logger
 import org.spongepowered.api.data.DataRegistration
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent

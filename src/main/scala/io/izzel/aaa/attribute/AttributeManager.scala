@@ -9,7 +9,7 @@ import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot}
 import io.izzel.aaa.api.{Attribute, AttributeService}
 import io.izzel.aaa.config.ConfigReloadEvent
 import io.izzel.aaa.slot.{EquipmentSlot, GlobalSlot}
-import io.izzel.aaa.util.EventUtil._
+import io.izzel.aaa.util._
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.entity.living.player.Player
@@ -21,7 +21,6 @@ import org.spongepowered.api.event.network.ClientConnectionEvent
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes
 import org.spongepowered.api.plugin.PluginContainer
 
-import scala.collection.JavaConverters._
 import scala.util.continuations.reset
 
 @Singleton
@@ -61,6 +60,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
     })
 
     override def load(key: Player): Map[TemplateSlot, Mappings] = {
+      if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
       val result = loader.load(attributes, templateSlots)(key)
       logger.info(f"Refreshed templates for ${key.getName}")
       result
@@ -112,7 +112,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
 
   override def getAttributes: java.util.Collection[Attribute[_]] = attributes.asJava.values
 
-  override def getAttribute(key: String): Optional[Attribute[_]] = Optional.ofNullable(attributes.get(key).orNull)
+  override def getAttribute(key: String): Optional[Attribute[_]] = attributes.get(key).asJava
 
-  override def getSlot(key: Template): Optional[TemplateSlot] = Optional.ofNullable(templateSlots.get(key).orNull)
+  override def getSlot(key: Template): Optional[TemplateSlot] = templateSlots.get(key).asJava
 }

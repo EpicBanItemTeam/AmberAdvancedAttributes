@@ -3,7 +3,7 @@ package io.izzel.aaa.attribute
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.Attribute
 import io.izzel.aaa.api.data.TemplateSlot
-import io.izzel.aaa.util.EventUtil._
+import io.izzel.aaa.util._
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent
 import org.spongepowered.api.plugin.PluginContainer
 

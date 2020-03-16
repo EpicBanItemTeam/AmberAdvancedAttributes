@@ -2,12 +2,11 @@ package io.izzel.aaa.slot
 
 import io.izzel.aaa.api.data.{Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.data.CustomTemplates
+import io.izzel.aaa.util._
 import org.spongepowered.api.data.manipulator.DataManipulator
 import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.item.inventory.equipment.EquipmentType
-
-import scala.collection.JavaConverters._
 
 class EquipmentSlot(equipment: EquipmentType) extends TemplateSlot.Equipment {
   override def toString: String = s"EquipmentSlot{$equipment}"

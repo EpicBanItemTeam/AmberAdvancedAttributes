@@ -1,7 +1,7 @@
 package io.izzel
 
 import com.google.inject.Inject
-import io.izzel.aaa.util.EventUtil._
+import io.izzel.aaa.util._
 import io.izzel.amber.commons.i18n.AmberLocale
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent
 import org.spongepowered.api.plugin.{Dependency, Plugin, PluginContainer}

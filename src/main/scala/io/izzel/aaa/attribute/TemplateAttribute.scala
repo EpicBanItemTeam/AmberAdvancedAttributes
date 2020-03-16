@@ -7,11 +7,11 @@ import io.izzel.aaa.api.context.{ContextualTransformer, InitializationContext}
 import io.izzel.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import io.izzel.aaa.api.data.{Template, TemplateSlot}
+import io.izzel.aaa.util._
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
 
-import scala.collection.JavaConverters._
 import scala.util.{DynamicVariable, Try}
 
 @Singleton
