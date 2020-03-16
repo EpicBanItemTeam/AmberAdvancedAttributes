@@ -96,30 +96,35 @@ class RootCommand @Inject()(implicit container: PluginContainer, manager: Attrib
     override def execute(src: CommandSource, args: CommandContext): CommandResult = {
       src match {
         case player: Player => locally {
+          var isCallbackExecuted = false
           val handTypes = Sponge.getRegistry.getAllOf(classOf[HandType]).asScala
           handTypes.find(player.getItemInHand(_).isPresent) match {
-            case Some(handType) => locally {
-              val item = player.getItemInHand(handType).get
-              item.get(classOf[CustomTemplates.Data]).asScala match {
-                case Some(data) => locally {
-                  var isCallbackExecuted = false
-                  val arg = Arg.ref("commands.drop.warning-ok").withCallback(new Consumer[CommandSource] {
-                    override def accept(t: CommandSource): Unit = if (!isCallbackExecuted) {
-                      isCallbackExecuted = true
+            case Some(_) => locally {
+              val arg = Arg.ref("commands.drop.warning-ok").withCallback(new Consumer[CommandSource] {
+                override def accept(t: CommandSource): Unit = if (!isCallbackExecuted) {
+                  handTypes.find(player.getItemInHand(_).isPresent) match {
+                    case Some(handType) => locally {
+                      val item = player.getItemInHand(handType).get
+                      item.get(classOf[CustomTemplates.Data]).asScala match {
+                        case Some(data) => locally {
+                          isCallbackExecuted = true
 
-                      val CustomTemplates.Backup(name, lore) = data.value.backup
-                      name.foreach(value => item.offer(Keys.DISPLAY_NAME, value))
-                      lore.foreach(value => item.offer(Keys.ITEM_LORE, value.asJava))
-                      item.remove(classOf[CustomTemplates.Data])
+                          val CustomTemplates.Backup(name, lore) = data.value.backup
+                          name.foreach(value => item.offer(Keys.DISPLAY_NAME, value))
+                          lore.foreach(value => item.offer(Keys.ITEM_LORE, value.asJava))
+                          item.remove(classOf[CustomTemplates.Data])
 
-                      src.asInstanceOf[Player].setItemInHand(handType, item)
-                      locale.to(src, "commands.drop.succeed")
+                          src.asInstanceOf[Player].setItemInHand(handType, item)
+                          locale.to(src, "commands.drop.succeed")
+                        }
+                        case None => locale.to(src, "commands.drop.nonexist")
+                      }
                     }
-                  })
-                  locale.to(src, "commands.drop.warning", arg)
+                    case None => locale.to(src, "commands.drop.nonexist")
+                  }
                 }
-                case None => locale.to(src, "commands.drop.nonexist")
-              }
+              })
+              locale.to(src, "commands.drop.warning", arg)
             }
             case None => locale.to(src, "commands.drop.nonexist")
           }
