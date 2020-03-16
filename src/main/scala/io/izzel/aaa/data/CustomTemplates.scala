@@ -17,7 +17,7 @@ import org.spongepowered.api.text.serializer.{TextSerializer, TextSerializers}
 object CustomTemplates {
   final val version = 0
 
-  final val id = s"${aaa.id}:templates"
+  final val id = "templates"
 
   final val name = s"${aaa.name}Templates"
 
