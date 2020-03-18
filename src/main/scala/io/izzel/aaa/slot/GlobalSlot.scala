@@ -6,19 +6,19 @@ import io.izzel.aaa
 import io.izzel.aaa.api.data.{Template, TemplateSlot}
 import io.izzel.aaa.util._
 import org.spongepowered.api.Sponge
-import org.spongepowered.api.service.permission.{PermissionService, SubjectData}
+import org.spongepowered.api.service.permission.{Subject, SubjectData}
 
 class GlobalSlot extends TemplateSlot.Global {
   private final val defStr = "global"
 
-  private def subject = Sponge.getServiceManager.provideUnchecked(classOf[PermissionService]).getDefaults
+  private def subject: Subject = Sponge.getServer.getConsole
 
-  override def toString: String = s"GlobalSlot{${subject.asSubjectReference}}"
+  override def toString: String = s"GlobalSlot{${subject.getIdentifier}}"
 
   override def asTemplate(): Template = Template.parse(defStr)
 
   override def getTemplates: java.util.List[_ <: Template] = {
-    subject.getOption(SubjectData.GLOBAL_CONTEXT, aaa.templateKey).asScala match {
+    Option(subject.getTransientSubjectData.getOptions(SubjectData.GLOBAL_CONTEXT).get(aaa.templateKey)) match {
       case Some(meta) => meta.split('|').filter("[a-z][a-z0-9_-]*".matches).map(Template.parse).toList.asJava
       case None => locally {
         subject.getTransientSubjectData.setOption(SubjectData.GLOBAL_CONTEXT, aaa.templateKey, defStr)
