@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 @NonnullByDefault
 public final class Template implements Comparable<Template> {
-    private static final Predicate<String> PREDICATE = Pattern.compile("[a-z0-9_-]+").asPredicate();
+    private static final Predicate<String> PREDICATE = Pattern.compile("[a-z][a-z0-9_-]*").asPredicate();
 
     private final String templateString;
 
