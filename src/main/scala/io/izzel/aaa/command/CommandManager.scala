@@ -1,11 +1,10 @@
 package io.izzel.aaa.command
 
-import java.util.UUID
-import java.util.function.Consumer
+import java.util.{UUID, function}
 
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa
-import io.izzel.aaa.api.data.TemplateSlot
+import io.izzel.aaa.api.data.{Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.attribute.AttributeManager
 import io.izzel.aaa.data.CustomTemplates
 import io.izzel.aaa.util._
@@ -29,6 +28,7 @@ import scala.util.continuations.reset
 
 @Singleton
 class CommandManager @Inject()(implicit container: PluginContainer, manager: AttributeManager, logger: Logger, locale: AmberLocale) {
+
   implicit class RichCommandBuilder(b: CommandSpec.Builder) {
     def executor(f: (CommandSource, CommandContext) => Unit): CommandSpec.Builder = b.executor(new CommandExecutor {
       override def execute(source: CommandSource, context: CommandContext): CommandResult = {
@@ -40,7 +40,13 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
 
   private val slotKey: Text = Text.of("slot")
   private val templateKey: Text = Text.of("template")
-  private val slotMap: Map[String, TemplateSlot] = manager.slotMap.map(e => e._1.toString -> e._2)
+  private val slotArg: function.Supplier[java.util.Collection[String]] with function.Function[String, TemplateSlot] = {
+    new function.Supplier[java.util.Collection[String]] with function.Function[String, TemplateSlot] {
+      override def get: java.util.Collection[String] = manager.slotMap.keys.map(_.toString).toList.asJava
+
+      override def apply(key: String): TemplateSlot = Template.tryParse(key).asScala.flatMap(manager.slotMap.get).orNull
+    }
+  }
 
   private def init(src: CommandSource, args: CommandContext): Unit = src match {
     case player: Player => locally {
@@ -78,7 +84,7 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
       val handTypes = Sponge.getRegistry.getAllOf(classOf[HandType]).asScala
       handTypes.find(player.getItemInHand(_).isPresent) match {
         case Some(_) => locally {
-          val arg = Arg.ref("commands.drop.warning-ok").withCallback(new Consumer[CommandSource] {
+          val arg = Arg.ref("commands.drop.warning-ok").withCallback(new function.Consumer[CommandSource] {
             override def accept(t: CommandSource): Unit = if (!isCallbackExecuted) {
               handTypes.find(player.getItemInHand(_).isPresent) match {
                 case Some(handType) => locally {
@@ -110,6 +116,23 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
     case _ => locale.to(src, "commands.drop.nonexist")
   }
 
+  private def show(src: CommandSource, args: CommandContext): Unit = src match {
+    case player: Player => try {
+      val slot = args.getOne[TemplateSlot](slotKey).get
+      val templates = slot.getTemplates(player).asScala
+      if (templates.isEmpty) locale.to(src, "commands.show.absent") else {
+        locale.to(src, "commands.show.present", Int.box(templates.size))
+        val prefix = Text.builder("* ").color(TextColors.BLUE).build()
+        for (template <- templates) {
+          src.sendMessage(Text.of(prefix, Text.builder(template.toString).color(TextColors.GREEN).build()))
+        }
+      }
+    } catch {
+      case _: UnreachableSlotException => locale.to(src, "commands.drop.nonexist")
+    }
+    case _ => locale.to(src, "commands.drop.nonexist")
+  }
+
   private def apply(src: CommandSource, args: CommandContext): Unit = ???
 
   private def unapply(src: CommandSource, args: CommandContext): Unit = ???
@@ -132,10 +155,13 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
         .arguments(none())
         .executor(drop _).permission(s"${aaa.id}.command.drop").build(), "drop", "d")
       .child(CommandSpec.builder
-        .arguments(choices(slotKey, slotMap.asJava), allOf(string(templateKey)))
+        .arguments(choices(slotKey, slotArg, slotArg, true))
+        .executor(show _).permission(s"${aaa.id}.command.show").build(), "show", "s")
+      .child(CommandSpec.builder
+        .arguments(choices(slotKey, slotArg, slotArg, true), allOf(string(templateKey)))
         .executor(apply _).permission(s"${aaa.id}.command.apply").build(), "apply", "a")
       .child(CommandSpec.builder
-        .arguments(choices(slotKey, slotMap.asJava), allOf(string(templateKey)))
+        .arguments(choices(slotKey, slotArg, slotArg, true), allOf(string(templateKey)))
         .executor(unapply _).permission(s"${aaa.id}.command.unapply").build(), "unapply", "u")
       .executor(fallback _).build(), "aaa", aaa.id)
     ()

@@ -19,7 +19,7 @@ class GlobalSlot extends TemplateSlot.Global {
 
   override def getTemplates: java.util.List[_ <: Template] = {
     Option(subject.getTransientSubjectData.getOptions(SubjectData.GLOBAL_CONTEXT).get(aaa.templateKey)) match {
-      case Some(meta) => meta.split('|').filter("[a-z][a-z0-9_-]*".matches).map(Template.parse).toList.asJava
+      case Some(meta) => meta.split('|').filter(_.matches("[a-z][a-z0-9_-]*")).map(Template.parse).toList.asJava
       case None => locally {
         subject.getTransientSubjectData.setOption(SubjectData.GLOBAL_CONTEXT, aaa.templateKey, defStr)
         Collections.singletonList(Template.parse(defStr))

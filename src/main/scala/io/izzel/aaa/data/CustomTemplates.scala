@@ -104,7 +104,7 @@ object CustomTemplates {
     val extra = rawExtra.map(_.getValues(false).asScala)
     val name = rawBackupName.map(formattingCode.deserialize)
     val lore = rawBackupLore.map(_.asScala.map(formattingCode.deserialize).toList)
-    val templates = rawTemplates.map(_.asScala.filter("[a-z][a-z0-9_-]*".matches).map(Template.parse).toList).getOrElse(Nil)
+    val templates = rawTemplates.map(_.asScala.filter(_.matches("[a-z][a-z0-9_-]*")).map(Template.parse).toList).getOrElse(Nil)
 
     data.extra.clear()
     data.value = Value(new UUID(0, 0), Backup(name, lore), templates)
