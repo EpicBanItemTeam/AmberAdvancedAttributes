@@ -24,7 +24,7 @@ package object aaa {
                                           configManager: config.ConfigManager,
                                           dataManager: data.CustomDataManager,
                                           attributeManager: attribute.AttributeManager,
-                                          rootCommand: command.RootCommand) {
+                                          rootCommand: command.CommandManager) {
     reset {
       waitFor[GamePreInitializationEvent]
       locale.log("log.hello-world",
