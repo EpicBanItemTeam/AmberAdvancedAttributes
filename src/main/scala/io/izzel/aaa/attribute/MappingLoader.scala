@@ -136,7 +136,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
   def loadGlobally(attributes: Attributes, slots: TemplateSlots)
                   (player: Player): Consumer[TemplatesVisitor] = {
     val combination = new Combination(slots.values.flatMap(slot => try {
-      val templates = slot.getTemplates(player).asScala
+      val templates = slot.getTemplates(player).asScala.distinct // yeah, every template should be unique
       val multiplex = loadPerSlot(attributes, slot, templates)(player)
       Some(slot -> multiplex)
     } catch {
