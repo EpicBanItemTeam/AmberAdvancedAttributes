@@ -6,6 +6,7 @@ import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa
 import io.izzel.aaa.api.data.{Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.attribute.AttributeManager
+import io.izzel.aaa.config.ConfigManager
 import io.izzel.aaa.data.CustomTemplates
 import io.izzel.aaa.util._
 import io.izzel.amber.commons.i18n.AmberLocale
@@ -27,7 +28,7 @@ import org.spongepowered.api.text.format.TextColors
 import scala.util.continuations.reset
 
 @Singleton
-class CommandManager @Inject()(implicit container: PluginContainer, manager: AttributeManager, logger: Logger, locale: AmberLocale) {
+class CommandManager @Inject()(implicit container: PluginContainer, config: ConfigManager, manager: AttributeManager, logger: Logger, locale: AmberLocale) {
 
   implicit class RichCommandBuilder(b: CommandSpec.Builder) {
     def executor(f: (CommandSource, CommandContext) => Unit): CommandSpec.Builder = b.executor(new CommandExecutor {
@@ -45,6 +46,13 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
       override def get: java.util.Collection[String] = manager.slotMap.keys.map(_.toString).toList.asJava
 
       override def apply(key: String): TemplateSlot = Template.tryParse(key).asScala.flatMap(manager.slotMap.get).orNull
+    }
+  }
+  private val templateArg: function.Supplier[java.util.Collection[String]] with function.Function[String, Template] = {
+    new function.Supplier[java.util.Collection[String]] with function.Function[String, Template] {
+      override def get: java.util.Collection[String] = config.keys.map(_.toString).toSet.asJava
+
+      override def apply(key: String): Template = Template.tryParse(key).asScala.filter(config.get(_).isDefined).orNull
     }
   }
 
@@ -119,11 +127,30 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
   private def show(src: CommandSource, args: CommandContext): Unit = src match {
     case player: Player => try {
       val slot = args.getOne[TemplateSlot](slotKey).get
-      val templates = slot.getTemplates(player).asScala
+      val templates = slot.getTemplates(player).asScala.toSet[Template]
       if (templates.isEmpty) locale.to(src, "commands.show.absent") else {
         locale.to(src, "commands.show.present", Int.box(templates.size))
         val prefix = Text.builder("* ").color(TextColors.BLUE).build()
         for (template <- templates) {
+          src.sendMessage(Text.of(prefix, Text.builder(template.toString).color(TextColors.AQUA).build()))
+        }
+      }
+    } catch {
+      case _: UnreachableSlotException => locale.to(src, "commands.drop.nonexist")
+    }
+    case _ => locale.to(src, "commands.drop.nonexist")
+  }
+
+  private def apply(src: CommandSource, args: CommandContext): Unit = src match {
+    case player: Player => try {
+      val slot = args.getOne[TemplateSlot](slotKey).get
+      val templates = slot.getTemplates(player).asScala.toSet[Template]
+      val templatesToAdd = args.getAll[Template](templateKey).asScala.toSet.diff(templates)
+      if (templatesToAdd.isEmpty) locale.to(src, "commands.apply.absent") else {
+        slot.setTemplates(player, templates.union(templatesToAdd).toList.asJava)
+        locale.to(src, "commands.apply.present", Int.box(templatesToAdd.size))
+        val prefix = Text.builder("+ ").color(TextColors.DARK_GREEN).build()
+        for (template <- templatesToAdd) {
           src.sendMessage(Text.of(prefix, Text.builder(template.toString).color(TextColors.GREEN).build()))
         }
       }
@@ -133,9 +160,24 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
     case _ => locale.to(src, "commands.drop.nonexist")
   }
 
-  private def apply(src: CommandSource, args: CommandContext): Unit = ???
-
-  private def unapply(src: CommandSource, args: CommandContext): Unit = ???
+  private def unapply(src: CommandSource, args: CommandContext): Unit = src match {
+    case player: Player => try {
+      val slot = args.getOne[TemplateSlot](slotKey).get
+      val templates = slot.getTemplates(player).asScala.toSet[Template]
+      val templatesToAdd = args.getAll[Template](templateKey).asScala.toSet.intersect(templates)
+      if (templatesToAdd.isEmpty) locale.to(src, "commands.unapply.absent") else {
+        slot.setTemplates(player, templates.diff(templatesToAdd).toList.asJava)
+        locale.to(src, "commands.unapply.present", Int.box(templatesToAdd.size))
+        val prefix = Text.builder("- ").color(TextColors.DARK_RED).build()
+        for (template <- templatesToAdd) {
+          src.sendMessage(Text.of(prefix, Text.builder(template.toString).color(TextColors.RED).build()))
+        }
+      }
+    } catch {
+      case _: UnreachableSlotException => locale.to(src, "commands.drop.nonexist")
+    }
+    case _ => locale.to(src, "commands.drop.nonexist")
+  }
 
   private def fallback(src: CommandSource, args: CommandContext): Unit = {
     src.sendMessage(Text.of(TextColors.LIGHT_PURPLE, s"${aaa.name} v${container.getVersion.get}"))
@@ -158,10 +200,10 @@ class CommandManager @Inject()(implicit container: PluginContainer, manager: Att
         .arguments(choices(slotKey, slotArg, slotArg, true))
         .executor(show _).permission(s"${aaa.id}.command.show").build(), "show", "s")
       .child(CommandSpec.builder
-        .arguments(choices(slotKey, slotArg, slotArg, true), allOf(string(templateKey)))
+        .arguments(choices(slotKey, slotArg, slotArg, true), allOf(choices(templateKey, templateArg, templateArg, false)))
         .executor(apply _).permission(s"${aaa.id}.command.apply").build(), "apply", "a")
       .child(CommandSpec.builder
-        .arguments(choices(slotKey, slotArg, slotArg, true), allOf(string(templateKey)))
+        .arguments(choices(slotKey, slotArg, slotArg, true), allOf(choices(templateKey, templateArg, templateArg, false)))
         .executor(unapply _).permission(s"${aaa.id}.command.unapply").build(), "unapply", "u")
       .executor(fallback _).build(), "aaa", aaa.id)
     ()

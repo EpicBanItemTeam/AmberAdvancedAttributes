@@ -93,5 +93,8 @@ class ConfigManager @Inject()(implicit container: PluginContainer, logger: Logge
       ()
     }
   }
+
+  def keys: Iterable[Template] = nodes.keySet
+
   def get(template: Template): Option[ConfigurationNode] = nodes.get(template)
 }
