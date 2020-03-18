@@ -1,10 +1,12 @@
 package io.izzel.aaa.data
 
-import java.util.{Collections, Optional, UUID}
+import java.util.{Optional, UUID}
 
 import io.izzel.aaa
 import io.izzel.aaa.api.data.Template
 import io.izzel.aaa.util._
+import ninja.leaping.configurate.ConfigurationNode
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader
 import org.spongepowered.api.data.manipulator.DataManipulatorBuilder
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableData
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractData
@@ -13,6 +15,8 @@ import org.spongepowered.api.data.persistence.{AbstractDataBuilder, InvalidDataE
 import org.spongepowered.api.data.{DataContainer, DataHolder, DataQuery, DataView}
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.serializer.{TextSerializer, TextSerializers}
+
+import scala.collection.{immutable, mutable}
 
 object CustomTemplates {
   final val version = 0
@@ -25,10 +29,10 @@ object CustomTemplates {
 
   case class Value(uuid: UUID, backup: Backup, templates: List[Template])
 
-  class Data(var value: Value) extends AbstractData[Data, ImmutableData] {
+  class Data private[CustomTemplates] (var value: Value, val extra: mutable.Map[DataQuery, ConfigurationNode]) extends AbstractData[Data, ImmutableData] {
     override def registerGettersAndSetters(): Unit = ()
 
-    override def fillContainer(view: DataContainer): DataContainer = fillData(super.fillContainer(view), this.value)
+    override def fillContainer(view: DataContainer): DataContainer = fillData(super.fillContainer(view), value, extra)
 
     override def fill(dataHolder: DataHolder, overlap: MergeFunction): Optional[Data] = {
       val original = dataHolder.get(classOf[Data]).asScala.get
@@ -39,19 +43,19 @@ object CustomTemplates {
 
     override def from(view: DataContainer): Optional[Data] = fromData(view, this).asJava
 
-    override def asImmutable: ImmutableData = new ImmutableData(value)
+    override def asImmutable: ImmutableData = new ImmutableData(value, extra.toMap)
 
-    override def copy: Data = new Data(value)
+    override def copy: Data = new Data(value, extra.clone())
 
     override def getContentVersion: Int = version
   }
 
-  class ImmutableData(val value: Value) extends AbstractImmutableData[ImmutableData, Data] {
+  class ImmutableData private[CustomTemplates] (val value: Value, val extra: immutable.Map[DataQuery, ConfigurationNode]) extends AbstractImmutableData[ImmutableData, Data] {
     override def registerGetters(): Unit = ()
 
-    override def fillContainer(view: DataContainer): DataContainer = fillData(super.fillContainer(view), value)
+    override def fillContainer(view: DataContainer): DataContainer = fillData(super.fillContainer(view), value, extra)
 
-    override def asMutable: Data = new Data(value)
+    override def asMutable: Data = new Data(value, extraFrom(extra))
 
     override def getContentVersion: Int = version
   }
@@ -59,14 +63,24 @@ object CustomTemplates {
   object Builder extends AbstractDataBuilder[Data](classOf[Data], version) with DataManipulatorBuilder[Data, ImmutableData] {
     override def buildContent(view: DataView): Optional[Data] = fromData(view, create()).asJava
 
-    override def create(): Data = new Data(Value(new UUID(0, 0), Backup(None, None), Nil))
+    override def create(): Data = new Data(Value(new UUID(0, 0), Backup(None, None), Nil), extraFrom(Nil))
 
     override def createFrom(dataHolder: DataHolder): Optional[Data] = this.create().fill(dataHolder)
   }
 
   private val formattingCode: TextSerializer = TextSerializers.FORMATTING_CODE
 
-  private def fillData(view: DataContainer, data: Value): DataContainer = {
+  private val configurationLoader: HoconConfigurationLoader = HoconConfigurationLoader.builder.build()
+
+  private def extraFrom(extra: Iterable[(DataQuery, ConfigurationNode)]): mutable.Map[DataQuery, ConfigurationNode] = {
+    mutable.LinkedHashMap(extra.toSeq: _*).withDefault(_ => configurationLoader.createEmptyNode())
+  }
+
+  private def fillData(view: DataContainer, data: Value, extra: Iterable[(DataQuery, ConfigurationNode)]): DataContainer = {
+    locally {
+      view.remove(DataQuery.of("ExtraData"))
+      for ((k, v) <- extra) view.set(DataQuery.of("ExtraData").`then`(k), v.getValue)
+    }
     data.templates match {
       case Nil => view.remove(DataQuery.of("Templates"))
       case templates => view.set(DataQuery.of("Templates"), templates.map(_.toString).asJava)
@@ -82,15 +96,19 @@ object CustomTemplates {
   }
 
   private def fromData(view: DataView, data: Data): Option[Data] = try {
+    val rawExtra = view.getView(DataQuery.of("ExtraData")).asScala
     val rawTemplates = view.getStringList(DataQuery.of("Templates")).asScala
     val rawBackupName = view.getString(DataQuery.of("BackupDisplayName")).asScala
     val rawBackupLore = view.getStringList(DataQuery.of("BackupItemLore")).asScala
 
+    val extra = rawExtra.map(_.getValues(false).asScala)
     val name = rawBackupName.map(formattingCode.deserialize)
     val lore = rawBackupLore.map(_.asScala.map(formattingCode.deserialize).toList)
     val templates = rawTemplates.map(_.asScala.filter("[a-z0-9_-]+".matches).map(Template.parse).toList).getOrElse(Nil)
 
+    data.extra.clear()
     data.value = Value(new UUID(0, 0), Backup(name, lore), templates)
+    extra.foreach(data.extra ++= _.mapValues(configurationLoader.createEmptyNode().setValue(_)))
     Some(data)
   } catch {
     case _: InvalidDataException => None

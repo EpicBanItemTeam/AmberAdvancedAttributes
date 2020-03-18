@@ -1,5 +1,6 @@
 package io.izzel.aaa.api.data;
 
+import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 
@@ -12,8 +13,20 @@ public interface TemplateSlot {
 
     void setTemplates(Player player, List<? extends Template> templates) throws UnreachableSlotException;
 
-    interface Equipment extends TemplateSlot {
+    interface ContainsExtraData extends TemplateSlot {
+        ConfigurationNode getExtraData(Player player, String key) throws UnreachableSlotException;
+
+        void setExtraData(Player player, String key, ConfigurationNode node) throws UnreachableSlotException;
+    }
+
+    interface Equipment extends TemplateSlot, ContainsExtraData {
         EquipmentType getEquipmentType();
+
+        @Override
+        ConfigurationNode getExtraData(Player player, String key) throws UnreachableSlotException;
+
+        @Override
+        void setExtraData(Player player, String key, ConfigurationNode node) throws UnreachableSlotException;
     }
 
     interface Global extends TemplateSlot {

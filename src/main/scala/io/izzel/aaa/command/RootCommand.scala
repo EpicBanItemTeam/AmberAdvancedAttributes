@@ -25,6 +25,7 @@ import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.format.TextColors
 
+import scala.collection.mutable
 import scala.util.continuations.reset
 
 @Singleton
@@ -69,11 +70,12 @@ class RootCommand @Inject()(implicit container: PluginContainer, manager: Attrib
               item.get(classOf[CustomTemplates.Data]).asScala match {
                 case None => locally {
                   val uuid = new UUID(0, 0)
+                  val templateData = CustomTemplates.Builder.create()
                   val displayName = item.get(Keys.DISPLAY_NAME).asScala
                   val lore = item.get(Keys.ITEM_LORE).asScala.map(_.asScala.toList)
-                  val value = CustomTemplates.Value(uuid, CustomTemplates.Backup(displayName, lore), Nil)
 
-                  item.offer(new CustomTemplates.Data(value).asInstanceOf[DataManipulator[_, _]])
+                  templateData.value = CustomTemplates.Value(uuid, CustomTemplates.Backup(displayName, lore), Nil)
+                  item.offer(templateData.asInstanceOf[DataManipulator[_, _]])
                   item.remove(Keys.DISPLAY_NAME)
                   item.remove(Keys.ITEM_LORE)
 
