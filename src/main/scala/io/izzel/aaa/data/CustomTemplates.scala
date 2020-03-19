@@ -29,7 +29,7 @@ object CustomTemplates {
 
   case class Value(uuid: UUID, backup: Backup, templates: List[Template])
 
-  class Data private[CustomTemplates] (var value: Value, val extra: mutable.Map[DataQuery, ConfigurationNode]) extends AbstractData[Data, ImmutableData] {
+  class Data private[CustomTemplates] (var value: Value, val extra: mutable.Map[DataQuery, ConfigurationNode]) extends AbstractData[Data, ImmutableData] with Equals {
     override def registerGettersAndSetters(): Unit = ()
 
     override def fillContainer(view: DataContainer): DataContainer = fillData(super.fillContainer(view), value, extra)
@@ -48,9 +48,18 @@ object CustomTemplates {
     override def copy: Data = new Data(value, extra.clone())
 
     override def getContentVersion: Int = version
+
+    override def canEqual(other: Any): Boolean = other.isInstanceOf[Data]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: Data => that.canEqual(this) && value == that.value && extra == that.extra
+      case _ => false
+    }
+
+    override def hashCode(): Int = value.## * 31 + extra.##
   }
 
-  class ImmutableData private[CustomTemplates] (val value: Value, val extra: immutable.Map[DataQuery, ConfigurationNode]) extends AbstractImmutableData[ImmutableData, Data] {
+  class ImmutableData private[CustomTemplates] (val value: Value, val extra: immutable.Map[DataQuery, ConfigurationNode]) extends AbstractImmutableData[ImmutableData, Data] with Equals {
     override def registerGetters(): Unit = ()
 
     override def fillContainer(view: DataContainer): DataContainer = fillData(super.fillContainer(view), value, extra)
@@ -58,6 +67,15 @@ object CustomTemplates {
     override def asMutable: Data = new Data(value, extraFrom(extra))
 
     override def getContentVersion: Int = version
+
+    override def canEqual(other: Any): Boolean = other.isInstanceOf[ImmutableData]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: ImmutableData => that.canEqual(this) && value == that.value && extra == that.extra
+      case _ => false
+    }
+
+    override def hashCode(): Int = value.## * 31 + extra.##
   }
 
   object Builder extends AbstractDataBuilder[Data](classOf[Data], version) with DataManipulatorBuilder[Data, ImmutableData] {
