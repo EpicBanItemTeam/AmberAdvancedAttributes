@@ -5,7 +5,7 @@ import java.util.Optional
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.google.common.collect.Lists
 import com.google.inject.{Inject, Injector, Singleton}
-import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot}
+import io.izzel.aaa.api.data.{Mappings, MappingsRefreshEvent, Template, TemplateSlot}
 import io.izzel.aaa.api.{Attribute, AttributeService}
 import io.izzel.aaa.attribute.impl.{DurabilityAttribute, TemplateAttribute}
 import io.izzel.aaa.config.ConfigReloadEvent
@@ -51,6 +51,18 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
     override def getCause: Cause = spongeCurrentCause
   }
 
+  private class RefreshEvent(targetPlayer: Player, mappings: Map[TemplateSlot, Mappings]) extends MappingsRefreshEvent {
+    private val spongeCurrentCause: Cause = Sponge.getCauseStackManager.getCurrentCause
+
+    override def getTargetMappings(slot: TemplateSlot): Optional[Mappings] = mappings.get(slot).asJava
+
+    override def getAvailableSlots: java.util.Set[_ <: TemplateSlot] = mappings.keySet.asJava
+
+    override def getTargetEntity: Player = targetPlayer
+
+    override def getCause: Cause = spongeCurrentCause
+  }
+
   private object GenMappings extends CacheLoader[Player, Map[TemplateSlot, Mappings]] {
     listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(key => cache.invalidate(key)))
     listenTo[ClientConnectionEvent.Disconnect](event => cache.invalidate(event.getTargetEntity))
@@ -64,6 +76,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
       if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
       val result = loader.load(attributes, templateSlots)(key)
       logger.info(f"Refreshed templates for ${key.getName}")
+      val event = new RefreshEvent(key, result)
+      Sponge.getEventManager.post(event)
       result
     }
   }
