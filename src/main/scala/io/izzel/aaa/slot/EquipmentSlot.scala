@@ -37,14 +37,14 @@ class EquipmentSlot(equipment: EquipmentType) extends TemplateSlot.Equipment {
   override def getExtraData(player: Player, key: String): ConfigurationNode = {
     val item = get(player)
     val data = item.get(classOf[CustomTemplates.Data])
-    if (data.isPresent) data.get.extra(DataQuery.of(key)) else unreachable(player, item)
+    if (data.isPresent) data.get.extra(DataQuery.of(key)).copy() else unreachable(player, item)
   }
 
   override def setExtraData(player: Player, key: String, node: ConfigurationNode): Unit = {
     val item = get(player)
     val data = item.get(classOf[CustomTemplates.Data])
     val extra = if (data.isPresent) data.get.extra else unreachable(player, item)
-    if (node.isVirtual) extra.remove(DataQuery.of(key)) else extra.put(DataQuery.of(key), node)
+    if (node.isVirtual) extra.remove(DataQuery.of(key)) else extra.put(DataQuery.of(key), node.copy())
     val result = item.offer(data.get.asInstanceOf[DataManipulator[_, _]])
     if (!result.isSuccessful) unreachable(player, item)
     set(player, item)
