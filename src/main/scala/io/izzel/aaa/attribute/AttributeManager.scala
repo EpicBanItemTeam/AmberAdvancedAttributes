@@ -7,6 +7,7 @@ import com.google.common.collect.Lists
 import com.google.inject.{Inject, Injector, Singleton}
 import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot}
 import io.izzel.aaa.api.{Attribute, AttributeService}
+import io.izzel.aaa.attribute.impl.{DurabilityAttribute, TemplateAttribute}
 import io.izzel.aaa.config.ConfigReloadEvent
 import io.izzel.aaa.slot.{EquipmentSlot, GlobalSlot}
 import io.izzel.aaa.util._

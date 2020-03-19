@@ -1,4 +1,4 @@
-package io.izzel.aaa.attribute
+package io.izzel.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.Attribute

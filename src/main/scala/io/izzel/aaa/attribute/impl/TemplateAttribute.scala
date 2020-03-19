@@ -1,4 +1,4 @@
-package io.izzel.aaa.attribute
+package io.izzel.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa
@@ -7,6 +7,7 @@ import io.izzel.aaa.api.context.{ContextualTransformer, InitializationContext}
 import io.izzel.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import io.izzel.aaa.api.data.{Template, TemplateSlot}
+import io.izzel.aaa.attribute.{AttributeManager, MappingLoader}
 import io.izzel.aaa.util._
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
