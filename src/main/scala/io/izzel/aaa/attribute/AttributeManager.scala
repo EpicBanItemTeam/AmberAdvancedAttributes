@@ -52,7 +52,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   }
 
   private class RefreshEvent(targetPlayer: Player, mappings: Map[TemplateSlot, Mappings]) extends MappingsRefreshEvent {
-    private val spongeCurrentCause: Cause = Sponge.getCauseStackManager.getCurrentCause
+    private val spongeCurrentCause: Cause = Sponge.getCauseStackManager.pushCause(targetPlayer).getCurrentCause
 
     override def getTargetMappings(slot: TemplateSlot): Optional[Mappings] = mappings.get(slot).asJava
 
@@ -76,8 +76,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
       if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
       val result = loader.load(attributes, templateSlots)(key)
       logger.info(f"Refreshed templates for ${key.getName}")
-      val event = new RefreshEvent(key, result)
-      Sponge.getEventManager.post(event)
+      post(new RefreshEvent(key, result))
       result
     }
   }
@@ -89,8 +88,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
 
     waitFor[GameStartingServerEvent]
     logger.info("Registering attributes ...")
-    Sponge.getEventManager.post(SlotLoadEvent)
-    Sponge.getEventManager.post(AttributeLoadEvent)
+    post(SlotLoadEvent)
+    post(AttributeLoadEvent)
     attributes = AttributeLoadEvent.list.asScala.groupBy(_.getDeserializationKey).mapValues {
       case buffer if buffer.size > 1 => locally {
         val lastRegistered = buffer.head

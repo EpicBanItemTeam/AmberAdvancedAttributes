@@ -1,7 +1,7 @@
 package io.izzel.aaa.util
 
 import org.spongepowered.api.Sponge
-import org.spongepowered.api.event.{Event, EventListener}
+import org.spongepowered.api.event.{CauseStackManager, Event, EventListener}
 import org.spongepowered.api.plugin.PluginContainer
 
 import scala.collection.mutable
@@ -36,5 +36,10 @@ trait EventUtil {
     Sponge.getEventManager.registerListener(container, eventClass, eventListener)
     val unsubscribeHandler = () => Sponge.getEventManager.unregisterListeners(eventListener)
     unsubscribeHandler
+  }
+
+  def post[E <: Event](event: => E): Boolean = {
+    val frame = Sponge.getCauseStackManager.pushCauseFrame()
+    try Sponge.getEventManager.post(event) finally frame.close()
   }
 }
