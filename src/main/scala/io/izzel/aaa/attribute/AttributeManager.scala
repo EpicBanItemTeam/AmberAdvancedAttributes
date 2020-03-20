@@ -64,11 +64,11 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   }
 
   private object GenMappings extends CacheLoader[Player, Map[TemplateSlot, Mappings]] {
-    listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(key => cache.invalidate(key)))
+    listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(collectMappings(_, refresh = true)))
     listenTo[ClientConnectionEvent.Disconnect](event => cache.invalidate(event.getTargetEntity))
     listenTo[ClientConnectionEvent.Join](event => cache.get(event.getTargetEntity))
     listenTo[ChangeEntityEquipmentEvent](event => event.getTargetEntity match {
-      case player: Player => cache.invalidate(player)
+      case player: Player => collectMappings(player, refresh = true)
       case _ => ()
     })
 
