@@ -15,7 +15,7 @@ class GlobalSlot extends TemplateSlot.Global {
 
   override def toString: String = s"GlobalSlot{${subject.getIdentifier}}"
 
-  override def asTemplate(): Template = Template.parse(defStr)
+  override def asTemplate: Template = Template.parse(defStr)
 
   override def getTemplates: java.util.List[_ <: Template] = {
     Option(subject.getTransientSubjectData.getOptions(SubjectData.GLOBAL_CONTEXT).get(aaa.templateKey)) match {
