@@ -23,19 +23,27 @@ class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger:
     event.getAvailableSlots.asScala.foreach {
       case slot: TemplateSlot.Equipment => for (mappings <- event.getTargetMappings(slot).asScala) {
         val player = event.getTargetEntity
-        Mappings.dataStream(mappings, this, true).iterator.asScala.toSeq match {
+        val succeed = Mappings.dataStream(mappings, this, true).iterator.asScala.toSeq match {
+          case Nil => locally {
+            val item = player.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
+            item.get(classOf[CustomTemplates.Data]).isPresent && {
+              val r1 = item.remove(Keys.ITEM_LORE)
+              val r2 = item.remove(Keys.DISPLAY_NAME)
+              r1.isSuccessful && r2.isSuccessful && player.equip(slot.getEquipmentType, item)
+            }
+          }
           case name +: lore => locally {
             val item = player.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
-            val succeed = item.get(classOf[CustomTemplates.Data]).isPresent && {
-              val r1 = item.offer(Keys.ITEM_LORE, lore.map(TextSerializers.FORMATTING_CODE.deserialize).toList.asJava)
+            item.get(classOf[CustomTemplates.Data]).isPresent && {
+              val r1 = item.offer(Keys.ITEM_LORE, lore.map(TextSerializers.FORMATTING_CODE.deserialize).asJava)
               val r2 = item.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(name))
               r1.isSuccessful && r2.isSuccessful && player.equip(slot.getEquipmentType, item)
             }
-            if (!succeed) {
-              val msg = s"Cannot apply custom info to ${slot.asTemplate} on ${player.getName}"
-              logger.error(msg, new IllegalStateException(msg))
-            }
           }
+        }
+        if (!succeed) {
+          val msg = s"Cannot apply custom info to ${slot.asTemplate} on ${player.getName}"
+          logger.error(msg, new IllegalStateException(msg))
         }
       }
       case _ => ()
