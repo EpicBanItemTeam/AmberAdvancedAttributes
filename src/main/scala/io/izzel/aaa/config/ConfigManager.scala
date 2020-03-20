@@ -53,22 +53,25 @@ class ConfigManager @Inject()(implicit container: PluginContainer, logger: Logge
     }
 
     private def reload(): Unit = {
-      val reloadingBuilder = Set.newBuilder[Template]
-      for (e <- key.pollEvents.asScala; path = e.context.asInstanceOf[Path]) e.kind match {
-        case OVERFLOW => ()
-        case ENTRY_DELETE => for (template <- getTemplateByName(path)) {
-          nodes.remove(template)
-          reloadingBuilder += template
+      val affected = {
+        val affectedBuilder = Set.newBuilder[Template]
+        for (e <- key.pollEvents.asScala; path = e.context.asInstanceOf[Path]) e.kind match {
+          case OVERFLOW => ()
+          case ENTRY_DELETE => for (template <- getTemplateByName(path)) {
+            nodes.remove(template)
+            affectedBuilder += template
+          }
+          case ENTRY_CREATE | ENTRY_MODIFY => for (template <- getTemplateByName(path)) try {
+            logger.info(s"Hot reloading ${path.getFileName} (to template{$template})...")
+            nodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
+            affectedBuilder += template
+          } catch {
+            case e: IOException => logger.error(s"An error was found when hot reloading ${watchPath.resolve(path)}", e)
+          }
         }
-        case ENTRY_CREATE | ENTRY_MODIFY => for (template <- getTemplateByName(path)) try {
-          logger.info(s"Hot reloading ${path.getFileName} (to template{$template})...")
-          nodes.put(template, file.withValue(watchPath.resolve(path))(loader.load().getNode(aaa.templateKey)))
-          reloadingBuilder += template
-        } catch {
-          case e: IOException => logger.error(s"An error was found when hot reloading ${watchPath.resolve(path)}", e)
-        }
+        affectedBuilder.result
       }
-      Sponge.getEventManager.post(new ConfigReloadEvent(reloadingBuilder.result))
+      if (affected.nonEmpty) Sponge.getEventManager.post(new ConfigReloadEvent(affected))
     }
 
     override def call(): BufferedReader = Files.newBufferedReader(file.value, StandardCharsets.UTF_8)
