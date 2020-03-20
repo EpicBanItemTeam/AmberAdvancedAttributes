@@ -102,8 +102,8 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
                       isCallbackExecuted = true
 
                       val CustomTemplates.Backup(name, lore) = data.value.backup
-                      name.foreach(value => item.offer(Keys.DISPLAY_NAME, value))
-                      lore.foreach(value => item.offer(Keys.ITEM_LORE, value.asJava))
+                      name.map(value => item.offer(Keys.DISPLAY_NAME, value)).getOrElse(item.remove(Keys.DISPLAY_NAME))
+                      lore.map(value => item.offer(Keys.ITEM_LORE, value.asJava)).getOrElse(item.remove(Keys.ITEM_LORE))
                       item.remove(classOf[CustomTemplates.Data])
 
                       src.asInstanceOf[Player].setItemInHand(handType, item)

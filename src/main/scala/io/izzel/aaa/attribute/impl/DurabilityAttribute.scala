@@ -8,8 +8,8 @@ import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent
 import org.spongepowered.api.plugin.PluginContainer
 
 @Singleton
-class DurabilityAttribute @Inject()(implicit container: PluginContainer) extends Attribute[Int] {
-  override def getDataClass: Class[Int] = classOf[Int]
+class DurabilityAttribute @Inject()(implicit container: PluginContainer) extends Attribute[Integer] {
+  override def getDataClass: Class[Integer] = classOf[Integer]
 
   override def getDeserializationKey: String = "aaa-durability"
 

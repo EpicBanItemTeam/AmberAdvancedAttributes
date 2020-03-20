@@ -7,7 +7,7 @@ import com.google.common.collect.Lists
 import com.google.inject.{Inject, Injector, Singleton}
 import io.izzel.aaa.api.data.{Mappings, MappingsRefreshEvent, Template, TemplateSlot}
 import io.izzel.aaa.api.{Attribute, AttributeService}
-import io.izzel.aaa.attribute.impl.{DurabilityAttribute, TemplateAttribute}
+import io.izzel.aaa.attribute.impl._
 import io.izzel.aaa.config.ConfigReloadEvent
 import io.izzel.aaa.slot.{EquipmentSlot, GlobalSlot}
 import io.izzel.aaa.util._
@@ -105,6 +105,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   listenTo[Attribute.LoadEvent] { event =>
     event.register(injector.getInstance(classOf[TemplateAttribute]))
     event.register(injector.getInstance(classOf[DurabilityAttribute]))
+    event.register(injector.getInstance(classOf[CustomInfoAttribute]))
   }
 
   listenTo[SlotLoadEvent.type] { event =>
