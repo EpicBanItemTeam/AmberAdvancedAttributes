@@ -104,6 +104,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
 
   listenTo[Attribute.LoadEvent] { event =>
     event.register(injector.getInstance(classOf[TemplateAttribute]))
+    event.register(injector.getInstance(classOf[EquipmentAttribute]))
     event.register(injector.getInstance(classOf[DurabilityAttribute]))
     event.register(injector.getInstance(classOf[CustomInfoAttribute]))
   }
