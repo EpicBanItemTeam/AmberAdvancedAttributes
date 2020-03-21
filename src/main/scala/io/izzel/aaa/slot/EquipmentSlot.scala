@@ -48,7 +48,7 @@ class EquipmentSlot(equipment: EquipmentType) extends TemplateSlot.Equipment {
     val data = if (dataOption.isPresent) dataOption.get else unreachable(player, item)
     try func(data, newItem) finally {
       val result = newItem.offer(data.asInstanceOf[DataManipulator[_, _]])
-      if (!result.isSuccessful) unreachable(player, item) else if (!item.equalTo(newItem)) set(player, item)
+      if (!result.isSuccessful) unreachable(player, item) else if (!item.equalTo(newItem)) set(player, newItem)
     }
   }
 
