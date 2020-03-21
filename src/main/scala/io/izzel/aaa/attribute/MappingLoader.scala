@@ -12,6 +12,7 @@ import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotE
 import io.izzel.aaa.config.ConfigManager
 import io.izzel.aaa.util._
 import ninja.leaping.configurate.ConfigurationNode
+import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
 import org.spongepowered.api.entity.living.player.Player
 
@@ -37,16 +38,26 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
 
   class InitializationSerial(attributes: Attributes, configGetter: ConfigGetter, context: InitializationContext)
                             (parent: Consumer[TemplatesVisitor]) extends Consumer[TemplatesVisitor] {
-    override def accept(t: TemplatesVisitor): Unit = parent.accept(attributes.values.filter({
-      case a if a.isCompatibleWith(context.getSlot) => true
-      case a => locally {
-        val slotTemplate = context.getSlot.asTemplate
-        logger.warn(s"Slot $slotTemplate is not compatible with ${a.getDeserializationKey} (it will be ignored)")
-        false
+    override def accept(t: TemplatesVisitor): Unit = {
+      var newTemplateVisitor = t
+      val attributesAvailable = attributes.values.filter {
+        case a if a.isCompatibleWith(context.getSlot) => true
+        case a => locally {
+          val slotTemplate = context.getSlot.asTemplate
+          logger.warn(s"Slot $slotTemplate is not compatible with ${a.getDeserializationKey} (it will be ignored)")
+          false
+        }
       }
-    }).foldLeft(t) { (v, a) =>
-      configGetter(context.getCurrentTemplate, a).map(a.initAttributes(_).transform(context, v)).getOrElse(v)
-    })
+      for (attribute <- attributesAvailable; node <- configGetter(context.getCurrentTemplate, attribute)) try {
+        newTemplateVisitor = attribute.initAttributes(node).transform(context, newTemplateVisitor)
+      } catch {
+        case e: ObjectMappingException => locally {
+          val template = context.getCurrentTemplate
+          logger.error(s"Failed to initialize attribute ${attribute.getDeserializationKey} at template{$template}", e)
+        }
+      }
+      parent.accept(newTemplateVisitor)
+    }
   }
 
   class Multiplex(parents: Iterable[(Template, Consumer[TemplatesVisitor])]) extends Consumer[TemplatesVisitor] {

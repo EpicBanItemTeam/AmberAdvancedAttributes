@@ -23,15 +23,12 @@ public interface Attribute<T> {
 
     boolean isCompatibleWith(TemplateSlot slot);
 
-    default ContextualTransformer<InitializationContext, TemplatesVisitor> initAttributes(ConfigurationNode node) {
-        return (context, parent) -> {
-            try {
-                Template template = context.getCurrentTemplate();
-                List<T> value = node.getList(TypeToken.of(this.getDataClass()));
-                return value.isEmpty() ? parent : new SimpleTemplatesVisitor<>(parent, template, value, this);
-            } catch (ObjectMappingException e) {
-                return parent;
-            }
+    default ContextualTransformer<InitializationContext, TemplatesVisitor> initAttributes(ConfigurationNode node) throws ObjectMappingException {
+        List<T> value = node.getList(TypeToken.of(this.getDataClass()));
+        if (value.contains(null)) throw new ObjectMappingException("Null object at index " + value.indexOf(null));
+        return value.isEmpty() ? ContextualTransformer.identity() : (context, parent) -> {
+            Template template = context.getCurrentTemplate();
+            return new SimpleTemplatesVisitor<>(parent, template, value, this);
         };
     }
 
