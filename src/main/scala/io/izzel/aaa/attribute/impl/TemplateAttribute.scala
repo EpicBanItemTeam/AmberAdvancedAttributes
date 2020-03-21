@@ -28,9 +28,9 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoad
   private val templatePath: DynamicVariable[List[Template]] = new DynamicVariable(Nil)
 
   private def warnRecursive(template: Template): MappingsVisitor = {
+    logger.debug("", new IllegalStateException)
     val pathString = templatePath.value.reverse.mkString(".")
-    val msg = s"Found recursive part of template{$template} (in $pathString) and the recursive part will be dropped"
-    logger.warn(msg, new RuntimeException(msg))
+    logger.warn(s"Found recursive part of template{$template} (in $pathString) and the recursive part will be dropped")
     MappingsVisitor.EMPTY
   }
 
