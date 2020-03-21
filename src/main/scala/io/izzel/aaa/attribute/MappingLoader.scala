@@ -40,20 +40,22 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
                             (parent: Consumer[TemplatesVisitor]) extends Consumer[TemplatesVisitor] {
     override def accept(t: TemplatesVisitor): Unit = {
       var newTemplateVisitor = t
-      val attributesAvailable = attributes.values.filter {
-        case a if a.isCompatibleWith(context.getSlot) => true
-        case a => locally {
-          val slotTemplate = context.getSlot.asTemplate
-          logger.warn(s"Slot $slotTemplate is not compatible with ${a.getDeserializationKey} (it will be ignored)")
-          false
+      for (attribute <- attributes.values; node <- configGetter(context.getCurrentTemplate, attribute)) try {
+        if (attribute.isCompatibleWith(context.getSlot)) {
+          newTemplateVisitor = attribute.initAttributes(node).transform(context, newTemplateVisitor)
+        } else {
+          val slot = context.getSlot.asTemplate
+          val template = context.getCurrentTemplate
+          logger.debug("", new IllegalStateException())
+          val attrDesc = s"${attribute.getDeserializationKey} (loaded by template{$template})"
+          logger.warn(s"Attribute $attrDesc is not compatible with slot $slot (it will be ignored)")
         }
-      }
-      for (attribute <- attributesAvailable; node <- configGetter(context.getCurrentTemplate, attribute)) try {
-        newTemplateVisitor = attribute.initAttributes(node).transform(context, newTemplateVisitor)
       } catch {
         case e: ObjectMappingException => locally {
           val template = context.getCurrentTemplate
-          logger.error(s"Failed to initialize attribute ${attribute.getDeserializationKey} at template{$template}", e)
+          logger.debug("", new IllegalStateException(e))
+          val attrDesc = s"${attribute.getDeserializationKey} (loaded by template{$template})"
+          logger.error(s"Initialization of attribute $attrDesc failed (it will be ignored): ${e.getMessage}")
         }
       }
       parent.accept(newTemplateVisitor)
@@ -65,8 +67,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
       for (entry <- parents) entry._2.accept(new AbstractTemplatesVisitor(TemplatesVisitor.EMPTY) {
         override def visitTemplate(template: Template): MappingsVisitor = {
           if (template == entry._1) t.visitTemplate(template) else {
-            logger.error(s"Expected template{${entry._1}} but got template{$template}", new IllegalStateException)
-            MappingsVisitor.EMPTY
+            throw new IllegalStateException(s"Expected template{${entry._1}} but got template{$template}")
           }
         }
       })
@@ -100,10 +101,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
       parent.accept(new AbstractTemplatesVisitor(TemplatesVisitor.EMPTY) {
         override def visitTemplate(template: Template): MappingsVisitor = slots.get(template) match {
           case Some(slot) => map.getOrElseUpdate(slot, builderGetter(slot))
-          case None => locally {
-            logger.error(s"Expected a template slot but got template{$template}", new IllegalStateException)
-            MappingsVisitor.EMPTY
-          }
+          case None => throw new IllegalStateException(s"Expected a template slot but got template{$template}")
         }
       })
       map.mapValues(_.build()).toMap
