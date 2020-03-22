@@ -3,10 +3,12 @@ package io.izzel.aaa.attribute
 import java.util.concurrent.Callable
 import java.util.function.Consumer
 
+import com.google.common.escape.{Escapers, UnicodeEscaper}
+import com.google.gson.{JsonParser, JsonPrimitive}
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.Attribute
 import io.izzel.aaa.api.context.{InitializationContext, SummaryContext}
-import io.izzel.aaa.api.data.visitor.impl.AbstractTemplatesVisitor
+import io.izzel.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.config.ConfigManager
@@ -97,10 +99,47 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
                       (parent: Consumer[TemplatesVisitor]) extends Callable[Map[TemplateSlot, Mappings]] {
     private val map: mutable.Map[TemplateSlot, Mappings.Builder] = mutable.LinkedHashMap()
 
+    private class LoggedVisitor(slot: TemplateSlot, parent: MappingsVisitor, index: Option[Int]) extends AbstractMappingsVisitor(parent) {
+      if (index.isEmpty) {
+        logger.debug(s"/* $slot * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * $slot */")
+        logger.debug(s"/* $slot */ var visitor = Mappings.builder()")
+      }
+
+      private def escape(obj: Any): String = new JsonPrimitive(obj.toString).toString
+
+      override def visitMapping[T](attribute: Attribute[T], data: T): Unit = {
+        logger.debug(s"/* $slot */ visitor${index.mkString}.visitMapping(${escape(attribute.getDeserializationKey)}, ${escape(data)})")
+        super.visitMapping(attribute, data)
+      }
+
+      override def visitTemplates(): TemplatesVisitor = {
+        val newIndex = index.getOrElse(0) + 1
+        logger.debug(s"/* $slot */ var visitor$newIndex = visitor${index.mkString}.visitTemplates()")
+        new AbstractTemplatesVisitor(super.visitTemplates()) {
+          override def visitTemplate(template: Template): MappingsVisitor = {
+            val newerIndex = newIndex + 1
+            logger.debug(s"/* $slot */ var visitor$newerIndex = visitor$newIndex.visitTemplate(${escape(template)})")
+            new LoggedVisitor(slot, super.visitTemplate(template), Some(newerIndex))
+          }
+
+          override def visitTemplateEnd(): Unit = {
+            logger.debug(s"/* $slot */ visitor$newIndex.visitTemplateEnd()")
+            super.visitTemplateEnd()
+          }
+        }
+      }
+
+      override def visitMappingsEnd(): Unit = {
+        logger.debug(s"/* $slot */ visitor${index.mkString}.visitMappingsEnd()")
+        super.visitMappingsEnd()
+        logger.debug(s"/* $slot * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * $slot */")
+      }
+    }
+
     override def call(): Map[TemplateSlot, Mappings] = {
       parent.accept(new AbstractTemplatesVisitor(TemplatesVisitor.EMPTY) {
         override def visitTemplate(template: Template): MappingsVisitor = slots.get(template) match {
-          case Some(slot) => map.getOrElseUpdate(slot, builderGetter(slot))
+          case Some(slot) => new LoggedVisitor(slot, map.getOrElseUpdate(slot, builderGetter(slot)), None)
           case None => throw new IllegalStateException(s"Expected a template slot but got template{$template}")
         }
       })
