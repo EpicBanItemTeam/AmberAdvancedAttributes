@@ -3,8 +3,7 @@ package io.izzel.aaa.attribute
 import java.util.concurrent.Callable
 import java.util.function.Consumer
 
-import com.google.common.escape.{Escapers, UnicodeEscaper}
-import com.google.gson.{JsonParser, JsonPrimitive}
+import com.google.gson.JsonPrimitive
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.Attribute
 import io.izzel.aaa.api.context.{InitializationContext, SummaryContext}
@@ -40,27 +39,37 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
 
   class InitializationSerial(attributes: Attributes, configGetter: ConfigGetter, context: InitializationContext)
                             (parent: Consumer[TemplatesVisitor]) extends Consumer[TemplatesVisitor] {
-    override def accept(t: TemplatesVisitor): Unit = {
+
+    private val compatibilityError: mutable.Queue[(Attribute[_], Exception)] = mutable.Queue()
+    private val initializationError: mutable.Queue[(Attribute[_], Exception)] = mutable.Queue()
+
+    private def handleErrors(): Unit = {
+      val slot = context.getSlot.asTemplate
+      val template = context.getCurrentTemplate
+      for ((attr, error) <- compatibilityError.dequeueAll(_ => true)) {
+        logger.debug("Compatibility error", error)
+        val attrDesc = s"${attr.getDeserializationKey} (loaded by template{$template})"
+        logger.warn(s"Attribute $attrDesc is not compatible with slot $slot (it will be ignored)")
+      }
+      for ((attr, error) <- initializationError.dequeueAll(_ => true)) {
+        logger.debug("Initialization error", error)
+        val attrDesc = s"${attr.getDeserializationKey} (loaded by template{$template})"
+        logger.error(s"Initialization of attribute $attrDesc failed (it will be ignored): ${error.getMessage}")
+      }
+    }
+
+    override def accept(t: TemplatesVisitor): Unit = try {
       var newTemplateVisitor = t
-      for (attribute <- attributes.values; node <- configGetter(context.getCurrentTemplate, attribute)) try {
-        if (attribute.isCompatibleWith(context.getSlot)) {
-          newTemplateVisitor = attribute.initAttributes(node).transform(context, newTemplateVisitor)
-        } else {
-          val slot = context.getSlot.asTemplate
-          val template = context.getCurrentTemplate
-          logger.debug("", new IllegalStateException())
-          val attrDesc = s"${attribute.getDeserializationKey} (loaded by template{$template})"
-          logger.warn(s"Attribute $attrDesc is not compatible with slot $slot (it will be ignored)")
+      for (attr <- attributes.values; node <- configGetter(context.getCurrentTemplate, attr)) try {
+        if (!attr.isCompatibleWith(context.getSlot)) compatibilityError += attr -> new IllegalStateException() else {
+          newTemplateVisitor = attr.initAttributes(node).transform(context, newTemplateVisitor)
         }
       } catch {
-        case e: ObjectMappingException => locally {
-          val template = context.getCurrentTemplate
-          logger.debug("", new IllegalStateException(e))
-          val attrDesc = s"${attribute.getDeserializationKey} (loaded by template{$template})"
-          logger.error(s"Initialization of attribute $attrDesc failed (it will be ignored): ${e.getMessage}")
-        }
+        case e: ObjectMappingException => initializationError += attr -> new IllegalStateException(e)
       }
       parent.accept(newTemplateVisitor)
+    } finally {
+      handleErrors()
     }
   }
 
@@ -132,7 +141,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
       override def visitMappingsEnd(): Unit = {
         logger.debug(s"/* $slot */ visitor${index.mkString}.visitMappingsEnd()")
         super.visitMappingsEnd()
-        logger.debug(s"/* $slot * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * $slot */")
+        if (index.isEmpty) logger.debug(s"/* $slot * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * $slot */")
       }
     }
 
