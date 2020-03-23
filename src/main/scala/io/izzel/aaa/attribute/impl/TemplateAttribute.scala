@@ -48,7 +48,9 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoad
                 }
               }
               val summary = loader.loadPerSlot(manager.attributeMap, context.getSlot, templates)(context.getPlayer)
-              templatePath.withValue(template :: templatePath.value)(summary.accept(super.visitTemplates()))
+              templatePath.withValue(template :: templatePath.value) {
+                Option(super.visitTemplates()).filterNot(_ == TemplatesVisitor.EMPTY).foreach(summary.accept)
+              }
               TemplatesVisitor.EMPTY
             }
           }
