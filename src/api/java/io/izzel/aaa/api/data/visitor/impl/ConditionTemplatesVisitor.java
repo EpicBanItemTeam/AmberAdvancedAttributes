@@ -24,7 +24,7 @@ public class ConditionTemplatesVisitor extends AbstractTemplatesVisitor {
 
     @Override
     public MappingsVisitor visitTemplate(Template template) {
-        MappingsVisitor parent = super.visitTemplate(template);
-        return !this.attributeTemplate.equals(template) || this.cond.getAsBoolean() ? parent : MappingsVisitor.EMPTY;
+        boolean cond = !this.attributeTemplate.equals(template) || this.cond.getAsBoolean();
+        return cond ? super.visitTemplate(template) : MappingsVisitor.EMPTY;
     }
 }
