@@ -103,10 +103,15 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   }
 
   listenTo[Attribute.LoadEvent] { event =>
-    event.register(injector.getInstance(classOf[TemplateAttribute]))
-    event.register(injector.getInstance(classOf[EquipmentAttribute]))
-    event.register(injector.getInstance(classOf[DurabilityAttribute]))
-    event.register(injector.getInstance(classOf[CustomInfoAttribute]))
+    val toBeRegistered: java.util.List[Attribute[_]] = event.getAttributesToBeRegistered
+    // functional attributes come firstly
+    toBeRegistered.add(0, injector.getInstance(classOf[DurabilityAttribute]))
+    toBeRegistered.add(0, injector.getInstance(classOf[CustomInfoAttribute]))
+    // conditional attributes come secondly
+    toBeRegistered.add(injector.getInstance(classOf[EquipmentAttribute]))
+    toBeRegistered.add(injector.getInstance(classOf[SuitAttribute]))
+    // the priority of template attribute is the lowest
+    toBeRegistered.add(injector.getInstance(classOf[TemplateAttribute]))
   }
 
   listenTo[SlotLoadEvent.type] { event =>
