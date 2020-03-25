@@ -9,72 +9,45 @@ import scala.util.parsing.combinator._
 
 object DoubleRange extends RegexParsers {
 
-  TypeSerializers.getDefaultSerializers.registerType(TypeToken.of(classOf[Value]), new TypeSerializer[Value] {
-    override def serialize(t: TypeToken[_], o: Value, v: ConfigurationNode): Unit = v.setValue(o.toString)
+  TypeSerializers.getDefaultSerializers.registerType(TypeToken.of(classOf[Value[_]]), new TypeSerializer[Value[_]] {
+    override def serialize(t: TypeToken[_], o: Value[_], v: ConfigurationNode): Unit = v.setValue(o.toString)
 
-    override def deserialize(t: TypeToken[_], v: ConfigurationNode): Value = parseAll(range, v.getString("")) match {
-      case Failure(msg, _) => throw new ObjectMappingException(msg)
+    override def deserialize(t: TypeToken[_], v: ConfigurationNode): Value[_] = parseAll(range, v.getString("")) match {
+      case NoSuccess(msg, _) => throw new ObjectMappingException(msg)
       case Success(result, _) => result
     }
   })
 
-  case class DoubleWithPercent(value: Double, percent: Double) {
-    override def toString: String = f"$value%+f ${"-++".charAt(percent.signum + 1)} ${percent.abs}%f%%"
+  sealed trait FixedDouble
+
+  case class Absolute(value: Double) extends FixedDouble {
+    override def toString: String = value.formatted("%+f")
   }
 
-  case class Value(lower: DoubleWithPercent, upper: DoubleWithPercent) {
-    override def toString: String = if (lower == upper) lower.toString else s"($lower) ~ ($upper)"
+  case class Relative(value: Double) extends FixedDouble {
+    override def toString: String = value.formatted("%+f%%")
+  }
+
+  case class Value[T <: FixedDouble](lower: T, upper: T) {
+    override def toString: String = if (lower == upper) lower.toString else s"$lower ~ $upper"
   }
 
   override def skipWhitespace: Boolean = false
 
-  private def ws1: Parser[String] = whiteSpace
-
   private def ws: Parser[String] = opt(whiteSpace).^^(_.getOrElse(""))
 
-  private def num: Parser[Double] = """[+-]?(?:0|[1-9]\d*)(?:\.\d+)?""".r.^^(_.toDouble)
+  private def unsigned: Parser[Double] = """(?:0)(?:\.0+)?""".r.^^(_.toDouble)
 
-  private def percent: Parser[DoubleWithPercent] = (num <~ "%").^^(DoubleWithPercent(0, _))
+  private def signed: Parser[Double] = """[+-](?:0|[1-9]\d*)(?:\.\d+)?""".r.^^(_.toDouble)
 
-  private def numProduct: Parser[Double] = (numValue ~ rep(ws ~> ("*" | "/") ~ (ws ~> numValue))).^^ {
-    case value ~ tail => tail.foldLeft(value) {
-      case (a, "*" ~ c) => a * c
-      case (a, "/" ~ c) => a / c
-    }
+  private def absolute: Parser[Absolute] = (unsigned | signed | failure("signed value expected")).^^(Absolute)
+
+  private def relative: Parser[Relative] = ((unsigned | signed | failure("signed value expected")) <~ "%").^^(Relative)
+
+  private def range[T <: FixedDouble](in: Parser[T]): Parser[Value[T]] = (in ~ opt(ws ~> "~" ~ (ws ~> in))).^^ {
+    case lower ~ Some("~" ~ upper) => Value(lower, upper)
+    case lower ~ None => Value(lower, lower)
   }
 
-  private def numSum: Parser[Double] = (numProduct ~ rep(ws1 ~> ("+" | "-") ~ (ws1 ~> numProduct))).^^ {
-    case value ~ tail => tail.foldLeft(value) {
-      case (a, "+" ~ c) => a + c
-      case (a, "-" ~ c) => a - c
-    }
-  }
-
-  private def numValue: Parser[Double] = "(" ~> ws ~> numSum <~ ws <~ ")" | num
-
-  private def productReverse: Parser[DoubleWithPercent] = (rep(numValue ~ (ws ~> "*")) ~ (ws ~> value)).^^ {
-    case head ~ value => head.foldRight(value) {
-      case (c ~ "*", b) => DoubleWithPercent(c * b.value, c * b.percent)
-    }
-  }
-
-  private def product: Parser[DoubleWithPercent] = (productReverse ~ rep(ws ~> ("*" | "/") ~ (ws ~> numValue))).^^ {
-    case value ~ tail => tail.foldLeft(value) {
-      case (a, "*" ~ c) => DoubleWithPercent(a.value * c, a.percent * c)
-      case (a, "/" ~ c) => DoubleWithPercent(a.value / c, a.percent / c)
-    }
-  }
-
-  private def sum: Parser[DoubleWithPercent] = (product ~ rep(ws1 ~> ("+" | "-") ~ (ws1 ~> product))).^^ {
-    case value ~ tail => tail.foldLeft(value) {
-      case (a, "+" ~ c) => DoubleWithPercent(a.value + c.value, a.percent + c.percent)
-      case (a, "-" ~ c) => DoubleWithPercent(a.value - c.value, a.percent - c.percent)
-    }
-  }
-
-  private def value: Parser[DoubleWithPercent] = "(" ~> ws ~> sum <~ ws <~ ")" | percent | numValue.^^(DoubleWithPercent(_, 0))
-
-  def range: Parser[Value] = (sum ~ opt(ws1 ~> "~" ~ (ws1 ~> sum))).^^ {
-    case value ~ tail => Value(value, tail.map(_._2).getOrElse(value))
-  }
+  def range: Parser[Value[_ <: FixedDouble]] = ws ~> (range(relative) | range(absolute)) <~ ws
 }
