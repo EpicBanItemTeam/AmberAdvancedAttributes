@@ -7,7 +7,7 @@ import ninja.leaping.configurate.objectmapping.serialize.{TypeSerializer, TypeSe
 
 import scala.util.parsing.combinator._
 
-object RangeParser extends RegexParsers {
+object DoubleRange extends RegexParsers {
 
   TypeSerializers.getDefaultSerializers.registerType(TypeToken.of(classOf[Value]), new TypeSerializer[Value] {
     override def serialize(t: TypeToken[_], o: Value, v: ConfigurationNode): Unit = v.setValue(o.toString)
