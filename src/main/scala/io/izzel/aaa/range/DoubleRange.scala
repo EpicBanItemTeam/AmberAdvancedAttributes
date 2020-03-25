@@ -19,12 +19,16 @@ object DoubleRange extends RegexParsers {
   })
 
   case class DoubleWithPercent(value: Double, percent: Double) {
-    override def toString: String = f"$value%+f${"-++".charAt(percent.signum + 1)}${percent.abs}%f%%"
+    override def toString: String = f"$value%+f ${"-++".charAt(percent.signum + 1)} ${percent.abs}%f%%"
   }
 
   case class Value(lower: DoubleWithPercent, upper: DoubleWithPercent) {
-    override def toString: String = if (lower == upper) lower.toString else s"($lower)~($upper)"
+    override def toString: String = if (lower == upper) lower.toString else s"($lower) ~ ($upper)"
   }
+
+  override def skipWhitespace: Boolean = false
+
+  private def ws1: Parser[String] = whiteSpace
 
   private def ws: Parser[String] = opt(whiteSpace).^^(_.getOrElse(""))
 
@@ -39,14 +43,14 @@ object DoubleRange extends RegexParsers {
     }
   }
 
-  private def numSum: Parser[Double] = (numProduct ~ rep(ws ~> ("+" | "-") ~ (ws ~> numProduct))).^^ {
+  private def numSum: Parser[Double] = (numProduct ~ rep(ws1 ~> ("+" | "-") ~ (ws1 ~> numProduct))).^^ {
     case value ~ tail => tail.foldLeft(value) {
       case (a, "+" ~ c) => a + c
       case (a, "-" ~ c) => a - c
     }
   }
 
-  private def numValue: Parser[Double] = "(" ~> numSum <~ ")" | num
+  private def numValue: Parser[Double] = "(" ~> ws ~> numSum <~ ws <~ ")" | num
 
   private def productReverse: Parser[DoubleWithPercent] = (rep(numValue ~ (ws ~> "*")) ~ (ws ~> value)).^^ {
     case head ~ value => head.foldRight(value) {
@@ -61,16 +65,16 @@ object DoubleRange extends RegexParsers {
     }
   }
 
-  private def sum: Parser[DoubleWithPercent] = (product ~ rep(ws ~> ("+" | "-") ~ (ws ~> product))).^^ {
+  private def sum: Parser[DoubleWithPercent] = (product ~ rep(ws1 ~> ("+" | "-") ~ (ws1 ~> product))).^^ {
     case value ~ tail => tail.foldLeft(value) {
       case (a, "+" ~ c) => DoubleWithPercent(a.value + c.value, a.percent + c.percent)
       case (a, "-" ~ c) => DoubleWithPercent(a.value - c.value, a.percent - c.percent)
     }
   }
 
-  private def value: Parser[DoubleWithPercent] = "(" ~> sum <~ ")" | percent | numValue.^^(DoubleWithPercent(_, 0))
+  private def value: Parser[DoubleWithPercent] = "(" ~> ws ~> sum <~ ws <~ ")" | percent | numValue.^^(DoubleWithPercent(_, 0))
 
-  def range: Parser[Value] = (sum ~ opt(ws ~> "~" ~ (ws ~> sum))).^^ {
+  def range: Parser[Value] = (sum ~ opt(ws1 ~> "~" ~ (ws1 ~> sum))).^^ {
     case value ~ tail => Value(value, tail.map(_._2).getOrElse(value))
   }
 }
