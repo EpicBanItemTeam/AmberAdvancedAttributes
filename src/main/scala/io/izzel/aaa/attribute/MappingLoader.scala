@@ -6,13 +6,12 @@ import java.util.function.Consumer
 import com.google.gson.JsonPrimitive
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa.api.Attribute
-import io.izzel.aaa.api.context.{InitializationContext, SummaryContext}
+import io.izzel.aaa.api.context.{ContextualTransformer, InitializationContext, SummaryContext}
 import io.izzel.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.config.ConfigManager
 import io.izzel.aaa.util._
-import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
 import org.spongepowered.api.entity.living.player.Player
@@ -27,7 +26,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
 
   type BuilderGetter = TemplateSlot => Mappings.Builder
 
-  type ConfigGetter = (Template, Attribute[_]) => Option[ConfigurationNode]
+  type Initializer = ContextualTransformer[InitializationContext, TemplatesVisitor]
 
   class MappingsOpening(template: Template, mappings: Mappings) extends Consumer[TemplatesVisitor] {
     override def accept(t: TemplatesVisitor): Unit = {
@@ -37,7 +36,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
     }
   }
 
-  class InitializationSerial(attributes: Attributes, configGetter: ConfigGetter, context: InitializationContext)
+  class InitializationSerial(attributes: Attributes, context: InitializationContext)
                             (parent: Consumer[TemplatesVisitor]) extends Consumer[TemplatesVisitor] {
 
     private val compatibilityError: mutable.Queue[(Attribute[_], Exception)] = mutable.Queue()
@@ -58,11 +57,15 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
       }
     }
 
+    private def getInitializer(template: Template, attribute: Attribute[_]): Option[Initializer] = {
+      configManager.get(template).flatMap(_.get(attribute.getDeserializationKey))
+    }
+
     override def accept(t: TemplatesVisitor): Unit = try {
       var newTemplateVisitor = t
-      for (attr <- attributes.values; node <- configGetter(context.getCurrentTemplate, attr)) try {
+      for (attr <- attributes.values; init <- getInitializer(context.getCurrentTemplate, attr)) try {
         if (!attr.isCompatibleWith(context.getSlot)) compatibilityError += attr -> new IllegalStateException() else {
-          newTemplateVisitor = attr.initAttributes(node).transform(context, newTemplateVisitor)
+          newTemplateVisitor = init.transform(context, newTemplateVisitor)
         }
       } catch {
         case e: ObjectMappingException => initializationError += attr -> new IllegalStateException(e)
@@ -168,10 +171,6 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
     override def getPlayer: Player = player
   }
 
-  private def getConfig(template: Template, attribute: Attribute[_]): Option[ConfigurationNode] = {
-    configManager.get(template).map(_.getNode(attribute.getDeserializationKey)).filterNot(_.isVirtual)
-  }
-
   def load(attributes: Attributes, slots: TemplateSlots)
           (player: Player): Map[TemplateSlot, Mappings] = {
     val summarySerial = loadGlobally(attributes, slots)(player)
@@ -184,7 +183,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
     val multiplex = new Multiplex(templates.map { template =>
       val context = new MappingsInitContext(player, slot, template)
       val mappingsOpening = new MappingsOpening(template, Mappings.empty)
-      val initializationSerial = new InitializationSerial(attributes, getConfig, context)(mappingsOpening)
+      val initializationSerial = new InitializationSerial(attributes, context)(mappingsOpening)
       template -> initializationSerial
     })
     multiplex
