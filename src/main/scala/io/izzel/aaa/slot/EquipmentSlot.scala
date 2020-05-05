@@ -1,12 +1,8 @@
 package io.izzel.aaa.slot
 
-import java.util.function.BiFunction
-
 import io.izzel.aaa.api.data.{Template, TemplateSlot, UnreachableSlotException}
 import io.izzel.aaa.data.CustomTemplates
 import io.izzel.aaa.util._
-import ninja.leaping.configurate.ConfigurationNode
-import org.spongepowered.api.data.DataQuery
 import org.spongepowered.api.data.manipulator.DataManipulator
 import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.item.inventory.ItemStack
@@ -28,16 +24,6 @@ class EquipmentSlot(equipment: EquipmentType) extends TemplateSlot.Equipment {
   override def setTemplates(player: Player, templates: java.util.List[_ <: Template]): Unit = {
     withData(player) { (data, _) =>
       data.value = CustomTemplates.Value(data.value.uuid, data.value.backup, templates.asScala.toList)
-    }
-  }
-
-  override def withExtraData[T](player: Player, key: String, func: BiFunction[ConfigurationNode, ItemStack, T]): T = {
-    withData(player) { (data, item) =>
-      val query = DataQuery.of(key)
-      val node = data.extra(query).copy()
-      try func(node, item) finally {
-        if (node.isVirtual) data.extra.remove(query) else data.extra.put(query, node.copy())
-      }
     }
   }
 
