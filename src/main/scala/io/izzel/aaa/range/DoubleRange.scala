@@ -2,21 +2,11 @@ package io.izzel.aaa.range
 
 import com.google.common.reflect.TypeToken
 import ninja.leaping.configurate.ConfigurationNode
-import ninja.leaping.configurate.objectmapping.ObjectMappingException
-import ninja.leaping.configurate.objectmapping.serialize.{TypeSerializer, TypeSerializers}
+import ninja.leaping.configurate.objectmapping.{ObjectMappingException, serialize}
 
 import scala.util.parsing.combinator._
 
 object DoubleRange extends RegexParsers {
-
-  TypeSerializers.getDefaultSerializers.registerType(TypeToken.of(classOf[Value[_]]), new TypeSerializer[Value[_]] {
-    override def serialize(t: TypeToken[_], o: Value[_], v: ConfigurationNode): Unit = v.setValue(o.toString)
-
-    override def deserialize(t: TypeToken[_], v: ConfigurationNode): Value[_] = parseAll(range, v.getString("")) match {
-      case NoSuccess(msg, _) => throw new ObjectMappingException(msg)
-      case Success(result, _) => result
-    }
-  })
 
   sealed trait FixedDouble
 
@@ -49,5 +39,16 @@ object DoubleRange extends RegexParsers {
     case lower ~ None => Value(lower, lower)
   }
 
-  def range: Parser[Value[_ <: FixedDouble]] = ws ~> (range(relative) | range(absolute)) <~ ws
+  private def range: Parser[Value[_ <: FixedDouble]] = ws ~> (range(relative) | range(absolute)) <~ ws
+
+  private object ValueTypeSerializer extends serialize.TypeSerializer[Value[_]] {
+    override def serialize(t: TypeToken[_], o: Value[_], v: ConfigurationNode): Unit = v.setValue(o.toString)
+
+    override def deserialize(t: TypeToken[_], v: ConfigurationNode): Value[_] = parseAll(range, v.getString("")) match {
+      case NoSuccess(msg, _) => throw new ObjectMappingException(msg)
+      case Success(result, _) => result
+    }
+  }
+
+  serialize.TypeSerializers.getDefaultSerializers.registerType(TypeToken.of(classOf[Value[_]]), ValueTypeSerializer)
 }
