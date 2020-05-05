@@ -1,4 +1,4 @@
-package io.izzel.aaa.util
+package io.izzel.aaa.util.impl
 
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.event.{CauseStackManager, Event, EventListener}
