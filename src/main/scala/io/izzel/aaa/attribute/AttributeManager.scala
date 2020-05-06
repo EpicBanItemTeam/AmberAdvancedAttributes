@@ -5,14 +5,17 @@ import java.util.Optional
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.google.common.collect.Lists
 import com.google.inject.{Inject, Injector, Singleton}
-import io.izzel.aaa.api.data.{Mappings, MappingsRefreshEvent, Template, TemplateSlot}
+import io.izzel.aaa.api.data._
 import io.izzel.aaa.api.{Attribute, AttributeService}
 import io.izzel.aaa.attribute.impl._
 import io.izzel.aaa.config.ConfigReloadEvent
+import io.izzel.aaa.data.CustomTemplates
 import io.izzel.aaa.slot.{EquipmentSlot, GlobalSlot}
 import io.izzel.aaa.util._
+import ninja.leaping.configurate.ConfigurationNode
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
+import org.spongepowered.api.data.DataQuery
 import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.event.Event
 import org.spongepowered.api.event.cause.Cause
@@ -20,6 +23,7 @@ import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent
 import org.spongepowered.api.event.game.state.{GamePostInitializationEvent, GameStartingServerEvent}
 import org.spongepowered.api.event.network.ClientConnectionEvent
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes
+import org.spongepowered.api.item.inventory.{ItemStack, ItemStackSnapshot}
 import org.spongepowered.api.plugin.PluginContainer
 
 import scala.util.continuations.reset
@@ -115,18 +119,25 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   }
 
   listenTo[SlotLoadEvent.type] { event =>
-    event.register(new EquipmentSlot(EquipmentTypes.MAIN_HAND))
-    event.register(new EquipmentSlot(EquipmentTypes.OFF_HAND))
-    event.register(new EquipmentSlot(EquipmentTypes.HEADWEAR))
-    event.register(new EquipmentSlot(EquipmentTypes.CHESTPLATE))
-    event.register(new EquipmentSlot(EquipmentTypes.LEGGINGS))
-    event.register(new EquipmentSlot(EquipmentTypes.BOOTS))
+    event.register(new EquipmentSlot(this, EquipmentTypes.MAIN_HAND))
+    event.register(new EquipmentSlot(this, EquipmentTypes.OFF_HAND))
+    event.register(new EquipmentSlot(this, EquipmentTypes.HEADWEAR))
+    event.register(new EquipmentSlot(this, EquipmentTypes.CHESTPLATE))
+    event.register(new EquipmentSlot(this, EquipmentTypes.LEGGINGS))
+    event.register(new EquipmentSlot(this, EquipmentTypes.BOOTS))
     event.register(new GlobalSlot())
   }
 
   def attributeMap: Map[String, Attribute[_]] = attributes
 
   def slotMap: Map[Template, TemplateSlot] = templateSlots
+
+  def unreachable(item: ItemStack): Nothing = {
+    Sponge.getCauseStackManager.getCurrentCause.first(classOf[Player]).asScala match {
+      case Some(player) => throw new UnreachableSlotDataException(s"$item for ${player.getName} is not ready for templates")
+      case None => throw new UnreachableSlotDataException(s"$item is not ready for templates")
+    }
+  }
 
   override def collectMappings(player: Player, refresh: Boolean): java.util.Map[TemplateSlot, Mappings] = {
     if (refresh) cache.invalidate(player)
@@ -140,4 +151,20 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   override def getSlots: java.util.Collection[_ <: TemplateSlot] = templateSlots.asJava.values
 
   override def getSlot(key: Template): Optional[TemplateSlot] = templateSlots.get(key).asJava
+
+  override def getExtraData(item: ItemStack, key: String): ConfigurationNode = {
+    val dataOption = item.get(classOf[CustomTemplates.Data])
+    if (dataOption.isPresent) dataOption.get.extra(DataQuery.of(key)).copy() else unreachable(item)
+  }
+
+  override def getExtraData(item: ItemStackSnapshot, key: String): ConfigurationNode = {
+    val dataOption = item.get(classOf[CustomTemplates.ImmutableData])
+    if (dataOption.isPresent) dataOption.get.extra(DataQuery.of(key)).copy() else unreachable(item.createStack())
+  }
+
+  override def setExtraData(item: ItemStack, key: String, node: ConfigurationNode): Unit = {
+    val dataOption = item.get(classOf[CustomTemplates.Data])
+    val data = if (dataOption.isPresent) dataOption.get else unreachable(item)
+    if (node.isVirtual) data.extra.remove(DataQuery.of(key)) else data.extra.put(DataQuery.of(key), node.copy())
+  }
 }

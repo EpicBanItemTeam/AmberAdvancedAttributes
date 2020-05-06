@@ -4,7 +4,7 @@ import java.util.{UUID, function}
 
 import com.google.inject.{Inject, Singleton}
 import io.izzel.aaa
-import io.izzel.aaa.api.data.{Template, TemplateSlots, UnreachableSlotException}
+import io.izzel.aaa.api.data.{Template, TemplateSlots, UnreachableSlotDataException}
 import io.izzel.aaa.attribute.AttributeManager
 import io.izzel.aaa.config.ConfigManager
 import io.izzel.aaa.data.CustomTemplates
@@ -120,7 +120,7 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
         }
       }
     } catch {
-      case _: UnreachableSlotException => locale.to(src, "commands.drop.nonexist")
+      case _: UnreachableSlotDataException => locale.to(src, "commands.drop.nonexist")
     }
     case _ => locale.to(src, "commands.drop.nonexist")
   }
@@ -139,7 +139,7 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
         }
       }
     } catch {
-      case _: UnreachableSlotException => locale.to(src, "commands.drop.nonexist")
+      case _: UnreachableSlotDataException => locale.to(src, "commands.drop.nonexist")
     }
     case _ => locale.to(src, "commands.drop.nonexist")
   }
@@ -158,7 +158,7 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
         }
       }
     } catch {
-      case _: UnreachableSlotException => locale.to(src, "commands.drop.nonexist")
+      case _: UnreachableSlotDataException => locale.to(src, "commands.drop.nonexist")
     }
     case _ => locale.to(src, "commands.drop.nonexist")
   }

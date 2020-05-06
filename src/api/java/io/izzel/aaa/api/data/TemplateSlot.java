@@ -8,9 +8,9 @@ import java.util.List;
 public interface TemplateSlot {
     Template asTemplate();
 
-    List<? extends Template> getTemplates(Player player) throws UnreachableSlotException;
+    List<? extends Template> getTemplates(Player player) throws UnreachableSlotDataException;
 
-    void setTemplates(Player player, List<? extends Template> templates) throws UnreachableSlotException;
+    void setTemplates(Player player, List<? extends Template> templates) throws UnreachableSlotDataException;
 
     interface Equipment extends TemplateSlot {
         EquipmentType getEquipmentType();

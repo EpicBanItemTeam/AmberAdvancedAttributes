@@ -9,7 +9,7 @@ import io.izzel.aaa.api.Attribute
 import io.izzel.aaa.api.context.{ContextualTransformer, InitializationContext, SummaryContext}
 import io.izzel.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import io.izzel.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
-import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotException}
+import io.izzel.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotDataException}
 import io.izzel.aaa.config.ConfigManager
 import io.izzel.aaa.util._
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
@@ -196,7 +196,7 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
       val multiplex = loadPerSlot(attributes, slot, templates)(player)
       Some(slot -> multiplex)
     } catch {
-      case _: UnreachableSlotException => None
+      case _: UnreachableSlotDataException => None
     }))
     val context = new MappingsSummarizeContext(player)
     val summarySerial = new SummarySerial(attributes, context)(combination)
