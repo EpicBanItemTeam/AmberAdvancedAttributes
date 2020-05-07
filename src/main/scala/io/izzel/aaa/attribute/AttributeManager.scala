@@ -55,12 +55,20 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
     override def getCause: Cause = spongeCurrentCause
   }
 
-  private class RefreshEvent(targetPlayer: Player, mappings: Map[TemplateSlot, Mappings]) extends MappingsRefreshEvent {
-    private val spongeCurrentCause: Cause = Sponge.getCauseStackManager.pushCause(targetPlayer).getCurrentCause
+  private class RefreshValue(value: Map[TemplateSlot, Mappings]) {
+    def asJava: java.util.Map[TemplateSlot, Mappings] = value.asJava
+
+    def get(slot: TemplateSlot): Option[Mappings] = value.get(slot)
+
+    def keys: Set[TemplateSlot] = value.keySet
+  }
+
+  private class RefreshEvent(targetPlayer: Player, mappings: RefreshValue) extends MappingsRefreshEvent {
+    private val spongeCurrentCause: Cause = Sponge.getCauseStackManager.pushCause(targetPlayer).pushCause(mappings).getCurrentCause
 
     override def getTargetMappings(slot: TemplateSlot): Optional[Mappings] = mappings.get(slot).asJava
 
-    override def getAvailableSlots: java.util.Set[_ <: TemplateSlot] = mappings.keySet.asJava
+    override def getAvailableSlots: java.util.Set[_ <: TemplateSlot] = mappings.keys.asJava
 
     override def getTargetEntity: Player = targetPlayer
 
@@ -80,7 +88,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
       if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
       val result = loader.load(attributes, templateSlots)(key)
       logger.info(f"Refreshed templates for ${key.getName}")
-      post(new RefreshEvent(key, result))
+      post(new RefreshEvent(key, new RefreshValue(result)))
       result
     }
   }
@@ -133,15 +141,22 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   def slotMap: Map[Template, TemplateSlot] = templateSlots
 
   def unreachable(item: ItemStack): Nothing = {
-    Sponge.getCauseStackManager.getCurrentCause.first(classOf[Player]).asScala match {
+    val cause = Sponge.getCauseStackManager.getCurrentCause
+    cause.first(classOf[Player]).asScala match {
       case Some(player) => throw new UnreachableSlotDataException(s"$item for ${player.getName} is not ready for templates")
       case None => throw new UnreachableSlotDataException(s"$item is not ready for templates")
     }
   }
 
   override def collectMappings(player: Player, refresh: Boolean): java.util.Map[TemplateSlot, Mappings] = {
-    if (refresh) cache.invalidate(player)
-    cache.get(player).asJava
+    val cause = Sponge.getCauseStackManager.getCurrentCause
+    cause.first(classOf[RefreshValue]).asScala match {
+      case Some(cached) => cached.asJava
+      case None => locally {
+        if (refresh) cache.invalidate(player)
+        cache.get(player).asJava
+      }
+    }
   }
 
   override def getAttributes: java.util.Collection[Attribute[_]] = attributes.asJava.values
