@@ -16,6 +16,7 @@ import ninja.leaping.configurate.ConfigurationNode
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.data.DataQuery
+import org.spongepowered.api.data.manipulator.DataManipulator
 import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.event.Event
 import org.spongepowered.api.event.cause.Cause
@@ -181,5 +182,6 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
     val dataOption = item.get(classOf[CustomTemplates.Data])
     val data = if (dataOption.isPresent) dataOption.get else unreachable(item)
     if (node.getValue == null) data.extra.remove(DataQuery.of(key)) else data.extra.put(DataQuery.of(key), node.copy())
+    item.offer(data.asInstanceOf[DataManipulator[_, _]])
   }
 }
