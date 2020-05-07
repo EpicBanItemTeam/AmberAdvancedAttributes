@@ -180,6 +180,6 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
   override def setExtraData(item: ItemStack, key: String, node: ConfigurationNode): Unit = {
     val dataOption = item.get(classOf[CustomTemplates.Data])
     val data = if (dataOption.isPresent) dataOption.get else unreachable(item)
-    if (node.isVirtual) data.extra.remove(DataQuery.of(key)) else data.extra.put(DataQuery.of(key), node.copy())
+    if (node.getValue == null) data.extra.remove(DataQuery.of(key)) else data.extra.put(DataQuery.of(key), node.copy())
   }
 }

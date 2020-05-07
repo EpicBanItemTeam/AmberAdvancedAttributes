@@ -54,10 +54,10 @@ public interface AttributeService {
     void setExtraData(ItemStack stack, String key, ConfigurationNode data) throws UnreachableSlotDataException;
 
     default boolean hasExtraData(ItemStack stack, String key) throws UnreachableSlotDataException {
-        return !this.getExtraData(stack, key).isVirtual();
+        return this.getExtraData(stack, key).getValue() != null;
     }
 
     default boolean hasExtraData(ItemStackSnapshot snapshot, String key) throws UnreachableSlotDataException {
-        return !this.getExtraData(snapshot, key).isVirtual();
+        return this.getExtraData(snapshot, key).getValue() != null;
     }
 }
