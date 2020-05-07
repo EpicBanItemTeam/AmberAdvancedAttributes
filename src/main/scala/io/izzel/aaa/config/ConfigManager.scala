@@ -6,7 +6,7 @@ import java.nio.file._
 import java.util.concurrent.Callable
 import java.util.function.Consumer
 
-import com.google.inject.{Inject, Singleton, Provider}
+import com.google.inject.{Inject, Provider, Singleton}
 import io.izzel.aaa
 import io.izzel.aaa.api.context.{ContextualTransformer, InitializationContext}
 import io.izzel.aaa.api.data.Template
@@ -17,7 +17,7 @@ import ninja.leaping.configurate.hocon.HoconConfigurationLoader
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.config.ConfigDir
-import org.spongepowered.api.event.game.state.GameStartingServerEvent
+import org.spongepowered.api.event.game.state.GameStartedServerEvent
 import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.scheduler.Task
 
@@ -91,7 +91,7 @@ class ConfigManager @Inject()(implicit container: PluginContainer,
     override def accept(t: Task): Unit = if (key.reset()) reload() else t.cancel()
 
     reset {
-      waitFor[GameStartingServerEvent]
+      waitFor[GameStartedServerEvent]
       val affected = {
         val affectedBuilder = Set.newBuilder[Template]
         Task.builder.delayTicks(1).intervalTicks(1).execute(Executor).submit(container)

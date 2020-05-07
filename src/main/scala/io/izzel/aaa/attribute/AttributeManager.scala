@@ -78,12 +78,9 @@ class AttributeManager @Inject()(implicit container: PluginContainer, injector: 
 
   private object GenMappings extends CacheLoader[Player, Map[TemplateSlot, Mappings]] {
     listenTo[ConfigReloadEvent](_ => cache.asMap.keySet.asScala.clone.foreach(collectMappings(_, refresh = true)))
-    listenTo[ClientConnectionEvent.Disconnect](event => cache.invalidate(event.getTargetEntity))
-    listenTo[ClientConnectionEvent.Join](event => cache.get(event.getTargetEntity))
-    listenTo[ChangeEntityEquipmentEvent](event => event.getTargetEntity match {
-      case player: Player => collectMappings(player, refresh = true)
-      case _ => ()
-    })
+    listenTo[ChangeEntityEquipmentEvent.TargetPlayer](e => collectMappings(e.getTargetEntity, refresh = true))
+    listenTo[ClientConnectionEvent.Disconnect](e => cache.invalidate(e.getTargetEntity))
+    listenTo[ClientConnectionEvent.Join](e => cache.get(e.getTargetEntity))
 
     override def load(key: Player): Map[TemplateSlot, Mappings] = {
       if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
