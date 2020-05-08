@@ -1,6 +1,9 @@
 package team.ebi.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
+import ninja.leaping.configurate.ConfigurationNode
+import ninja.leaping.configurate.objectmapping.ObjectMappingException
+import org.slf4j.Logger
 import team.ebi.aaa
 import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext}
@@ -8,11 +11,8 @@ import team.ebi.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemp
 import team.ebi.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import team.ebi.aaa.api.data.{Template, TemplateSlot}
 import team.ebi.aaa.attribute.AttributeManager
-import team.ebi.aaa.util._
-import ninja.leaping.configurate.ConfigurationNode
-import ninja.leaping.configurate.objectmapping.ObjectMappingException
-import org.slf4j.Logger
 import team.ebi.aaa.attribute.mappings.MappingsGenerator
+import team.ebi.aaa.util._
 
 import scala.util.{DynamicVariable, Try}
 
@@ -48,7 +48,7 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingsGen
                   throw new ObjectMappingException(s"Invalid template name: ${childNode.getString}")
                 }
               }
-              val summary = loader.generatePerSlot(manager.attributeMap, context.getSlot, templates)(context.getPlayer)
+              val summary = loader.generatePerSlot(manager.attributeMap, context.getSlot, templates)(context.getUser)
               templatePath.withValue(template :: templatePath.value) {
                 Option(super.visitTemplates()).filterNot(_ == TemplatesVisitor.EMPTY).foreach(summary.accept)
               }

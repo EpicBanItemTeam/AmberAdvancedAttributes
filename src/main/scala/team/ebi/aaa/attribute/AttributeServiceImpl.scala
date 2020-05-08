@@ -6,7 +6,7 @@ import ninja.leaping.configurate.ConfigurationNode
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.data.DataQuery
 import org.spongepowered.api.data.manipulator.DataManipulator
-import org.spongepowered.api.entity.living.player.Player
+import org.spongepowered.api.entity.living.player.User
 import org.spongepowered.api.item.inventory.{ItemStack, ItemStackSnapshot}
 import team.ebi.aaa.api.data.{Mappings, Template, TemplateSlot}
 import team.ebi.aaa.api.{Attribute, AttributeService}
@@ -17,10 +17,10 @@ import team.ebi.aaa.util._
 trait AttributeServiceImpl extends AttributeService {
   this: AttributeManager =>
 
-  override def collectMappings(player: Player, refresh: Boolean): java.util.Map[TemplateSlot, Mappings] = {
+  override def collectMappings(user: User, refresh: Boolean): java.util.Map[TemplateSlot, Mappings] = {
     val cause = Sponge.getCauseStackManager.getCurrentCause
     cause.first(classOf[CacheRefreshValue]).asScala match {
-      case None => collect(player, refresh).asJava
+      case None => collect(user, refresh).asJava
       case Some(cached) => cached.asJava
     }
   }

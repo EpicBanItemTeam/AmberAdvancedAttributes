@@ -1,13 +1,13 @@
 package team.ebi.aaa.api.context;
 
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.aaa.api.data.Template;
 import team.ebi.aaa.api.data.TemplateSlot;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 @NonnullByDefault
 public interface InitializationContext {
-    Player getPlayer();
+    User getUser();
 
     TemplateSlot getSlot();
 

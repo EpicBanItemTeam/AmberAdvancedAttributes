@@ -7,7 +7,7 @@ import com.google.gson.JsonPrimitive
 import com.google.inject.{Inject, Singleton}
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
-import org.spongepowered.api.entity.living.player.Player
+import org.spongepowered.api.entity.living.player.User
 import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext, SummaryContext}
 import team.ebi.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
@@ -159,29 +159,27 @@ class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) 
     }
   }
 
-  class MappingsInitContext(player: Player, slot: TemplateSlot, template: Template) extends InitializationContext {
-    override def getPlayer: Player = player
+  class MappingsInitContext(user: User, slot: TemplateSlot, template: Template) extends InitializationContext {
+    override def getUser: User = user
 
     override def getSlot: TemplateSlot = slot
 
     override def getCurrentTemplate: Template = template
   }
 
-  class MappingsSummarizeContext(player: Player) extends SummaryContext {
-    override def getPlayer: Player = player
+  class MappingsSummarizeContext(user: User) extends SummaryContext {
+    override def getUser: User = user
   }
 
-  def generate(attributes: Attributes, slots: TemplateSlots)
-              (player: Player): Map[TemplateSlot, Mappings] = {
-    val summarySerial = generateGlobally(attributes, slots)(player)
+  def generate(attributes: Attributes, slots: TemplateSlots)(user: User): Map[TemplateSlot, Mappings] = {
+    val summarySerial = generateGlobally(attributes, slots)(user)
     val buildersEnding = new BuildersEnding(slots, _ => Mappings.builder)(summarySerial)
     buildersEnding.call()
   }
 
-  def generatePerSlot(attributes: Attributes, slot: TemplateSlot, templates: Iterable[Template])
-                     (player: Player): Consumer[TemplatesVisitor] = {
+  def generatePerSlot(attributes: Attributes, slot: TemplateSlot, templates: Iterable[Template])(user: User): Consumer[TemplatesVisitor] = {
     val multiplex = new Multiplex(templates.map { template =>
-      val context = new MappingsInitContext(player, slot, template)
+      val context = new MappingsInitContext(user, slot, template)
       val mappingsOpening = new MappingsOpening(template, Mappings.empty)
       val initializationSerial = new InitializationSerial(attributes, context)(mappingsOpening)
       template -> initializationSerial
@@ -189,16 +187,15 @@ class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) 
     multiplex
   }
 
-  def generateGlobally(attributes: Attributes, slots: TemplateSlots)
-                      (player: Player): Consumer[TemplatesVisitor] = {
+  def generateGlobally(attributes: Attributes, slots: TemplateSlots)(user: User): Consumer[TemplatesVisitor] = {
     val combination = new Combination(slots.values.flatMap(slot => try {
-      val templates = slot.getTemplates(player).asScala.distinct // yeah, every template should be unique
-      val multiplex = generatePerSlot(attributes, slot, templates)(player)
+      val templates = slot.getTemplates(user).asScala.distinct // yeah, every template should be unique
+      val multiplex = generatePerSlot(attributes, slot, templates)(user)
       Some(slot -> multiplex)
     } catch {
       case _: UnreachableSlotDataException => None
     }))
-    val context = new MappingsSummarizeContext(player)
+    val context = new MappingsSummarizeContext(user)
     val summarySerial = new SummarySerial(attributes, context)(combination)
     summarySerial
   }

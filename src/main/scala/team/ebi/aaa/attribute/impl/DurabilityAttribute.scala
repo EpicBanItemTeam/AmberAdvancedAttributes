@@ -36,29 +36,29 @@ class DurabilityAttribute @Inject()(manager: AttributeManager)(implicit containe
   }
 
   listenTo[MappingsRefreshEvent] { event =>
-    val player = event.getTargetEntity
+    val user = event.getTargetUser
     event.getAvailableSlots.asScala.foreach {
       case TemplateSlots.MAIN_HAND => locally {
-        val item = player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty)
+        val item = user.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty)
         for (durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala) {
           for (limit <- item.getProperty(classOf[UseLimitProperty]).asScala) {
             for (mappings <- event.getTargetMappings(TemplateSlots.MAIN_HAND).asScala) {
               val totalLimit = Mappings.flattenDataStream(mappings, this).iterator.asScala.map(Int.unbox).sum
               if (recalculate(item, totalLimit, Int.unbox(durability), Int.unbox(limit.getValue))) {
-                player.setItemInHand(HandTypes.MAIN_HAND, item)
+                user.setItemInHand(HandTypes.MAIN_HAND, item)
               }
             }
           }
         }
       }
       case TemplateSlots.OFF_HAND => locally {
-        val item = player.getItemInHand(HandTypes.OFF_HAND).orElse(ItemStack.empty)
+        val item = user.getItemInHand(HandTypes.OFF_HAND).orElse(ItemStack.empty)
         for (durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala) {
           for (limit <- item.getProperty(classOf[UseLimitProperty]).asScala) {
             for (mappings <- event.getTargetMappings(TemplateSlots.OFF_HAND).asScala) {
               val totalLimit = Mappings.flattenDataStream(mappings, this).iterator.asScala.map(Int.unbox).sum
               if (recalculate(item, totalLimit, Int.unbox(durability), Int.unbox(limit.getValue))) {
-                player.setItemInHand(HandTypes.OFF_HAND, item)
+                user.setItemInHand(HandTypes.OFF_HAND, item)
               }
             }
           }

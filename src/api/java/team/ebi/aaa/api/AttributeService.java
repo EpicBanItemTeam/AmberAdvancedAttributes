@@ -1,15 +1,15 @@
 package team.ebi.aaa.api;
 
+import ninja.leaping.configurate.ConfigurationNode;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.aaa.api.data.Mappings;
 import team.ebi.aaa.api.data.Template;
 import team.ebi.aaa.api.data.TemplateSlot;
 import team.ebi.aaa.api.data.UnreachableSlotDataException;
-import ninja.leaping.configurate.ConfigurationNode;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
 
 import java.util.Collection;
 import java.util.Map;
@@ -23,10 +23,10 @@ public interface AttributeService {
 
     /* --- mappings --- */
 
-    Map<TemplateSlot, Mappings> collectMappings(Player player, boolean refresh);
+    Map<TemplateSlot, Mappings> collectMappings(User user, boolean refresh);
 
-    default Map<TemplateSlot, Mappings> collectMappings(Player player) {
-        return this.collectMappings(player, false);
+    default Map<TemplateSlot, Mappings> collectMappings(User user) {
+        return this.collectMappings(user, false);
     }
 
     /* --- attributes --- */

@@ -3,19 +3,19 @@ package team.ebi.aaa.attribute
 import com.google.inject.{Inject, Injector, Singleton}
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
-import org.spongepowered.api.entity.living.player.Player
+import org.spongepowered.api.entity.living.player.User
 import org.spongepowered.api.event.game.state.{GamePostInitializationEvent, GameStartingServerEvent}
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes
 import org.spongepowered.api.plugin.PluginContainer
+import team.ebi.aaa
 import team.ebi.aaa.api.data._
 import team.ebi.aaa.api.{Attribute, AttributeService}
 import team.ebi.aaa.attribute.event.{AttributeLoadEvent, TemplateSlotLoadEvent}
 import team.ebi.aaa.attribute.impl._
 import team.ebi.aaa.attribute.mappings.MappingsCache
-import team.ebi.aaa.util._
-import team.ebi.aaa
 import team.ebi.aaa.attribute.slot.{EquipmentSlot, GlobalSlot}
+import team.ebi.aaa.util._
 
 import scala.collection.immutable
 import scala.util.continuations.reset
@@ -78,9 +78,9 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     event.register(new GlobalSlot())
   }
 
-  def collect(player: Player, refresh: Boolean): Map[TemplateSlot, Mappings] = {
-    if (refresh) cache.invalidate(player)
-    cache.retrieve(player)
+  def collect(user: User, refresh: Boolean): Map[TemplateSlot, Mappings] = {
+    if (refresh) cache.invalidate(user)
+    cache.retrieve(user)
   }
 
   def attributeMap: Map[String, Attribute[_]] = attributes
@@ -89,8 +89,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
 
   def unreachable(item: ItemStack): Nothing = {
     val cause = Sponge.getCauseStackManager.getCurrentCause
-    cause.first(classOf[Player]).asScala match {
-      case Some(player) => throw new UnreachableSlotDataException(s"$item for ${player.getName} is not ready for templates")
+    cause.first(classOf[User]).asScala match {
+      case Some(user) => throw new UnreachableSlotDataException(s"$item for ${user.getName} is not ready for templates")
       case None => throw new UnreachableSlotDataException(s"$item is not ready for templates")
     }
   }

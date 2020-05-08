@@ -22,8 +22,8 @@ class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger:
   listenTo[MappingsRefreshEvent] { event =>
     event.getAvailableSlots.asScala.foreach {
       case slot: TemplateSlot.Equipment => for (mappings <- event.getTargetMappings(slot).asScala) {
-        val player = event.getTargetEntity
-        val item = player.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
+        val user = event.getTargetUser
+        val item = user.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
         val mappingsIterator = Mappings.flattenMappingsStream(mappings).iterator.asScala
         val (name, lore) = mappingsIterator.flatMap[(String, Seq[String])](m => +:.unapply(m.getAttributeDataList(this).asScala)).toSeq.unzip
         val succeed = item.get(classOf[CustomTemplates.Data]).isPresent && {
@@ -32,10 +32,10 @@ class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger:
             case None => item.remove(Keys.DISPLAY_NAME)
             case Some(head) => item.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(head))
           }
-          r1.isSuccessful && r2.isSuccessful && player.equip(slot.getEquipmentType, item)
+          r1.isSuccessful && r2.isSuccessful && user.equip(slot.getEquipmentType, item)
         }
         if (!succeed) {
-          val msg = s"Cannot apply custom info to ${slot.asTemplate} on ${player.getName}"
+          val msg = s"Cannot apply custom info to ${slot.asTemplate} on ${user.getName}"
           logger.error(msg, new IllegalStateException(msg))
         }
       }
