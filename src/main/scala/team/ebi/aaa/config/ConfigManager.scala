@@ -7,12 +7,6 @@ import java.util.concurrent.Callable
 import java.util.function.Consumer
 
 import com.google.inject.{Inject, Provider, Singleton}
-import team.ebi.aaa
-import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext}
-import team.ebi.aaa.api.data.Template
-import team.ebi.aaa.api.data.visitor.TemplatesVisitor
-import team.ebi.aaa.attribute.AttributeManager
-import team.ebi.aaa.util._
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
@@ -20,6 +14,12 @@ import org.spongepowered.api.config.ConfigDir
 import org.spongepowered.api.event.game.state.GameStartedServerEvent
 import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.scheduler.Task
+import team.ebi.aaa
+import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext}
+import team.ebi.aaa.api.data.Template
+import team.ebi.aaa.api.data.visitor.TemplatesVisitor
+import team.ebi.aaa.attribute.AttributeManager
+import team.ebi.aaa.util._
 
 import scala.collection.mutable
 import scala.util.continuations.reset
@@ -42,8 +42,14 @@ class ConfigManager @Inject()(implicit container: PluginContainer,
     private val file: DynamicVariable[Path] = new DynamicVariable[Path](null)
 
     private val watchPath = {
-      val subDir = Paths.get("templates")
-      Files.createDirectories(configDir.resolve(subDir))
+      val subDir = configDir.resolve(Paths.get("templates"))
+      if (!Files.isDirectory(subDir)) {
+        Files.createDirectories(subDir)
+        val hasPlaceholderAPI = Sponge.getPluginManager.isLoaded("placeholder" + "api")
+        val name = s"config/global_${if (hasPlaceholderAPI) "with" else "without"}_placeholder.conf"
+        Sponge.getAssetManager.getAsset(container, name).get.copyToFile(subDir.resolve("global.conf"))
+      }
+      subDir
     }
 
     private val key: WatchKey = {
@@ -67,18 +73,24 @@ class ConfigManager @Inject()(implicit container: PluginContainer,
     private def reload(): Unit = {
       val affected = {
         val affectedBuilder = Set.newBuilder[Template]
-        for (e <- key.pollEvents.asScala; path = e.context.asInstanceOf[Path]) e.kind match {
+        for (e <- key.pollEvents.asScala) e.kind match {
           case OVERFLOW => ()
-          case ENTRY_DELETE => for (template <- getTemplateByName(path)) {
-            templateToGetters.remove(template)
-            affectedBuilder += template
+          case ENTRY_DELETE => locally {
+            val path = e.context.asInstanceOf[Path]
+            for (template <- getTemplateByName(path)) {
+              templateToGetters.remove(template)
+              affectedBuilder += template
+            }
           }
-          case ENTRY_CREATE | ENTRY_MODIFY => for (template <- getTemplateByName(path)) try {
-            logger.info(s"Hot reloading ${path.getFileName} (to template{$template}) ...")
-            loadTemplateConfig(path, template)
-            affectedBuilder += template
-          } catch {
-            case e: IOException => logger.error(s"An error was found when hot reloading ${watchPath.resolve(path)}", e)
+          case ENTRY_CREATE | ENTRY_MODIFY => locally {
+            val path = e.context.asInstanceOf[Path]
+            for (template <- getTemplateByName(path)) try {
+              logger.info(s"Hot reloading ${path.getFileName} (to template{$template}) ...")
+              loadTemplateConfig(path, template)
+              affectedBuilder += template
+            } catch {
+              case e: IOException => logger.error(s"An error was found when hot reloading ${watchPath.resolve(path)}", e)
+            }
           }
         }
         affectedBuilder.result
