@@ -2,11 +2,7 @@ package team.ebi.aaa.data
 
 import java.util.{Optional, UUID}
 
-import team.ebi.aaa
-import team.ebi.aaa.api.data.Template
-import team.ebi.aaa.util._
-import ninja.leaping.configurate.ConfigurationNode
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader
+import ninja.leaping.configurate.{ConfigurationNode, SimpleConfigurationNode}
 import org.spongepowered.api.data.manipulator.DataManipulatorBuilder
 import org.spongepowered.api.data.manipulator.immutable.common.AbstractImmutableData
 import org.spongepowered.api.data.manipulator.mutable.common.AbstractData
@@ -14,7 +10,10 @@ import org.spongepowered.api.data.merge.MergeFunction
 import org.spongepowered.api.data.persistence.{AbstractDataBuilder, InvalidDataException}
 import org.spongepowered.api.data.{DataContainer, DataHolder, DataQuery, DataView}
 import org.spongepowered.api.text.Text
-import org.spongepowered.api.text.serializer.{TextSerializer, TextSerializers}
+import org.spongepowered.api.text.serializer.TextSerializers
+import team.ebi.aaa
+import team.ebi.aaa.api.data.Template
+import team.ebi.aaa.util._
 
 import scala.collection.{immutable, mutable}
 
@@ -86,12 +85,8 @@ object CustomTemplates {
     override def createFrom(dataHolder: DataHolder): Optional[Data] = this.create().fill(dataHolder)
   }
 
-  private val formattingCode: TextSerializer = TextSerializers.FORMATTING_CODE
-
-  private val configurationLoader: HoconConfigurationLoader = HoconConfigurationLoader.builder.build()
-
   private def extraFrom(extra: Iterable[(DataQuery, ConfigurationNode)]): mutable.Map[DataQuery, ConfigurationNode] = {
-    mutable.LinkedHashMap(extra.toSeq: _*).withDefault(_ => configurationLoader.createEmptyNode())
+    mutable.LinkedHashMap(extra.toSeq: _*).withDefault(_ => SimpleConfigurationNode.root())
   }
 
   private def fillData(view: DataContainer, data: Value, extra: Iterable[(DataQuery, ConfigurationNode)]): DataContainer = {
@@ -105,11 +100,11 @@ object CustomTemplates {
     }
     data.backup.name match {
       case None => view.remove(DataQuery.of("BackupDisplayName"))
-      case Some(texts) => view.set(DataQuery.of("BackupDisplayName"), formattingCode.serialize(texts))
+      case Some(texts) => view.set(DataQuery.of("BackupDisplayName"), TextSerializers.FORMATTING_CODE.serialize(texts))
     }
     data.backup.lore match {
       case None => view.remove(DataQuery.of("BackupItemLore"))
-      case Some(texts) => view.set(DataQuery.of("BackupItemLore"), texts.map(formattingCode.serialize).asJava)
+      case Some(texts) => view.set(DataQuery.of("BackupItemLore"), texts.map(TextSerializers.FORMATTING_CODE.serialize).asJava)
     }
   }
 
@@ -120,13 +115,13 @@ object CustomTemplates {
     val rawBackupLore = view.getStringList(DataQuery.of("BackupItemLore")).asScala
 
     val extra = rawExtra.map(_.getValues(false).asScala)
-    val name = rawBackupName.map(formattingCode.deserialize)
-    val lore = rawBackupLore.map(_.asScala.map(formattingCode.deserialize).toList)
+    val name = rawBackupName.map(TextSerializers.FORMATTING_CODE.deserialize)
+    val lore = rawBackupLore.map(_.asScala.map(TextSerializers.FORMATTING_CODE.deserialize).toList)
     val templates = rawTemplates.map(_.asScala.filter(_.matches("[a-z][a-z0-9_-]*")).map(Template.parse).toList).getOrElse(Nil)
 
     data.extra.clear()
     data.value = Value(new UUID(0, 0), Backup(name, lore), templates)
-    extra.foreach(data.extra ++= _.mapValues(configurationLoader.createEmptyNode().setValue(_)))
+    extra.foreach(data.extra ++= _.mapValues(SimpleConfigurationNode.root().setValue(_)))
     Some(data)
   } catch {
     case _: InvalidDataException => None
