@@ -59,8 +59,9 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
   listenTo[Attribute.LoadEvent] { event =>
     val toBeRegistered: java.util.List[Attribute[_]] = event.getAttributesToBeRegistered
     // functional attributes come firstly
-    toBeRegistered.add(0, injector.getInstance(classOf[DurabilityAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[CustomInfoAttribute]))
+    toBeRegistered.add(0, injector.getInstance(classOf[DurabilityAttribute]))
+    toBeRegistered.add(0, injector.getInstance(classOf[HelloAttribute]))
     // conditional attributes come secondly
     toBeRegistered.add(injector.getInstance(classOf[EquipmentAttribute]))
     toBeRegistered.add(injector.getInstance(classOf[SuitAttribute]))
