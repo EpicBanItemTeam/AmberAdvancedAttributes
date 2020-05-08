@@ -7,16 +7,17 @@ import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext}
 import team.ebi.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
 import team.ebi.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import team.ebi.aaa.api.data.{Template, TemplateSlot}
-import team.ebi.aaa.attribute.{AttributeManager, MappingLoader}
+import team.ebi.aaa.attribute.AttributeManager
 import team.ebi.aaa.util._
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
+import team.ebi.aaa.attribute.mappings.MappingsGenerator
 
 import scala.util.{DynamicVariable, Try}
 
 @Singleton
-class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoader, logger: Logger) extends Attribute[Nothing] {
+class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingsGenerator, logger: Logger) extends Attribute[Nothing] {
   override def getDataClass: Class[Nothing] = classOf[Nothing]
 
   override def getDeserializationKey: String = aaa.templateKey
@@ -47,7 +48,7 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingLoad
                   throw new ObjectMappingException(s"Invalid template name: ${childNode.getString}")
                 }
               }
-              val summary = loader.loadPerSlot(manager.attributeMap, context.getSlot, templates)(context.getPlayer)
+              val summary = loader.generatePerSlot(manager.attributeMap, context.getSlot, templates)(context.getPlayer)
               templatePath.withValue(template :: templatePath.value) {
                 Option(super.visitTemplates()).filterNot(_ == TemplatesVisitor.EMPTY).foreach(summary.accept)
               }

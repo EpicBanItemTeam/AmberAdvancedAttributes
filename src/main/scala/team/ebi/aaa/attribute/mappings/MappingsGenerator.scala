@@ -1,10 +1,13 @@
-package team.ebi.aaa.attribute
+package team.ebi.aaa.attribute.mappings
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
 
 import com.google.gson.JsonPrimitive
 import com.google.inject.{Inject, Singleton}
+import ninja.leaping.configurate.objectmapping.ObjectMappingException
+import org.slf4j.Logger
+import org.spongepowered.api.entity.living.player.Player
 import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext, SummaryContext}
 import team.ebi.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor}
@@ -12,14 +15,11 @@ import team.ebi.aaa.api.data.visitor.{MappingsVisitor, TemplatesVisitor}
 import team.ebi.aaa.api.data.{Mappings, Template, TemplateSlot, UnreachableSlotDataException}
 import team.ebi.aaa.config.ConfigManager
 import team.ebi.aaa.util._
-import ninja.leaping.configurate.objectmapping.ObjectMappingException
-import org.slf4j.Logger
-import org.spongepowered.api.entity.living.player.Player
 
 import scala.collection.mutable
 
 @Singleton
-class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
+class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) {
   type Attributes = Map[String, Attribute[_]]
 
   type TemplateSlots = Map[Template, TemplateSlot]
@@ -171,15 +171,15 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
     override def getPlayer: Player = player
   }
 
-  def load(attributes: Attributes, slots: TemplateSlots)
-          (player: Player): Map[TemplateSlot, Mappings] = {
-    val summarySerial = loadGlobally(attributes, slots)(player)
+  def generate(attributes: Attributes, slots: TemplateSlots)
+              (player: Player): Map[TemplateSlot, Mappings] = {
+    val summarySerial = generateGlobally(attributes, slots)(player)
     val buildersEnding = new BuildersEnding(slots, _ => Mappings.builder)(summarySerial)
     buildersEnding.call()
   }
 
-  def loadPerSlot(attributes: Attributes, slot: TemplateSlot, templates: Iterable[Template])
-                 (player: Player): Consumer[TemplatesVisitor] = {
+  def generatePerSlot(attributes: Attributes, slot: TemplateSlot, templates: Iterable[Template])
+                     (player: Player): Consumer[TemplatesVisitor] = {
     val multiplex = new Multiplex(templates.map { template =>
       val context = new MappingsInitContext(player, slot, template)
       val mappingsOpening = new MappingsOpening(template, Mappings.empty)
@@ -189,11 +189,11 @@ class MappingLoader @Inject()(logger: Logger, configManager: ConfigManager) {
     multiplex
   }
 
-  def loadGlobally(attributes: Attributes, slots: TemplateSlots)
-                  (player: Player): Consumer[TemplatesVisitor] = {
+  def generateGlobally(attributes: Attributes, slots: TemplateSlots)
+                      (player: Player): Consumer[TemplatesVisitor] = {
     val combination = new Combination(slots.values.flatMap(slot => try {
       val templates = slot.getTemplates(player).asScala.distinct // yeah, every template should be unique
-      val multiplex = loadPerSlot(attributes, slot, templates)(player)
+      val multiplex = generatePerSlot(attributes, slot, templates)(player)
       Some(slot -> multiplex)
     } catch {
       case _: UnreachableSlotDataException => None
