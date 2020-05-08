@@ -1,10 +1,10 @@
-package team.ebi.aaa.range
+package team.ebi.aaa.data
 
 import com.google.common.reflect.TypeToken
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.{ObjectMappingException, serialize}
 
-import scala.util.parsing.combinator._
+import scala.util.parsing.combinator.RegexParsers
 
 object DoubleRange extends RegexParsers {
 
