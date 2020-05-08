@@ -1,15 +1,15 @@
 package team.ebi.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
-import team.ebi.aaa.api.Attribute
-import team.ebi.aaa.api.data.{Mappings, MappingsRefreshEvent, TemplateSlot}
-import team.ebi.aaa.data.CustomTemplates
-import team.ebi.aaa.util._
 import org.slf4j.Logger
 import org.spongepowered.api.data.key.Keys
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.text.serializer.TextSerializers
+import team.ebi.aaa.api.Attribute
+import team.ebi.aaa.api.data.{Mappings, MappingsRefreshEvent, TemplateSlot}
+import team.ebi.aaa.data.CustomTemplates
+import team.ebi.aaa.util._
 
 @Singleton
 class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger: Logger) extends Attribute[String] {
@@ -23,23 +23,16 @@ class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger:
     event.getAvailableSlots.asScala.foreach {
       case slot: TemplateSlot.Equipment => for (mappings <- event.getTargetMappings(slot).asScala) {
         val player = event.getTargetEntity
-        val succeed = Mappings.dataStream(mappings, this, true).iterator.asScala.toSeq match {
-          case Nil => locally {
-            val item = player.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
-            item.get(classOf[CustomTemplates.Data]).isPresent && {
-              val r1 = item.remove(Keys.ITEM_LORE)
-              val r2 = item.remove(Keys.DISPLAY_NAME)
-              r1.isSuccessful && r2.isSuccessful && player.equip(slot.getEquipmentType, item)
-            }
+        val item = player.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
+        val mappingsIterator = Mappings.flattenMappingsStream(mappings).iterator.asScala
+        val (name, lore) = mappingsIterator.flatMap[(String, Seq[String])](m => +:.unapply(m.getAttributeDataList(this).asScala)).toSeq.unzip
+        val succeed = item.get(classOf[CustomTemplates.Data]).isPresent && {
+          val r1 = item.offer(Keys.ITEM_LORE, lore.flatten.map(TextSerializers.FORMATTING_CODE.deserialize).asJava)
+          val r2 = name.lastOption match {
+            case None => item.remove(Keys.DISPLAY_NAME)
+            case Some(head) => item.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(head))
           }
-          case name +: lore => locally {
-            val item = player.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty())
-            item.get(classOf[CustomTemplates.Data]).isPresent && {
-              val r1 = item.offer(Keys.ITEM_LORE, lore.map(TextSerializers.FORMATTING_CODE.deserialize).asJava)
-              val r2 = item.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(name))
-              r1.isSuccessful && r2.isSuccessful && player.equip(slot.getEquipmentType, item)
-            }
-          }
+          r1.isSuccessful && r2.isSuccessful && player.equip(slot.getEquipmentType, item)
         }
         if (!succeed) {
           val msg = s"Cannot apply custom info to ${slot.asTemplate} on ${player.getName}"

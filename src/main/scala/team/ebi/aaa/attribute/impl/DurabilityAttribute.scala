@@ -1,16 +1,16 @@
 package team.ebi.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
-import team.ebi.aaa
-import team.ebi.aaa.api.Attribute
-import team.ebi.aaa.api.data._
-import team.ebi.aaa.attribute.AttributeManager
-import team.ebi.aaa.util._
 import org.spongepowered.api.data.`type`.HandTypes
 import org.spongepowered.api.data.key.Keys
 import org.spongepowered.api.data.property.item.UseLimitProperty
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
+import team.ebi.aaa
+import team.ebi.aaa.api.Attribute
+import team.ebi.aaa.api.data._
+import team.ebi.aaa.attribute.AttributeManager
+import team.ebi.aaa.util._
 
 @Singleton
 class DurabilityAttribute @Inject()(manager: AttributeManager)(implicit container: PluginContainer) extends Attribute[Integer] {
@@ -43,7 +43,7 @@ class DurabilityAttribute @Inject()(manager: AttributeManager)(implicit containe
         for (durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala) {
           for (limit <- item.getProperty(classOf[UseLimitProperty]).asScala) {
             for (mappings <- event.getTargetMappings(TemplateSlots.MAIN_HAND).asScala) {
-              val totalLimit = Mappings.dataStream(mappings, this, true).iterator.asScala.map(Int.unbox).sum
+              val totalLimit = Mappings.flattenDataStream(mappings, this).iterator.asScala.map(Int.unbox).sum
               if (recalculate(item, totalLimit, Int.unbox(durability), Int.unbox(limit.getValue))) {
                 player.setItemInHand(HandTypes.MAIN_HAND, item)
               }
@@ -56,7 +56,7 @@ class DurabilityAttribute @Inject()(manager: AttributeManager)(implicit containe
         for (durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala) {
           for (limit <- item.getProperty(classOf[UseLimitProperty]).asScala) {
             for (mappings <- event.getTargetMappings(TemplateSlots.OFF_HAND).asScala) {
-              val totalLimit = Mappings.dataStream(mappings, this, true).iterator.asScala.map(Int.unbox).sum
+              val totalLimit = Mappings.flattenDataStream(mappings, this).iterator.asScala.map(Int.unbox).sum
               if (recalculate(item, totalLimit, Int.unbox(durability), Int.unbox(limit.getValue))) {
                 player.setItemInHand(HandTypes.OFF_HAND, item)
               }

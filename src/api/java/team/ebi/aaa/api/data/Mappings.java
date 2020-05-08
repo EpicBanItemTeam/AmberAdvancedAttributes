@@ -2,9 +2,6 @@ package team.ebi.aaa.api.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
-import team.ebi.aaa.api.Attribute;
-import team.ebi.aaa.api.data.visitor.MappingsVisitor;
-import team.ebi.aaa.api.data.visitor.TemplatesVisitor;
 import org.spongepowered.api.util.ResettableBuilder;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
 import team.ebi.aaa.api.Attribute;
@@ -29,13 +26,14 @@ public final class Mappings implements Consumer<MappingsVisitor> {
         visitor.visitMapping(key, key.getDataClass().cast(value));
     }
 
-    public static <T> Stream<T> dataStream(Mappings mappings, Attribute<T> attribute, boolean flatten) {
-        Stream<T> current = mappings.attributeData.get(attribute).stream().map(attribute.getDataClass()::cast);
-        if (flatten) {
-            Stream<T> children = mappings.templates.values().stream().flatMap(m -> dataStream(m, attribute, true));
-            return Stream.concat(current, children);
-        }
-        return current;
+    public static <T> Stream<T> flattenDataStream(Mappings mappings, Attribute<T> attribute) {
+        Class<T> dataClass = attribute.getDataClass();
+        Stream<Mappings> mappingsStream = Mappings.flattenMappingsStream(mappings);
+        return mappingsStream.flatMap(m -> m.attributeData.get(attribute).stream().map(dataClass::cast));
+    }
+
+    public static Stream<Mappings> flattenMappingsStream(Mappings mappings) {
+        return Stream.concat(Stream.of(mappings), mappings.templates.values().stream());
     }
 
     public Set<? extends Template> getTemplates() {
@@ -47,7 +45,9 @@ public final class Mappings implements Consumer<MappingsVisitor> {
     }
 
     public <T> List<? extends T> getAttributeDataList(Attribute<T> attribute) {
-        return dataStream(this, attribute, false).collect(ImmutableList.toImmutableList());
+        Class<T> dataClass = attribute.getDataClass();
+        Stream<Object> dataStream = this.attributeData.get(attribute).stream();
+        return dataStream.map(dataClass::cast).collect(ImmutableList.toImmutableList());
     }
 
     @Override
