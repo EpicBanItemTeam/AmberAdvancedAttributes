@@ -5,7 +5,6 @@ import org.slf4j.Logger
 import org.spongepowered.api.data.key.Keys
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
-import org.spongepowered.api.text.serializer.TextSerializers
 import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.data.{Mappings, MappingsRefreshEvent, TemplateSlot}
 import team.ebi.aaa.data.CustomTemplates
@@ -27,10 +26,10 @@ class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger:
         val mappingsIterator = Mappings.flattenMappingsStream(mappings).iterator.asScala
         val (name, lore) = mappingsIterator.flatMap[(String, Seq[String])](m => +:.unapply(m.getAttributeDataList(this).asScala)).toSeq.unzip
         val succeed = item.get(classOf[CustomTemplates.Data]).isPresent && {
-          val r1 = item.offer(Keys.ITEM_LORE, lore.flatten.map(TextSerializers.FORMATTING_CODE.deserialize).asJava)
+          val r1 = item.offer(Keys.ITEM_LORE, lore.flatten.map(deserializeText(_, user)).asJava)
           val r2 = name.lastOption match {
             case None => item.remove(Keys.DISPLAY_NAME)
-            case Some(head) => item.offer(Keys.DISPLAY_NAME, TextSerializers.FORMATTING_CODE.deserialize(head))
+            case Some(head) => item.offer(Keys.DISPLAY_NAME, deserializeText(head, user))
           }
           r1.isSuccessful && r2.isSuccessful && user.equip(slot.getEquipmentType, item)
         }

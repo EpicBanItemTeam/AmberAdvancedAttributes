@@ -49,6 +49,7 @@ dependencies {
     apiCompile 'org.spongepowered:spongeapi:7.2.0-SNAPSHOT'
     compile 'com.github.IzzelAliz:AmberCommon:master-SNAPSHOT'
     compile 'com.github.randombyte-developer:byte-items:v2.4.1'
+    compile 'com.github.rojo8399:PlaceholderAPI:master-SNAPSHOT'
     compile 'org.scala-lang.modules:scala-parser-combinators_2.11:1.0.1'
     compile 'org.scala-lang.plugins:scala-continuations-library_2.11:1.0.2'
     compilerPlugin 'org.scala-lang.plugins:scala-continuations-plugin_2.11.1:1.0.2'
