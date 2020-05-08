@@ -13,9 +13,9 @@ import team.ebi.aaa.api.{Attribute, AttributeService}
 import team.ebi.aaa.attribute.event.{AttributeLoadEvent, TemplateSlotLoadEvent}
 import team.ebi.aaa.attribute.impl._
 import team.ebi.aaa.attribute.mappings.MappingsCache
-import team.ebi.aaa.slot.{EquipmentSlot, GlobalSlot}
 import team.ebi.aaa.util._
 import team.ebi.aaa
+import team.ebi.aaa.attribute.slot.{EquipmentSlot, GlobalSlot}
 
 import scala.collection.immutable
 import scala.util.continuations.reset

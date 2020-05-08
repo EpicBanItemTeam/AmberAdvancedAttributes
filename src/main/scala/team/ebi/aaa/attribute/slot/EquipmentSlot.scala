@@ -1,4 +1,4 @@
-package team.ebi.aaa.slot
+package team.ebi.aaa.attribute.slot
 
 import team.ebi.aaa.api.data.{Template, TemplateSlot}
 import team.ebi.aaa.attribute.AttributeManager
