@@ -21,7 +21,7 @@ import team.ebi.aaa.util._
 @Singleton
 class MappingsCache @Inject()(implicit container: PluginContainer,
                               locale: AmberLocale, manager: Provider[AttributeManager], loader: MappingsGenerator) {
-  private val userStorage: UserStorageService = Sponge.getServiceManager.provideUnchecked(classOf[UserStorageService])
+  private def userStorage: UserStorageService = Sponge.getServiceManager.provideUnchecked(classOf[UserStorageService])
 
   private val cache: LoadingCache[UUID, Map[TemplateSlot, Mappings]] = Caffeine.newBuilder.weakKeys.build(Loader)
 
