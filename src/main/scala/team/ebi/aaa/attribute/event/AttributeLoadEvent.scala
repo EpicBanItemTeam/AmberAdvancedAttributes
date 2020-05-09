@@ -20,7 +20,7 @@ class AttributeLoadEvent(logger: Logger) extends Attribute.LoadEvent {
   override def getCause: Cause = currentCause
 
   def build(): immutable.ListMap[String, Attribute[_]] = try {
-    val attributeBuilder = mutable.ListMap.empty[String, Attribute[_]]
+    val attributeBuilder = mutable.LinkedHashMap[String, Attribute[_]]()
     for (attribute <- list.asScala; key = attribute.getDeserializationKey) attributeBuilder.get(key) match {
       case None => attributeBuilder.put(attribute.getDeserializationKey, attribute)
       case Some(_) => logger.warn(s"Duplicate deserialization key: $key (only the first registered will take effect)")
