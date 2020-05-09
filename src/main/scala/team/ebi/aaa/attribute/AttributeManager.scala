@@ -63,6 +63,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     toBeRegistered.add(0, injector.getInstance(classOf[AttackPVEAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[AttackPVPAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[CustomInfoAttribute]))
+    toBeRegistered.add(0, injector.getInstance(classOf[CustomNameAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[DurabilityAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[HelloAttribute]))
     // conditional attributes come secondly

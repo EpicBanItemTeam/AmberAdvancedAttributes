@@ -11,10 +11,10 @@ import team.ebi.aaa.data.CustomTemplates
 import team.ebi.aaa.util._
 
 @Singleton
-class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger: Logger) extends Attribute[String] {
+class CustomNameAttribute @Inject()(implicit container: PluginContainer, logger: Logger) extends Attribute[String] {
   override def getDataClass: Class[String] = classOf[String]
 
-  override def getDeserializationKey: String = "aaa-custom-info"
+  override def getDeserializationKey: String = "aaa-custom-name"
 
   override def isCompatibleWith(slot: TemplateSlot): Boolean = true
 
@@ -32,9 +32,12 @@ class CustomInfoAttribute @Inject()(implicit container: PluginContainer, logger:
       case slot: TemplateSlot.Equipment => locally {
         val user = event.getTargetUser
         val item = user.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty)
-        val lore = getMappingsIterator(event, slot).flatMap[String](_.getAttributeDataList(this).asScala).toSeq
+        val name = getMappingsIterator(event, slot).flatMap[String](_.getAttributeDataList(this).asScala).toSeq
         val succeed = item.get(classOf[CustomTemplates.Data]).isPresent && {
-          val r = item.offer(Keys.ITEM_LORE, lore.map(deserializeText(_, user)).asJava)
+          val r = name.lastOption match {
+            case None => item.remove(Keys.DISPLAY_NAME)
+            case Some(head) => item.offer(Keys.DISPLAY_NAME, deserializeText(head, user))
+          }
           r.isSuccessful && user.equip(slot.getEquipmentType, item)
         }
         if (!succeed) {
