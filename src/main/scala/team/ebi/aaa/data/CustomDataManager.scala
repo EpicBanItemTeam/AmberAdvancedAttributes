@@ -14,7 +14,12 @@ class CustomDataManager @Inject()(implicit container: PluginContainer, logger: L
   reset {
     waitFor[GamePreInitializationEvent]
     logger.info("Registering custom data ...")
+    registerDoubleRangeSerializer()
     registerCustomTemplates()
+  }
+
+  private def registerDoubleRangeSerializer(): Unit = {
+    DoubleRange.ensuring(true) // class loading
   }
 
   private def registerCustomTemplates(): Unit = {
