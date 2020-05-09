@@ -4,6 +4,7 @@ import java.util.function.BooleanSupplier
 
 import com.google.common.reflect.TypeToken
 import com.google.inject.{Inject, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext}
 import team.ebi.aaa.api.data.visitor.TemplatesVisitor
@@ -15,7 +16,7 @@ import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 
 @Singleton
-class EquipmentAttribute @Inject()(manager: AttributeManager) extends Attribute[Nothing] {
+class EquipmentAttribute @Inject()(manager: AttributeManager, locale: AmberLocale) extends Attribute[Nothing] {
   override def getDataClass: Class[Nothing] = classOf[Nothing]
 
   override def getDeserializationKey: String = "aaa-equipment"
@@ -25,7 +26,7 @@ class EquipmentAttribute @Inject()(manager: AttributeManager) extends Attribute[
   override def initAttributes(node: ConfigurationNode): ContextualTransformer[InitializationContext, TemplatesVisitor] = {
     val strings = node.getList(TypeToken.of(classOf[String])).asScala
     val invalid = strings.filterNot(Option(_).flatMap(Template.tryParse(_).asScala).exists(manager.slotMap.contains))
-    if (invalid.nonEmpty) throw new ObjectMappingException(s"Invalid string(s): ${invalid.mkString("[", ", ", "]")}")
+    if (invalid.nonEmpty) throw new ObjectMappingException(locale.getUnchecked("attribute.aaa-equipment.failure", invalid.mkString("[", ", ", "]")).toPlain)
     new ContextualTransformer[InitializationContext, TemplatesVisitor] {
       override def transform(context: InitializationContext, parent: TemplatesVisitor): TemplatesVisitor = {
         new ConditionTemplatesVisitor(parent, context.getCurrentTemplate, new BooleanSupplier {

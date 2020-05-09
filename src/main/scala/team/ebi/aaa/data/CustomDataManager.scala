@@ -1,6 +1,7 @@
 package team.ebi.aaa.data
 
 import com.google.inject.{Inject, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import team.ebi.aaa.util._
 import org.slf4j.Logger
 import org.spongepowered.api.data.DataRegistration
@@ -10,10 +11,10 @@ import org.spongepowered.api.plugin.PluginContainer
 import scala.util.continuations.reset
 
 @Singleton
-class CustomDataManager @Inject()(implicit container: PluginContainer, logger: Logger) {
+class CustomDataManager @Inject()(implicit container: PluginContainer, locale: AmberLocale) {
   reset {
     waitFor[GamePreInitializationEvent]
-    logger.info("Registering custom data ...")
+    locale.log("log.register-data.before")
     registerDoubleRangeSerializer()
     registerCustomTemplates()
   }

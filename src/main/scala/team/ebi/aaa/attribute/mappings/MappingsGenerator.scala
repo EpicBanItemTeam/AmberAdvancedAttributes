@@ -5,7 +5,7 @@ import java.util.function.Consumer
 
 import com.google.gson.JsonPrimitive
 import com.google.inject.{Inject, Singleton}
-import ninja.leaping.configurate.objectmapping.ObjectMappingException
+import io.izzel.amber.commons.i18n.AmberLocale
 import org.slf4j.Logger
 import org.spongepowered.api.entity.living.player.User
 import team.ebi.aaa.api.Attribute
@@ -17,9 +17,10 @@ import team.ebi.aaa.config.ConfigManager
 import team.ebi.aaa.util._
 
 import scala.collection.mutable
+import scala.util.control.NonFatal
 
 @Singleton
-class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) {
+class MappingsGenerator @Inject()(logger: Logger, locale: AmberLocale, configManager: ConfigManager) {
   type Attributes = Map[String, Attribute[_]]
 
   type TemplateSlots = Map[Template, TemplateSlot]
@@ -40,20 +41,14 @@ class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) 
                             (parent: Consumer[TemplatesVisitor]) extends Consumer[TemplatesVisitor] {
 
     private val compatibilityError: mutable.Queue[(Attribute[_], Exception)] = mutable.Queue()
-    private val initializationError: mutable.Queue[(Attribute[_], Exception)] = mutable.Queue()
 
     private def handleErrors(): Unit = {
       val slot = context.getSlot.asTemplate
       val template = context.getCurrentTemplate
       for ((attr, error) <- compatibilityError.dequeueAll(_ => true)) {
-        logger.debug("Compatibility error", error)
-        val attrDesc = s"${attr.getDeserializationKey} (loaded by template{$template})"
-        logger.warn(s"Attribute $attrDesc is not compatible with slot $slot (it will be ignored)")
-      }
-      for ((attr, error) <- initializationError.dequeueAll(_ => true)) {
-        logger.debug("Initialization error", error)
-        val attrDesc = s"${attr.getDeserializationKey} (loaded by template{$template})"
-        logger.error(s"Initialization of attribute $attrDesc failed (it will be ignored): ${error.getMessage}")
+        val attrDesc = locale.getUnchecked("log.mappings.attribute-description", attr.getDeserializationKey, template)
+        logger.warn(locale.getUnchecked("log.mappings.error-compatibility", attrDesc, slot).toPlain)
+        logger.debug(error.getMessage, error)
       }
     }
 
@@ -64,11 +59,10 @@ class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) 
     override def accept(t: TemplatesVisitor): Unit = try {
       var newTemplateVisitor = t
       for (attr <- attributes.values; init <- getInitializer(context.getCurrentTemplate, attr)) try {
-        if (!attr.isCompatibleWith(context.getSlot)) compatibilityError += attr -> new IllegalStateException() else {
-          newTemplateVisitor = init.transform(context, newTemplateVisitor)
-        }
+        attr.ensuring(_.isCompatibleWith(context.getSlot))
+        newTemplateVisitor = init.transform(context, newTemplateVisitor)
       } catch {
-        case e: ObjectMappingException => initializationError += attr -> new IllegalStateException(e)
+        case NonFatal(e) => compatibilityError += attr -> new IllegalStateException(e)
       }
       parent.accept(newTemplateVisitor)
     } finally {
@@ -81,7 +75,8 @@ class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) 
       for (entry <- parents) entry._2.accept(new AbstractTemplatesVisitor(TemplatesVisitor.EMPTY) {
         override def visitTemplate(template: Template): MappingsVisitor = {
           if (template == entry._1) t.visitTemplate(template) else {
-            throw new IllegalStateException(s"Expected template{${entry._1}} but got template{$template}")
+            val msg = locale.getUnchecked("log.mappings.error-multiplex", entry._1, template).toPlain
+            throw new IllegalStateException(msg)
           }
         }
       })
@@ -152,7 +147,7 @@ class MappingsGenerator @Inject()(logger: Logger, configManager: ConfigManager) 
       parent.accept(new AbstractTemplatesVisitor(TemplatesVisitor.EMPTY) {
         override def visitTemplate(template: Template): MappingsVisitor = slots.get(template) match {
           case Some(slot) => new LoggedVisitor(slot, map.getOrElseUpdate(slot, builderGetter(slot)), None)
-          case None => throw new IllegalStateException(s"Expected a template slot but got template{$template}")
+          case None => throw new IllegalStateException(locale.getUnchecked("log.mappings.error-builder", template).toPlain)
         }
       })
       map.mapValues(_.build()).toMap

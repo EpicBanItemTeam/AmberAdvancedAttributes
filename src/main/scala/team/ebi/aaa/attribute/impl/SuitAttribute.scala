@@ -2,6 +2,7 @@ package team.ebi.aaa.attribute.impl
 
 import com.google.common.reflect.TypeToken
 import com.google.inject.{Inject, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.context.{ContextualTransformer, InitializationContext, SummaryContext}
 import team.ebi.aaa.api.data.visitor.impl.{AbstractMappingsVisitor, AbstractTemplatesVisitor, SimpleTemplatesVisitor}
@@ -15,7 +16,7 @@ import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import scala.collection.mutable
 
 @Singleton
-class SuitAttribute @Inject()(manager: AttributeManager) extends Attribute[TemplateSlot.Equipment] { attr =>
+class SuitAttribute @Inject()(manager: AttributeManager, locale: AmberLocale) extends Attribute[TemplateSlot.Equipment] { attr =>
 
   override def getDataClass: Class[TemplateSlot.Equipment] = classOf[TemplateSlot.Equipment]
 
@@ -36,7 +37,7 @@ class SuitAttribute @Inject()(manager: AttributeManager) extends Attribute[Templ
         case _ => invalid += slotTemplateString
       }
     }
-    if (invalid.nonEmpty) throw new ObjectMappingException(s"Invalid string(s): ${invalid.mkString("[", ", ", "]")}")
+    if (invalid.nonEmpty) throw new ObjectMappingException(locale.getUnchecked("attribute.aaa-suit.failure", invalid.mkString("[", ", ", "]")).toPlain)
     new ContextualTransformer[InitializationContext, TemplatesVisitor] {
       override def transform(context: InitializationContext, parent: TemplatesVisitor): TemplatesVisitor = {
         val currentTemplate = context.getCurrentTemplate

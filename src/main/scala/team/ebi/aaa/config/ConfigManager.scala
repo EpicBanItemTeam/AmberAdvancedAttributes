@@ -7,6 +7,7 @@ import java.util.concurrent.Callable
 import java.util.function.Consumer
 
 import com.google.inject.{Inject, Provider, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
@@ -23,12 +24,13 @@ import team.ebi.aaa.util._
 
 import scala.collection.mutable
 import scala.util.continuations.reset
+import scala.util.control.NonFatal
 import scala.util.{DynamicVariable, Try}
 
 @Singleton
 class ConfigManager @Inject()(implicit container: PluginContainer,
                               attributes: Provider[AttributeManager],
-                              logger: Logger, @ConfigDir(sharedRoot = false) configDir: Path) {
+                              logger: Logger, locale: AmberLocale, @ConfigDir(sharedRoot = false) configDir: Path) {
   type Initializer = ContextualTransformer[InitializationContext, TemplatesVisitor]
 
   private val loader: HoconConfigurationLoader = HoconConfigurationLoader.builder.setSource(Executor).build()
@@ -70,6 +72,11 @@ class ConfigManager @Inject()(implicit container: PluginContainer,
       templateToGetters.put(template, builder.result)
     }
 
+    private def logException(path: Path, e: Throwable): Unit = {
+      val wrapped = if (e.isInstanceOf[IOException]) e else new IOException(e)
+      logger.error(locale.getUnchecked("log.config.error-parsing", watchPath.resolve(path)).toPlain, wrapped)
+    }
+
     private def reload(): Unit = {
       val affected = {
         val affectedBuilder = Set.newBuilder[Template]
@@ -85,11 +92,11 @@ class ConfigManager @Inject()(implicit container: PluginContainer,
           case ENTRY_CREATE | ENTRY_MODIFY => locally {
             val path = e.context.asInstanceOf[Path]
             for (template <- getTemplateByName(path)) try {
-              logger.info(s"Hot reloading ${path.getFileName} (to template{$template}) ...")
+              locale.log("log.config.hot-reloading", path.getFileName, template)
               loadTemplateConfig(path, template)
               affectedBuilder += template
             } catch {
-              case e: IOException => logger.error(s"An error was found when hot reloading ${watchPath.resolve(path)}", e)
+              case NonFatal(e) => logException(path, e)
             }
           }
         }
@@ -108,11 +115,11 @@ class ConfigManager @Inject()(implicit container: PluginContainer,
         val affectedBuilder = Set.newBuilder[Template]
         Task.builder.delayTicks(1).intervalTicks(1).execute(Executor).submit(container)
         for (path <- Files.list(watchPath).iterator.asScala; template <- getTemplateByName(path)) try {
-          logger.info(s"Start loading ${path.getFileName} (to template{$template}) ...")
+          locale.log("log.config.start-loading", path.getFileName, template)
           loadTemplateConfig(path, template)
           affectedBuilder += template
         } catch {
-          case e: IOException => logger.error(s"An error was found when start loading ${watchPath.resolve(path)}", e)
+          case NonFatal(e) => logException(path, e)
         }
         affectedBuilder.result
       }

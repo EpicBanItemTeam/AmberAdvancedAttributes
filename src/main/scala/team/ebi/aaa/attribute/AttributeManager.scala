@@ -1,6 +1,7 @@
 package team.ebi.aaa.attribute
 
 import com.google.inject.{Inject, Injector, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.entity.living.player.User
@@ -22,28 +23,28 @@ import scala.util.continuations.reset
 
 @Singleton
 class AttributeManager @Inject()(implicit container: PluginContainer,
-                                 injector: Injector, logger: Logger, cache: MappingsCache) extends AttributeServiceImpl {
+                                 injector: Injector, locale: AmberLocale, cache: MappingsCache) extends AttributeServiceImpl {
   private var attributes: immutable.ListMap[String, Attribute[_]] = immutable.ListMap.empty
 
   private var templateSlots: immutable.ListMap[Template, TemplateSlot] = immutable.ListMap.empty
 
   private def registerAttributes(): Unit = {
-    logger.info("Registering attributes ...")
-    val event = new AttributeLoadEvent(logger)
+    locale.log("log.register-attributes.before")
+    val event = new AttributeLoadEvent(locale)
     if (!post(event)) attributes = event.build()
     // the priority of template attribute is the lowest
     attributes += aaa.templateKey -> injector.getInstance(classOf[TemplateAttribute])
-    logger.info(s"Registered attributes: ${attributes.keys.mkString("[", ", ", "]")}")
+    locale.log("log.register-attributes.after", attributes.keys.mkString("[", ", ", "]"))
   }
 
   private def registerTemplateSlots(): Unit = {
-    logger.info("Registering template slots ...")
+    locale.log("log.register-slots.before")
     post(new TemplateSlotLoadEvent(templateSlots += _ -> _))
-    logger.info(s"Registered template slots: ${templateSlots.keys.mkString("[", ", ", "]")}")
+    locale.log("log.register-slots.after", templateSlots.keys.mkString("[", ", ", "]"))
   }
 
   private def injectAttributeService(): Unit = {
-    logger.info("Injecting attribute service ...")
+    locale.log("log.register-service.before")
     Sponge.getServiceManager.setProvider(container, classOf[AttributeService], this)
   }
 
@@ -98,8 +99,8 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
   def unreachable(item: ItemStack): Nothing = {
     val cause = Sponge.getCauseStackManager.getCurrentCause
     cause.first(classOf[User]).asScala match {
-      case Some(user) => throw new UnreachableSlotDataException(s"$item for ${user.getName} is not ready for templates")
-      case None => throw new UnreachableSlotDataException(s"$item is not ready for templates")
+      case Some(user) => throw new UnreachableSlotDataException(locale.getUnchecked("log.mappings.unreachable-with-user", item, user.getName).toPlain)
+      case None => throw new UnreachableSlotDataException(locale.getUnchecked("log.mappings.unreachable-without-user", item).toPlain)
     }
   }
 }

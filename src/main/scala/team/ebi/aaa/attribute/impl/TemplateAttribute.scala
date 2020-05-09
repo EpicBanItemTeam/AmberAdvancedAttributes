@@ -1,6 +1,7 @@
 package team.ebi.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.ObjectMappingException
 import org.slf4j.Logger
@@ -17,7 +18,7 @@ import team.ebi.aaa.util._
 import scala.util.{DynamicVariable, Try}
 
 @Singleton
-class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingsGenerator, logger: Logger) extends Attribute[Nothing] {
+class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingsGenerator, logger: Logger, locale: AmberLocale) extends Attribute[Nothing] {
   override def getDataClass: Class[Nothing] = classOf[Nothing]
 
   override def getDeserializationKey: String = aaa.templateKey
@@ -29,9 +30,10 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingsGen
   private val templatePath: DynamicVariable[List[Template]] = new DynamicVariable(Nil)
 
   private def warnRecursive(template: Template): MappingsVisitor = {
-    logger.debug("", new IllegalStateException)
     val pathString = templatePath.value.reverse.mkString(".")
-    logger.warn(s"Found recursive part of template{$template} (in $pathString) and the recursive part will be dropped")
+    val msg = locale.getUnchecked("attribute.aaa-template.recursive", template, pathString).toPlain
+    logger.debug(msg, new IllegalStateException)
+    logger.warn(msg)
     MappingsVisitor.EMPTY
   }
 
@@ -45,7 +47,8 @@ class TemplateAttribute @Inject()(manager: AttributeManager, loader: MappingsGen
             override def visitTemplates(): TemplatesVisitor = {
               val templates: Iterable[Template] = node.getChildrenList.asScala.map { childNode =>
                 Try(Template.parse(childNode.getString)).getOrElse {
-                  throw new ObjectMappingException(s"Invalid template name: ${childNode.getString}")
+                  val msg = locale.getUnchecked("attribute.aaa-template.failure", childNode.getString).toPlain
+                  throw new ObjectMappingException(msg)
                 }
               }
               val summary = loader.generatePerSlot(manager.attributeMap, context.getSlot, templates)(context.getUser)

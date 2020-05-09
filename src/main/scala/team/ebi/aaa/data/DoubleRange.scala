@@ -1,6 +1,7 @@
 package team.ebi.aaa.data
 
 import com.google.common.reflect.TypeToken
+import com.google.gson.JsonPrimitive
 import ninja.leaping.configurate.ConfigurationNode
 import ninja.leaping.configurate.objectmapping.{ObjectMappingException, serialize}
 
@@ -45,7 +46,7 @@ object DoubleRange extends RegexParsers {
     override def serialize(t: TypeToken[_], o: Value[_], v: ConfigurationNode): Unit = v.setValue(o.toString)
 
     override def deserialize(t: TypeToken[_], v: ConfigurationNode): Value[_] = parseAll(range, v.getString("")) match {
-      case NoSuccess(msg, _) => throw new ObjectMappingException(msg)
+      case NoSuccess(msg, _) => throw new ObjectMappingException(s"$msg (raw string: ${new JsonPrimitive(v.getString(""))})")
       case Success(result, _) => result
     }
   }

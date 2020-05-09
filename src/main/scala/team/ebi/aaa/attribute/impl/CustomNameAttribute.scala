@@ -1,6 +1,7 @@
 package team.ebi.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import org.slf4j.Logger
 import org.spongepowered.api.data.key.Keys
 import org.spongepowered.api.item.inventory.ItemStack
@@ -11,7 +12,7 @@ import team.ebi.aaa.data.CustomTemplates
 import team.ebi.aaa.util._
 
 @Singleton
-class CustomNameAttribute @Inject()(implicit container: PluginContainer, logger: Logger) extends Attribute[String] {
+class CustomNameAttribute @Inject()(implicit container: PluginContainer, logger: Logger, locale: AmberLocale) extends Attribute[String] {
   override def getDataClass: Class[String] = classOf[String]
 
   override def getDeserializationKey: String = "aaa-custom-name"
@@ -41,7 +42,7 @@ class CustomNameAttribute @Inject()(implicit container: PluginContainer, logger:
           r.isSuccessful && user.equip(slot.getEquipmentType, item)
         }
         if (!succeed) {
-          val msg = s"Cannot apply custom info to ${slot.asTemplate} on ${user.getName}"
+          val msg = locale.getUnchecked("attribute.aaa-custom-name.failure", slot.asTemplate, user.getName).toPlain
           logger.error(msg, new IllegalStateException(msg))
         }
       }

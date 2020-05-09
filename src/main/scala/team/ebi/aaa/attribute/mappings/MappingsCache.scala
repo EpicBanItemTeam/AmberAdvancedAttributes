@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.google.inject.{Inject, Provider, Singleton}
+import io.izzel.amber.commons.i18n.AmberLocale
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.entity.living.player.User
@@ -19,7 +20,7 @@ import team.ebi.aaa.util._
 
 @Singleton
 class MappingsCache @Inject()(implicit container: PluginContainer,
-                              logger: Logger, manager: Provider[AttributeManager], loader: MappingsGenerator) {
+                              locale: AmberLocale, manager: Provider[AttributeManager], loader: MappingsGenerator) {
   private val userStorage: UserStorageService = Sponge.getServiceManager.provideUnchecked(classOf[UserStorageService])
 
   private val cache: LoadingCache[UUID, Map[TemplateSlot, Mappings]] = Caffeine.newBuilder.weakKeys.build(Loader)
@@ -29,7 +30,7 @@ class MappingsCache @Inject()(implicit container: PluginContainer,
       if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
       val result = loader.generate(manager.get.attributeMap, manager.get.slotMap)(user)
       post(new CacheRefreshEvent(user, new CacheRefreshValue(result)))
-      logger.info(f"Refreshed templates for ${user.getName} ($key)")
+      locale.log("log.mappings.refreshed", user.getName, key)
       result
     }
 
