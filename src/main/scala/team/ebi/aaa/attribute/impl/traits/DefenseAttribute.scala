@@ -20,7 +20,7 @@ import team.ebi.aaa.util.{listenTo, _}
 import scala.annotation.tailrec
 import scala.util.Random
 
-trait AttackAttribute extends Attribute[DoubleRange.Value[_]] {
+trait DefenseAttribute extends Attribute[DoubleRange.Value[_]] {
   override def getDataClass: Class[DoubleRange.Value[_]] = classOf[DoubleRange.Value[_]]
 
   @tailrec
@@ -38,28 +38,28 @@ trait AttackAttribute extends Attribute[DoubleRange.Value[_]] {
     case DoubleRange.Value(Absolute(lower), Absolute(upper)) => new DoubleUnaryOperator {
       val amount: Double = randAmount(lower, upper, Random)
 
-      override def applyAsDouble(operand: Double): Double = math.max(-operand, amount)
+      override def applyAsDouble(operand: Double): Double = operand * (1 / math.max(0, 1 + amount) - 1)
     }
     case DoubleRange.Value(Relative(lower), Relative(upper)) => new DoubleUnaryOperator {
       val amount: Double = randAmount(lower, upper, Random)
 
-      override def applyAsDouble(operand: Double): Double = operand * math.max(-1, amount)
+      override def applyAsDouble(operand: Double): Double = (1 / math.max(0, 1 + amount) - 1) * operand
     }
   }
 
-  def getMappings(source: Player, target: Entity): Iterable[(TemplateSlot, Mappings)]
+  def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)]
 
   implicit def pluginContainer: PluginContainer
 
   listenTo[DamageEntityEvent] { event =>
-    for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(source.getSource)) {
-      for ((slot, mappings) <- getMappings(entity, event.getTargetEntity)) {
+    for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(event.getTargetEntity)) {
+      for ((slot, mappings) <- getMappings(getRealEntity(source.getSource).getOrElse(source.getSource), entity)) {
         val item = slot match {
           case slot: TemplateSlot.Equipment => entity.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty)
           case _ => ItemStack.empty
         }
         val dataStream = Mappings.flattenDataStream(mappings, this)
-        val modifierType = DamageModifierTypes.WEAPON_ENCHANTMENT
+        val modifierType = DamageModifierTypes.ARMOR_ENCHANTMENT
         for (data <- dataStream.iterator.asScala) {
           val builder = if (item.isEmpty) DamageModifier.builder else DamageModifier.builder.item(item)
           val modifier = builder.`type`(modifierType).cause(event.getCause.`with`(this, Nil: _*)).build()
