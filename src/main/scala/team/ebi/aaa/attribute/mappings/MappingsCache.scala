@@ -26,15 +26,14 @@ class MappingsCache @Inject()(implicit container: PluginContainer,
   private val cache: LoadingCache[UUID, Map[TemplateSlot, Mappings]] = Caffeine.newBuilder.weakKeys.build(Loader)
 
   private object Loader extends CacheLoader[UUID, Map[TemplateSlot, Mappings]] {
-    private def load(key: UUID, user: User): Map[TemplateSlot, Mappings] = {
+    private def load(user: User): Map[TemplateSlot, Mappings] = {
       if (!Sponge.getServer.isMainThread) throw new IllegalStateException("Not loaded on main thread")
       val result = loader.generate(manager.get.attributeMap, manager.get.slotMap)(user)
       post(new CacheRefreshEvent(user, new CacheRefreshValue(result)))
-      locale.log("log.mappings.refreshed", user.getName, key)
       result
     }
 
-    override def load(key: UUID): Map[TemplateSlot, Mappings] = load(key, userStorage.get(key).get)
+    override def load(key: UUID): Map[TemplateSlot, Mappings] = load(userStorage.get(key).get)
   }
 
   listenTo[ChangeEntityEquipmentEvent.TargetPlayer](e => manager.get.collectMappings(e.getTargetEntity, refresh = true))
