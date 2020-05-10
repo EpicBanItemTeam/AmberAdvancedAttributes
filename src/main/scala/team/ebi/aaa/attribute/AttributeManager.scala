@@ -9,6 +9,7 @@ import org.spongepowered.api.event.game.state.{GamePostInitializationEvent, Game
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes
 import org.spongepowered.api.plugin.PluginContainer
+import org.spongepowered.api.service.permission.Subject
 import team.ebi.aaa
 import team.ebi.aaa.api.data._
 import team.ebi.aaa.api.{Attribute, AttributeService}
@@ -23,7 +24,7 @@ import scala.util.continuations.reset
 
 @Singleton
 class AttributeManager @Inject()(implicit container: PluginContainer,
-                                 injector: Injector, locale: AmberLocale, cache: MappingsCache) extends AttributeServiceImpl {
+                                 injector: Injector, locale: AmberLocale, logger: Logger, cache: MappingsCache) extends AttributeServiceImpl {
   private var attributes: immutable.ListMap[String, Attribute[_]] = immutable.ListMap.empty
 
   private var templateSlots: immutable.ListMap[Template, TemplateSlot] = immutable.ListMap.empty
@@ -84,7 +85,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     event.register(new EquipmentSlot(this, EquipmentTypes.CHESTPLATE))
     event.register(new EquipmentSlot(this, EquipmentTypes.LEGGINGS))
     event.register(new EquipmentSlot(this, EquipmentTypes.BOOTS))
-    event.register(new GlobalSlot())
+    event.register(new GlobalSlot(this))
   }
 
   def collect(user: User, refresh: Boolean): Map[TemplateSlot, Mappings] = {
@@ -95,6 +96,13 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
   def attributeMap: Map[String, Attribute[_]] = attributes
 
   def slotMap: Map[Template, TemplateSlot] = templateSlots
+
+  def checkPersistence(subject: Subject): Subject = {
+    if (!subject.isSubjectDataPersisted) {
+      logger.warn(locale.getUnchecked("log.register-slots.warn", subject, subject.getIdentifier).toPlain)
+    }
+    subject
+  }
 
   def unreachable(item: ItemStack): Nothing = {
     val cause = Sponge.getCauseStackManager.getCurrentCause
