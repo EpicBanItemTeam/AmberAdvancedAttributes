@@ -20,36 +20,21 @@ import team.ebi.aaa.util.{listenTo, _}
 import scala.annotation.tailrec
 import scala.util.Random
 
-trait DefenseAttribute extends Attribute[DoubleRange.Value[_]] {
-  override def getDataClass: Class[DoubleRange.Value[_]] = classOf[DoubleRange.Value[_]]
+trait DefenseAttribute extends DoubleRangeAttribute {
+  implicit def pluginContainer: PluginContainer
 
   @tailrec
-  final def getRealEntity(target: AnyRef): Option[Player] = target match {
+  private def getRealEntity(target: AnyRef): Option[Player] = target match {
     case entity: Projectile => getRealEntity(entity.getShooter)
     case entity: Player => Some(entity)
     case _ => None
   }
 
-  def randAmount(lower: Double, upper: Double, random: Random): Double = {
-    lower + (upper - lower) * (if (random.nextBoolean()) random.nextDouble() else 1 - random.nextDouble())
-  }
-
-  def getModifierFunction(range: DoubleRange.Value[_]): DoubleUnaryOperator = range match {
-    case DoubleRange.Value(Absolute(lower), Absolute(upper)) => new DoubleUnaryOperator {
-      val amount: Double = randAmount(lower, upper, Random)
-
-      override def applyAsDouble(operand: Double): Double = operand * (1 / math.max(0, 1 + amount) - 1)
-    }
-    case DoubleRange.Value(Relative(lower), Relative(upper)) => new DoubleUnaryOperator {
-      val amount: Double = randAmount(lower, upper, Random)
-
-      override def applyAsDouble(operand: Double): Double = (1 / math.max(0, 1 + amount) - 1) * operand
-    }
+  def getModifierFunction(function: Double => Double): DoubleUnaryOperator = new DoubleUnaryOperator {
+    override def applyAsDouble(operand: Double): Double = function(operand)
   }
 
   def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)]
-
-  implicit def pluginContainer: PluginContainer
 
   listenTo[DamageEntityEvent] { event =>
     for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(event.getTargetEntity)) {
@@ -63,7 +48,7 @@ trait DefenseAttribute extends Attribute[DoubleRange.Value[_]] {
         for (data <- dataStream.iterator.asScala) {
           val builder = if (item.isEmpty) DamageModifier.builder else DamageModifier.builder.item(item)
           val modifier = builder.`type`(modifierType).cause(event.getCause.`with`(this, Nil: _*)).build()
-          event.addModifierAfter(modifier, getModifierFunction(data), Collections.emptySet[DamageModifierType])
+          event.addModifierAfter(modifier, getModifierFunction(data(Random)), Collections.emptySet[DamageModifierType])
         }
       }
     }

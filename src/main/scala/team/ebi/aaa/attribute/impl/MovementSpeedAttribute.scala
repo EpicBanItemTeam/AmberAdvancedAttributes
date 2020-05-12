@@ -10,17 +10,18 @@ import team.ebi.aaa.util._
 
 import scala.util.Random
 
-class MaxHealthAttribute @Inject()(manager: AttributeManager)
-                                  (implicit container: PluginContainer) extends traits.DoubleRangeAttribute {
-  override def getDeserializationKey: String = "aaa-max-health"
+class MovementSpeedAttribute @Inject()(manager: AttributeManager)
+                                      (implicit container: PluginContainer) extends traits.DoubleRangeAttribute {
+  override def getDeserializationKey: String = "aaa-movement-speed"
 
   override def isCompatibleWith(slot: TemplateSlot): Boolean = true
 
   private def handle(player: Player): Unit = {
     val mappings = manager.collectMappings(player).values.asScala
     val data = mappings.flatMap(Mappings.flattenDataStream(_, this).iterator.asScala)
-    val maxHealth = data.foldLeft(20.0)((input, rangeValue) => rangeValue.average.apply(Random)(input))
-    player.offer(Keys.MAX_HEALTH, Double.box(maxHealth)) // I don't know how to get the default maximum health
+    val speed = data.foldLeft(1.0)((input, rangeValue) => rangeValue.average.apply(Random)(input))
+    player.offer(Keys.FLYING_SPEED, Double.box(0.05 * speed)) // I don't know how to get the default flying speed
+    player.offer(Keys.WALKING_SPEED, Double.box(0.1 * speed)) // I don't know how to get the default walking speed
   }
 
   listenTo[MappingsRefreshEvent](event => event.getTargetUser.getPlayer.asScala.foreach(handle))

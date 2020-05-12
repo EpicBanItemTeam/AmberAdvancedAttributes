@@ -68,6 +68,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     toBeRegistered.add(0, injector.getInstance(classOf[DefensePVEAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[DefensePVPAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[MaxHealthAttribute]))
+    toBeRegistered.add(0, injector.getInstance(classOf[MovementSpeedAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[CustomInfoAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[CustomNameAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[DurabilityAttribute]))
