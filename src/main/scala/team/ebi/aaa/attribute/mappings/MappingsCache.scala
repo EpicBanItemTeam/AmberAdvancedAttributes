@@ -5,12 +5,12 @@ import java.util.UUID
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.google.inject.{Inject, Provider, Singleton}
 import io.izzel.amber.commons.i18n.AmberLocale
-import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.entity.living.player.User
 import org.spongepowered.api.event.entity.ChangeEntityEquipmentEvent
 import org.spongepowered.api.event.network.ClientConnectionEvent
 import org.spongepowered.api.plugin.PluginContainer
+import org.spongepowered.api.scheduler.Task
 import org.spongepowered.api.service.user.UserStorageService
 import team.ebi.aaa.api.data.{Mappings, TemplateSlot}
 import team.ebi.aaa.attribute.AttributeManager
@@ -36,8 +36,18 @@ class MappingsCache @Inject()(implicit container: PluginContainer,
     override def load(key: UUID): Map[TemplateSlot, Mappings] = load(userStorage.get(key).get)
   }
 
-  listenTo[ChangeEntityEquipmentEvent.TargetPlayer](e => manager.get.collectMappings(e.getTargetEntity, refresh = true))
-  listenTo[ConfigReloadEvent](_ => cachedUsers.toSeq.foreach(manager.get.collectMappings(_, refresh = true)))
+  private class UserRefresher(user: User) extends Runnable {
+    override def run(): Unit = {
+      cache.invalidate(user.getUniqueId)
+      cache.get(user.getUniqueId)
+    }
+
+    def schedule(): Unit = Task.builder.delayTicks(1).execute(this).submit(container)
+  }
+
+  listenTo[ChangeEntityEquipmentEvent.TargetPlayer](e => new UserRefresher(e.getTargetEntity).run())
+  listenTo[ConfigReloadEvent](_ => cachedUsers.foreach(user => new UserRefresher(user).run()))
+  listenTo[ClientConnectionEvent.Join](e => new UserRefresher(e.getTargetEntity).schedule())
   listenTo[ClientConnectionEvent.Disconnect](e => invalidate(e.getTargetEntity))
   listenTo[ClientConnectionEvent.Login](e => retrieve(e.getTargetUser))
 
