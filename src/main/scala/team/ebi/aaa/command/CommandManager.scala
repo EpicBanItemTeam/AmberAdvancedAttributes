@@ -7,7 +7,7 @@ import io.izzel.amber.commons.i18n.AmberLocale
 import io.izzel.amber.commons.i18n.args.Arg
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
-import org.spongepowered.api.command.args.CommandContext
+import org.spongepowered.api.command.args.{CommandArgs, CommandContext, CommandElement}
 import org.spongepowered.api.command.spec.{CommandExecutor, CommandSpec}
 import org.spongepowered.api.command.{CommandResult, CommandSource}
 import org.spongepowered.api.data.`type`.HandTypes
@@ -19,6 +19,7 @@ import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.format.TextColors
+import org.spongepowered.api.util.StartsWithPredicate
 import team.ebi.aaa
 import team.ebi.aaa.api.data.{Template, UnreachableSlotDataException}
 import team.ebi.aaa.attribute.AttributeManager
@@ -40,13 +41,18 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
     })
   }
 
-  private val templateKey: Text = Text.of("template")
+  private class TemplateCommandElement(key: Text, values: () => Iterable[Template]) extends CommandElement(key) {
+    override def parseValue(src: CommandSource, args: CommandArgs): AnyRef = {
+      val next = args.next()
+      Template.tryParse(next).asScala match {
+        case Some(template) => template
+        case None => throw args.createError(Text.of("Invalid template string format: ", next))
+      }
+    }
 
-  private val templateArg: function.Supplier[java.util.Collection[String]] with function.Function[String, Template] = {
-    new function.Supplier[java.util.Collection[String]] with function.Function[String, Template] {
-      override def get: java.util.Collection[String] = config.keys.map(_.toString).toSet.asJava
-
-      override def apply(key: String): Template = Template.tryParse(key).asScala.filter(config.get(_).isDefined).orNull
+    override def complete(src: CommandSource, args: CommandArgs, context: CommandContext): java.util.List[String] = {
+      val predicate = new StartsWithPredicate(args.nextIfPresent.orElse(""))
+      values().map(_.toString).filter(predicate.test).toList.asJava
     }
   }
 
@@ -136,7 +142,7 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
 
   private def apply(src: CommandSource, args: CommandContext): Unit = try {
     val (templates, setTemplates) = useTemplate(src, args)
-    args.getAll[Template](templateKey).asScala.toList.diff(templates) match {
+    args.getAll[Template]("template-to-append").asScala.toList.diff(templates) match {
       case Nil => locale.to(src, "commands.apply.absent")
       case templatesToAppend => locally {
         setTemplates(templates.union(templatesToAppend))
@@ -153,7 +159,7 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
 
   private def unapply(src: CommandSource, args: CommandContext): Unit = try {
     val (templates, setTemplates) = useTemplate(src, args)
-    args.getAll[Template](templateKey).asScala.toList.intersect(templates) match {
+    args.getAll[Template]("template-to-remove").asScala.toList.intersect(templates) match {
       case Nil => locale.to(src, "commands.unapply.absent")
       case templatesToRemove => locally {
         setTemplates(templates.diff(templatesToRemove))
@@ -188,10 +194,10 @@ class CommandManager @Inject()(implicit container: PluginContainer, config: Conf
         .arguments(flags().flag("-global").buildWith(none()))
         .executor(show _).permission(s"${aaa.id}.command.show").build(), "show", "s")
       .child(CommandSpec.builder
-        .arguments(flags().flag("-global").buildWith(allOf(choices(templateKey, templateArg, templateArg, false))))
+        .arguments(flags().flag("-global").buildWith(allOf(new TemplateCommandElement(Text.of("template-to-append"), () => config.keys))))
         .executor(apply _).permission(s"${aaa.id}.command.apply").build(), "apply", "a")
       .child(CommandSpec.builder
-        .arguments(flags().flag("-global").buildWith(allOf(choices(templateKey, templateArg, templateArg, false))))
+        .arguments(flags().flag("-global").buildWith(allOf(new TemplateCommandElement(Text.of("template-to-remove"), () => config.keys))))
         .executor(unapply _).permission(s"${aaa.id}.command.unapply").build(), "unapply", "u")
       .executor(fallback _).build(), "aaa", aaa.id)
     ()
