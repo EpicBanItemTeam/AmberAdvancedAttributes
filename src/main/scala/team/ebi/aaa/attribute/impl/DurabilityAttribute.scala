@@ -1,9 +1,9 @@
 package team.ebi.aaa.attribute.impl
 
 import com.google.inject.{Inject, Singleton}
-import org.spongepowered.api.data.`type`.HandTypes
 import org.spongepowered.api.data.key.Keys
 import org.spongepowered.api.data.property.item.UseLimitProperty
+import org.spongepowered.api.entity.living.player.User
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
 import team.ebi.aaa
@@ -35,36 +35,19 @@ class DurabilityAttribute @Inject()(manager: AttributeManager)(implicit containe
     case _: UnreachableSlotDataException => false
   }
 
-  listenTo[MappingsRefreshEvent] { event =>
-    val user = event.getTargetUser
-    event.getAvailableSlots.asScala.foreach {
-      case TemplateSlots.MAIN_HAND => locally {
-        val item = user.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty)
-        for (durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala) {
-          for (limit <- item.getProperty(classOf[UseLimitProperty]).asScala) {
-            for (mappings <- event.getTargetMappings(TemplateSlots.MAIN_HAND).asScala) {
-              val totalLimit = Mappings.flattenDataStream(mappings, this).iterator.asScala.map(Int.unbox).sum
-              if (recalculate(item, totalLimit, Int.unbox(durability), Int.unbox(limit.getValue))) {
-                user.setItemInHand(HandTypes.MAIN_HAND, item)
-              }
-            }
-          }
-        }
-      }
-      case TemplateSlots.OFF_HAND => locally {
-        val item = user.getItemInHand(HandTypes.OFF_HAND).orElse(ItemStack.empty)
-        for (durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala) {
-          for (limit <- item.getProperty(classOf[UseLimitProperty]).asScala) {
-            for (mappings <- event.getTargetMappings(TemplateSlots.OFF_HAND).asScala) {
-              val totalLimit = Mappings.flattenDataStream(mappings, this).iterator.asScala.map(Int.unbox).sum
-              if (recalculate(item, totalLimit, Int.unbox(durability), Int.unbox(limit.getValue))) {
-                user.setItemInHand(HandTypes.OFF_HAND, item)
-              }
-            }
-          }
-        }
-      }
-      case _ => ()
+  private def handle(user: User, getMappings: TemplateSlot => Option[Mappings]): Unit = for {
+    slot <- TemplateSlots.MAIN_HAND :: TemplateSlots.OFF_HAND :: Nil; mappings <- getMappings(slot)
+    item = user.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty)
+    limitProperty <- item.getProperty(classOf[UseLimitProperty]).asScala
+    durability <- item.get[Integer](Keys.ITEM_DURABILITY).asScala
+  } {
+    val limit = Int.unbox(limitProperty.getValue)
+    val dataStream = Mappings.flattenDataStream(mappings, this)
+    val totalLimit = (dataStream.iterator.asScala.map(Int.unbox) ++ (limit :: Nil)).max
+    if (recalculate(item, totalLimit, Int.unbox(durability), limit)) {
+      user.equip(slot.getEquipmentType, item)
     }
   }
+
+  listenTo[MappingsRefreshEvent](event => handle(event.getTargetUser, event.getTargetMappings(_).asScala))
 }
