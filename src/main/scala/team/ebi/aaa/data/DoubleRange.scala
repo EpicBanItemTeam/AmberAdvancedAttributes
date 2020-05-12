@@ -16,7 +16,7 @@ object DoubleRange extends RegexParsers {
   }
 
   case class Relative(value: Double) extends FixedDouble {
-    override def toString: String = value.formatted("%+f%%")
+    override def toString: String = (value * 100).formatted("%+f%%")
   }
 
   case class Value[T <: FixedDouble](lower: T, upper: T) {
@@ -33,7 +33,7 @@ object DoubleRange extends RegexParsers {
 
   private def absolute: Parser[Absolute] = (unsigned | signed | failure("signed value expected")).^^(Absolute)
 
-  private def relative: Parser[Relative] = ((unsigned | signed | failure("signed value expected")) <~ "%").^^(Relative)
+  private def relative: Parser[Relative] = ((unsigned | signed | failure("signed value expected")) <~ "%").^^((v: Double) => Relative(v / 100))
 
   private def range[T <: FixedDouble](in: Parser[T]): Parser[Value[T]] = (in ~ opt(ws ~> "~" ~ (ws ~> in))).^^ {
     case lower ~ Some("~" ~ upper) => Value(lower, upper)
