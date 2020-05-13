@@ -9,7 +9,7 @@ import team.ebi.aaa.attribute.AttributeManager
 import team.ebi.aaa.util._
 
 @Singleton
-class DefensePVPAttribute @Inject()(manager: AttributeManager)(implicit container: PluginContainer) extends traits.DefenseAttribute {
+class DefensePVPAttribute @Inject()(manager: AttributeManager)(implicit container: PluginContainer) extends traits.ApplyAfterAttribute {
   override def getDeserializationKey: String = "aaa-pvp-defense"
 
   override def isCompatibleWith(slot: TemplateSlot): Boolean = true

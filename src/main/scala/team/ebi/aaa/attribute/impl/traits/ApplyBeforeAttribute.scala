@@ -12,7 +12,7 @@ import team.ebi.aaa.util.{listenTo, _}
 import scala.annotation.tailrec
 import scala.util.Random
 
-trait AttackAttribute extends DoubleRangeAttribute {
+trait ApplyBeforeAttribute extends DoubleRangeAttribute {
   implicit def pluginContainer: PluginContainer
 
   @tailrec

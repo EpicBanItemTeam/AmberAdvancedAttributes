@@ -17,7 +17,7 @@ import team.ebi.aaa.util.{listenTo, _}
 import scala.annotation.tailrec
 import scala.util.Random
 
-trait DefenseAttribute extends DoubleRangeAttribute {
+trait ApplyAfterAttribute extends DoubleRangeAttribute {
   implicit def pluginContainer: PluginContainer
 
   @tailrec
@@ -28,11 +28,13 @@ trait DefenseAttribute extends DoubleRangeAttribute {
     case _ => None
   }
 
-  private def getModifierFunction(function: Double => Double): DoubleUnaryOperator = new DoubleUnaryOperator {
+  def getModifierFunction(function: Double => Double): DoubleUnaryOperator = new DoubleUnaryOperator {
     override def applyAsDouble(operand: Double): Double = operand / function(1) - operand
   }
 
   def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)]
+
+  def modifierType: DamageModifierType = DamageModifierTypes.SHIELD
 
   listenTo[DamageEntityEvent] { event =>
     for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(event.getTargetEntity)) {
@@ -42,7 +44,6 @@ trait DefenseAttribute extends DoubleRangeAttribute {
           case _ => ItemStack.empty
         }
         val dataStream = Mappings.flattenDataStream(mappings, this)
-        val modifierType = DamageModifierTypes.SHIELD
         for (data <- dataStream.iterator.asScala) {
           val builder = if (item.isEmpty) DamageModifier.builder else DamageModifier.builder.item(item)
           val modifier = builder.`type`(modifierType).cause(event.getCause.`with`(this, Nil: _*)).build()
