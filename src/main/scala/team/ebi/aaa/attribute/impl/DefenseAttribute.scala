@@ -16,7 +16,8 @@ class DefenseAttribute @Inject()(manager: AttributeManager)(implicit container: 
 
   override implicit def pluginContainer: PluginContainer = container
 
-  override def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)] = {
-    manager.collectMappings(target).asScala
+  override def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)] = target match {
+    case player: Player => manager.collectMappings(player).asScala
+    case _ => Nil
   }
 }

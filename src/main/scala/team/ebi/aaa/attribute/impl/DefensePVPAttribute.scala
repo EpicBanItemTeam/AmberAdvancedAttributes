@@ -16,7 +16,8 @@ class DefensePVPAttribute @Inject()(manager: AttributeManager)(implicit containe
 
   override implicit def pluginContainer: PluginContainer = container
 
-  override def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)] = {
-    if (source.isInstanceOf[Player]) manager.collectMappings(target).asScala else Nil
+  override def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)] = target match {
+    case player: Player => if (source.isInstanceOf[Player]) manager.collectMappings(player).asScala else Nil
+    case _ => Nil
   }
 }

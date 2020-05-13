@@ -3,9 +3,8 @@ package team.ebi.aaa.attribute.impl.traits
 import java.util.Collections
 import java.util.function.DoubleUnaryOperator
 
-import org.spongepowered.api.entity.Entity
-import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.entity.projectile.Projectile
+import org.spongepowered.api.entity.{Entity, Equipable}
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.cause.entity.damage.{DamageModifier, DamageModifierType, DamageModifierTypes}
 import org.spongepowered.api.event.entity.DamageEntityEvent
@@ -22,9 +21,9 @@ trait ApplyAfterAttribute extends DoubleRangeAttribute {
 
   @tailrec
   // noinspection DuplicatedCode
-  private def getRealEntity(target: AnyRef): Option[Player] = target match {
+  private def getRealEntity(target: AnyRef): Option[Entity] = target match {
     case entity: Projectile => getRealEntity(entity.getShooter)
-    case entity: Player => Some(entity)
+    case entity: Entity => Some(entity)
     case _ => None
   }
 
@@ -32,15 +31,18 @@ trait ApplyAfterAttribute extends DoubleRangeAttribute {
     override def applyAsDouble(operand: Double): Double = operand / function(1) - operand
   }
 
-  def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)]
+  def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)]
 
   def modifierType: DamageModifierType = DamageModifierTypes.SHIELD
 
   listenTo[DamageEntityEvent] { event =>
-    for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(event.getTargetEntity)) {
-      for ((slot, mappings) <- getMappings(getRealEntity(source.getSource).getOrElse(source.getSource), entity)) {
+    for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala.map(_.getSource).flatMap(getRealEntity)) {
+      for ((slot, mappings) <- getMappings(source, event.getTargetEntity)) {
         val item = slot match {
-          case slot: TemplateSlot.Equipment => entity.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty)
+          case slot: TemplateSlot.Equipment => source match {
+            case source: Equipable => source.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty)
+            case _ => ItemStack.empty
+          }
           case _ => ItemStack.empty
         }
         val dataStream = Mappings.flattenDataStream(mappings, this)

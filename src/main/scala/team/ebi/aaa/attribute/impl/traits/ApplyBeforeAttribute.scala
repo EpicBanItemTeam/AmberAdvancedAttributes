@@ -1,7 +1,6 @@
 package team.ebi.aaa.attribute.impl.traits
 
 import org.spongepowered.api.entity.Entity
-import org.spongepowered.api.entity.living.player.Player
 import org.spongepowered.api.entity.projectile.Projectile
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.entity.DamageEntityEvent
@@ -17,13 +16,13 @@ trait ApplyBeforeAttribute extends DoubleRangeAttribute {
 
   @tailrec
   // noinspection DuplicatedCode
-  private def getRealEntity(target: AnyRef): Option[Player] = target match {
+  private def getRealEntity(target: AnyRef): Option[Entity] = target match {
     case entity: Projectile => getRealEntity(entity.getShooter)
-    case entity: Player => Some(entity)
+    case entity: Entity => Some(entity)
     case _ => None
   }
 
-  def getMappings(source: Player, target: Entity): Iterable[(TemplateSlot, Mappings)]
+  def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)]
 
   listenTo[DamageEntityEvent] { event =>
     for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(source.getSource)) {

@@ -19,8 +19,9 @@ class DirectAttackAttribute @Inject()(manager: AttributeManager)(implicit contai
 
   override implicit def pluginContainer: PluginContainer = container
 
-  override def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)] = {
-    manager.collectMappings(target).asScala
+  override def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)] = source match {
+    case player: Player => manager.collectMappings(player).asScala
+    case _ => Nil
   }
 
   override def modifierType: DamageModifierType = DamageModifierTypes.WEAPON_ENCHANTMENT
