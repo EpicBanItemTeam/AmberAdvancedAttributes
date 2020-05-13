@@ -11,10 +11,7 @@ import org.spongepowered.api.event.cause.entity.damage.{DamageModifier, DamageMo
 import org.spongepowered.api.event.entity.DamageEntityEvent
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
-import team.ebi.aaa.api.Attribute
 import team.ebi.aaa.api.data.{Mappings, TemplateSlot}
-import team.ebi.aaa.data.DoubleRange
-import team.ebi.aaa.data.DoubleRange.{Absolute, Relative}
 import team.ebi.aaa.util.{listenTo, _}
 
 import scala.annotation.tailrec
@@ -24,14 +21,15 @@ trait DefenseAttribute extends DoubleRangeAttribute {
   implicit def pluginContainer: PluginContainer
 
   @tailrec
+  // noinspection DuplicatedCode
   private def getRealEntity(target: AnyRef): Option[Player] = target match {
     case entity: Projectile => getRealEntity(entity.getShooter)
     case entity: Player => Some(entity)
     case _ => None
   }
 
-  def getModifierFunction(function: Double => Double): DoubleUnaryOperator = new DoubleUnaryOperator {
-    override def applyAsDouble(operand: Double): Double = function(operand)
+  private def getModifierFunction(function: Double => Double): DoubleUnaryOperator = new DoubleUnaryOperator {
+    override def applyAsDouble(operand: Double): Double = operand / function(1) - operand
   }
 
   def getMappings(source: Entity, target: Player): Iterable[(TemplateSlot, Mappings)]
@@ -44,7 +42,7 @@ trait DefenseAttribute extends DoubleRangeAttribute {
           case _ => ItemStack.empty
         }
         val dataStream = Mappings.flattenDataStream(mappings, this)
-        val modifierType = DamageModifierTypes.ARMOR_ENCHANTMENT
+        val modifierType = DamageModifierTypes.SHIELD
         for (data <- dataStream.iterator.asScala) {
           val builder = if (item.isEmpty) DamageModifier.builder else DamageModifier.builder.item(item)
           val modifier = builder.`type`(modifierType).cause(event.getCause.`with`(this, Nil: _*)).build()
