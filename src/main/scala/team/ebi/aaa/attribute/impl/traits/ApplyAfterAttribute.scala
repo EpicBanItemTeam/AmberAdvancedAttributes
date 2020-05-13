@@ -11,7 +11,7 @@ import org.spongepowered.api.event.entity.DamageEntityEvent
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.plugin.PluginContainer
 import team.ebi.aaa.api.data.{Mappings, TemplateSlot}
-import team.ebi.aaa.util.{listenTo, _}
+import team.ebi.aaa.util._
 
 import scala.annotation.tailrec
 import scala.util.Random
@@ -35,7 +35,7 @@ trait ApplyAfterAttribute extends DoubleRangeAttribute {
 
   def modifierType: DamageModifierType = DamageModifierTypes.SHIELD
 
-  listenTo[DamageEntityEvent] { event =>
+  def on(event: DamageEntityEvent): Unit = {
     for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala.map(_.getSource).flatMap(getRealEntity)) {
       for ((slot, mappings) <- getMappings(source, event.getTargetEntity)) {
         val item = slot match {

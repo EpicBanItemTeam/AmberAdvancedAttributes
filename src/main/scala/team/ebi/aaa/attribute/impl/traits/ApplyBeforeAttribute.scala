@@ -24,7 +24,7 @@ trait ApplyBeforeAttribute extends DoubleRangeAttribute {
 
   def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)]
 
-  listenTo[DamageEntityEvent] { event =>
+  def on(event: DamageEntityEvent): Unit = {
     for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(source.getSource)) {
       for ((_, mappings) <- getMappings(entity, event.getTargetEntity)) {
         val dataStream = Mappings.flattenDataStream(mappings, this)

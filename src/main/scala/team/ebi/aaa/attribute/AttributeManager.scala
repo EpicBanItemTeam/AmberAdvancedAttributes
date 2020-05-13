@@ -5,6 +5,7 @@ import io.izzel.amber.commons.i18n.AmberLocale
 import org.slf4j.Logger
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.entity.living.player.User
+import org.spongepowered.api.event.entity.DamageEntityEvent
 import org.spongepowered.api.event.game.state.{GamePostInitializationEvent, GameStartingServerEvent}
 import org.spongepowered.api.item.inventory.ItemStack
 import org.spongepowered.api.item.inventory.equipment.EquipmentTypes
@@ -15,6 +16,7 @@ import team.ebi.aaa.api.data._
 import team.ebi.aaa.api.{Attribute, AttributeService}
 import team.ebi.aaa.attribute.event.{AttributeLoadEvent, TemplateSlotLoadEvent}
 import team.ebi.aaa.attribute.impl._
+import team.ebi.aaa.attribute.impl.traits.{ApplyAfterAttribute, ApplyBeforeAttribute}
 import team.ebi.aaa.attribute.mappings.MappingsCache
 import team.ebi.aaa.attribute.slot.{EquipmentSlot, GlobalSlot}
 import team.ebi.aaa.util._
@@ -49,6 +51,15 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     Sponge.getServiceManager.setProvider(container, classOf[AttributeService], this)
   }
 
+  private def registerListeners(): Unit = {
+    val listeners = attributes.values.flatMap {
+      case before: ApplyBeforeAttribute => ((e: DamageEntityEvent) => before.on(e)) :: Nil
+      case after: ApplyAfterAttribute => ((e: DamageEntityEvent) => after.on(e)) :: Nil
+      case _ => Nil
+    }
+    listenTo[DamageEntityEvent](event => listeners.foreach(_(event)))
+  }
+
   reset {
     waitFor[GamePostInitializationEvent]
     injectAttributeService()
@@ -56,6 +67,7 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     waitFor[GameStartingServerEvent]
     registerTemplateSlots()
     registerAttributes()
+    registerListeners()
   }
 
   listenTo[Attribute.LoadEvent] { event =>
@@ -64,10 +76,10 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     toBeRegistered.add(0, injector.getInstance(classOf[AttackAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[AttackPVEAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[AttackPVPAttribute]))
+    toBeRegistered.add(0, injector.getInstance(classOf[DirectAttackAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[DefenseAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[DefensePVEAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[DefensePVPAttribute]))
-    toBeRegistered.add(0, injector.getInstance(classOf[DirectAttackAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[MaxHealthAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[MovementSpeedAttribute]))
     toBeRegistered.add(0, injector.getInstance(classOf[CustomInfoAttribute]))
