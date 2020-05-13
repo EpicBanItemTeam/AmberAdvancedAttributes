@@ -30,25 +30,14 @@ trait AttackAttribute extends DoubleRangeAttribute {
     case _ => None
   }
 
-  def getModifierFunction(function: Double => Double): DoubleUnaryOperator = new DoubleUnaryOperator {
-    override def applyAsDouble(operand: Double): Double = function(operand)
-  }
-
   def getMappings(source: Player, target: Entity): Iterable[(TemplateSlot, Mappings)]
 
   listenTo[DamageEntityEvent] { event =>
     for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala; entity <- getRealEntity(source.getSource)) {
-      for ((slot, mappings) <- getMappings(entity, event.getTargetEntity)) {
-        val item = slot match {
-          case slot: TemplateSlot.Equipment => entity.getEquipped(slot.getEquipmentType).orElse(ItemStack.empty)
-          case _ => ItemStack.empty
-        }
+      for ((_, mappings) <- getMappings(entity, event.getTargetEntity)) {
         val dataStream = Mappings.flattenDataStream(mappings, this)
-        val modifierType = DamageModifierTypes.WEAPON_ENCHANTMENT
         for (data <- dataStream.iterator.asScala) {
-          val builder = if (item.isEmpty) DamageModifier.builder else DamageModifier.builder.item(item)
-          val modifier = builder.`type`(modifierType).cause(event.getCause.`with`(this, Nil: _*)).build()
-          event.addModifierAfter(modifier, getModifierFunction(data(Random)), Collections.emptySet[DamageModifierType])
+          event.setBaseDamage(data(Random)(event.getBaseDamage))
         }
       }
     }
