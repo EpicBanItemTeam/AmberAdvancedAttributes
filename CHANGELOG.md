@@ -1,5 +1,11 @@
 # AmberAdvancedAttributes Changelog
 
+## v2.0.0-alpha.3
+
+* Add probability for ranges
+* Add an attribute for direct damage
+* Add an attribute for movement speed
+
 ## v2.0.0-alpha.2
 
 * Add an attribute related to max health
