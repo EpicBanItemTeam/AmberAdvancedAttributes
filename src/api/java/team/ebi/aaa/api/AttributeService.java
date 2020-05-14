@@ -3,6 +3,7 @@ package team.ebi.aaa.api;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.util.annotation.NonnullByDefault;
@@ -23,11 +24,11 @@ public interface AttributeService {
 
     /* --- mappings --- */
 
-    Map<TemplateSlot, Mappings> collectMappings(User user, boolean refresh);
+    void refreshMappings(User user);
 
-    default Map<TemplateSlot, Mappings> collectMappings(User user) {
-        return this.collectMappings(user, false);
-    }
+    Map<TemplateSlot, Mappings> collectMappings(User user);
+
+    Map<TemplateSlot, Mappings> collectMappings(EntityDamageSource source);
 
     /* --- attributes --- */
 
