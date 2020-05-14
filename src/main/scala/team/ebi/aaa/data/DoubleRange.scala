@@ -26,14 +26,14 @@ object DoubleRange {
 
   case class Value[T <: FixedDouble](lower: T, upper: T, probability: Probability) {
     override def toString: String = {
-      val suffix = if (probability.value == 1) "" else " : " + probability.toString
+      val suffix = if (probability.value < 1) " : " + probability.toString else ""
       val prefix = if (lower == upper) lower.toString else s"$lower ~ $upper"
       prefix + suffix
     }
 
     def average: Value[T] = this match {
-      case Value(Absolute(a), Absolute(b), p) => Value(Absolute((a + b) / 2), Absolute((a + b) / 2), p).asInstanceOf[Value[T]]
-      case Value(Relative(a), Relative(b), p) => Value(Relative((a + b) / 2), Relative((a + b) / 2), p).asInstanceOf[Value[T]]
+      case Value(Absolute(a), Absolute(b), _) => Value(Absolute((a + b) / 2), Absolute((a + b) / 2), Probability(1)).asInstanceOf[Value[T]]
+      case Value(Relative(a), Relative(b), _) => Value(Relative((a + b) / 2), Relative((a + b) / 2), Probability(1)).asInstanceOf[Value[T]]
     }
 
     def apply(rand: Random): Double => Double = this match {
