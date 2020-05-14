@@ -4,7 +4,7 @@ import java.util.function.DoubleUnaryOperator
 
 import com.google.inject.{Inject, Singleton}
 import org.spongepowered.api.entity.Entity
-import org.spongepowered.api.entity.living.player.Player
+import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource
 import org.spongepowered.api.event.cause.entity.damage.{DamageModifierType, DamageModifierTypes}
 import org.spongepowered.api.plugin.PluginContainer
 import team.ebi.aaa.api.data.{Mappings, TemplateSlot}
@@ -19,9 +19,8 @@ class DirectAttackAttribute @Inject()(manager: AttributeManager)(implicit contai
 
   override implicit def pluginContainer: PluginContainer = container
 
-  override def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)] = source match {
-    case player: Player => manager.collectMappings(player).asScala
-    case _ => Nil
+  override def getMappings(source: EntityDamageSource, target: Entity): Iterable[(TemplateSlot, Mappings)] = {
+    manager.collectMappings(source).asScala
   }
 
   override def modifierType: DamageModifierType = DamageModifierTypes.WEAPON_ENCHANTMENT

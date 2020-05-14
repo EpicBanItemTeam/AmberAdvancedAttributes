@@ -12,7 +12,7 @@ import team.ebi.aaa.util._
 class GlobalSlot(manager: AttributeManager) extends TemplateSlot.Global {
   private final val defStr = "global"
 
-  private val subject: Subject = manager.checkPersistence(Sponge.getServer.getConsole)
+  private val subject: Subject = Sponge.getServer.getConsole.tap(manager.checkPersistence)
 
   override def toString: String = s"GlobalSlot{${subject.getIdentifier}}"
 

@@ -31,12 +31,12 @@ trait ApplyAfterAttribute extends DoubleRangeAttribute {
     override def applyAsDouble(operand: Double): Double = operand / function(1) - operand
   }
 
-  def getMappings(source: Entity, target: Entity): Iterable[(TemplateSlot, Mappings)]
+  def getMappings(source: EntityDamageSource, target: Entity): Iterable[(TemplateSlot, Mappings)]
 
   def modifierType: DamageModifierType = DamageModifierTypes.SHIELD
 
   def on(event: DamageEntityEvent): Unit = {
-    for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala.map(_.getSource).flatMap(getRealEntity)) {
+    for (source <- event.getCause.first(classOf[EntityDamageSource]).asScala) {
       for ((slot, mappings) <- getMappings(source, event.getTargetEntity)) {
         val item = slot match {
           case slot: TemplateSlot.Equipment => source match {

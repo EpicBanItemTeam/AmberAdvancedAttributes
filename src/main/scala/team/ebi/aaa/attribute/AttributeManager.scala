@@ -17,7 +17,7 @@ import team.ebi.aaa.api.{Attribute, AttributeService}
 import team.ebi.aaa.attribute.event.{AttributeLoadEvent, TemplateSlotLoadEvent}
 import team.ebi.aaa.attribute.impl._
 import team.ebi.aaa.attribute.impl.traits.{ApplyAfterAttribute, ApplyBeforeAttribute}
-import team.ebi.aaa.attribute.mappings.MappingsCache
+import team.ebi.aaa.attribute.mappings.{MappingsCache, ProjectileMappingsCache}
 import team.ebi.aaa.attribute.slot.{EquipmentSlot, GlobalSlot}
 import team.ebi.aaa.util._
 
@@ -26,7 +26,8 @@ import scala.util.continuations.reset
 
 @Singleton
 class AttributeManager @Inject()(implicit container: PluginContainer,
-                                 injector: Injector, locale: AmberLocale, logger: Logger, cache: MappingsCache) extends AttributeServiceImpl {
+                                 injector: Injector, locale: AmberLocale, logger: Logger,
+                                 cache: MappingsCache, projectileCache: ProjectileMappingsCache) extends AttributeServiceImpl {
   private var attributes: immutable.ListMap[String, Attribute[_]] = immutable.ListMap.empty
 
   private var templateSlots: immutable.ListMap[Template, TemplateSlot] = immutable.ListMap.empty
@@ -103,20 +104,16 @@ class AttributeManager @Inject()(implicit container: PluginContainer,
     event.register(new GlobalSlot(this))
   }
 
-  def collect(user: User, refresh: Boolean): Map[TemplateSlot, Mappings] = {
-    if (refresh) cache.invalidate(user)
-    cache.retrieve(user)
-  }
+  def cacheMap: MappingsCache = cache
 
   def attributeMap: Map[String, Attribute[_]] = attributes
 
   def slotMap: Map[Template, TemplateSlot] = templateSlots
 
-  def checkPersistence(subject: Subject): Subject = {
-    if (!subject.isSubjectDataPersisted) {
-      logger.warn(locale.getUnchecked("log.register-slots.warn", subject, subject.getIdentifier).toPlain)
-    }
-    subject
+  def projectileCacheMap: ProjectileMappingsCache = projectileCache
+
+  def checkPersistence(subject: Subject): Unit = if (!subject.isSubjectDataPersisted) {
+    logger.warn(locale.getUnchecked("log.register-slots.warn", subject, subject.getIdentifier).toPlain)
   }
 
   def unreachable(item: ItemStack): Nothing = {
