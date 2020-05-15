@@ -1,5 +1,10 @@
 # AmberAdvancedAttributes Changelog
 
+## v2.0.0-alpha.4
+
+* Fix that projectiles do not handle mappings correctly
+* Add an attribute for fire burning
+
 ## v2.0.0-alpha.3
 
 * Add probability for ranges
